@@ -1,0 +1,369 @@
+{
+  "kind": "AdmissionReview",
+  "apiVersion": "admission.k8s.io/v1beta1",
+  "request": {
+    "uid": "9f7e5611-81ef-11e9-a6a5-0a5bccf7c658",
+    "kind": {
+      "group": "zalando.org",
+      "version": "v1",
+      "kind": "TestFabricGateway"
+    },
+    "resource": {
+      "group": "zalando.org",
+      "version": "v1",
+      "resource": "testfabricgateways"
+    },
+    "name": "fgtestapp",
+    "namespace": "fabric",
+    "operation": "UPDATE",
+    "userInfo": {
+      "username": "system:serviceaccount:default:cdp",
+      "uid": "329d40fe-88c3-11e7-ba96-0a40a9ae2285",
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:default",
+        "system:authenticated"
+      ]
+    },
+    "object": {
+      "apiVersion": "zalando.org/v1",
+      "kind": "TestFabricGateway",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/last-applied-configuration": "{}"
+        },
+        "creationTimestamp": "2019-05-23T09:48:38Z",
+        "generation": 123,
+        "labels": {
+          "deployment-id": "d-7vnmbtqkvx7i79bvjfse9tynw"
+        },
+        "name": "fgtestapp",
+        "namespace": "fabric",
+        "resourceVersion": "231986736",
+        "uid": "f0b2e65d-7d3f-11e9-912e-0a13213f0924"
+      },
+      "spec": {
+        "paths": {
+          "/limited/all": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 2
+              }
+            }
+          },
+          "/limited/me": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 10000,
+                "target": {
+                  "stups_fabric-demo-app": 2
+                }
+              }
+            }
+          },
+          "/limited/other": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 10000,
+                "target": {
+                  "stups_spp-product-integration": 2
+                }
+              }
+            }
+          },
+          "/resources": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.nonexistant"
+              ]
+            },
+            "post": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/resources/{id}": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ]
+            },
+            "put": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/resources/{id}/sub-resources/{id}": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ]
+            },
+            "put": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/starsources/*": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid"
+              ]
+            }
+          },
+          "/whitelisted": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid"
+              ],
+              "x-fabric-whitelist": {
+                "service-list": [
+                  "stups_metacontroller"
+                ]
+              }
+            }
+          }
+        },
+        "x-fabric-admins": [
+          "bmooney",
+          "fmoloney",
+          "cgallagher",
+          "ocullen",
+          "changemefortesty"
+        ],
+        "x-fabric-service": [],
+        "x-external-service-provider": {
+          "stackSetName": "some-stack-set",
+          "hosts": ["host.example.com"]
+        }
+      },
+      "status": {
+        "num_owned_ingress": 26,
+        "observedGeneration": 122,
+        "owned_ingress_names": [
+          "fgtestapp-put-resources-id-admins",
+          "fgtestapp-get-resources-id-sub-resources-id-all",
+          "fgtestapp-default-403-route",
+          "fgtestapp-put-resources-id-sub-resources-id-admins",
+          "fgtestapp-post-resources-admins",
+          "fgtestapp-get-limited-all-rl-all",
+          "fgtestapp-get-limited-other-rl-service-stupssppproductintegration",
+          "fgtestapp-get-resources-admins",
+          "fgtestapp-get-limited-me-rl-service-stupsfabricdemoapp",
+          "fgtestapp-get-resources-id-admins",
+          "fgtestapp-reject-http-route",
+          "fgtestapp-get-starsources-id-admins",
+          "fgtestapp-get-limited-other-admins",
+          "fgtestapp-get-resources-id-all",
+          "fgtestapp-get-resources-id-sub-resources-id-admins",
+          "fgtestapp-get-resources-all",
+          "fgtestapp-post-resources-all",
+          "fgtestapp-get-whitelisted-admins",
+          "fgtestapp-get-limited-me-rl-all",
+          "fgtestapp-get-whitelisted-service-stupsmetacontroller",
+          "fgtestapp-get-limited-all-admins",
+          "fgtestapp-get-limited-me-admins",
+          "fgtestapp-get-starsources-id-all",
+          "fgtestapp-get-limited-other-rl-all",
+          "fgtestapp-put-resources-id-sub-resources-id-all",
+          "fgtestapp-put-resources-id-all"
+        ]
+      }
+    },
+    "oldObject": {
+      "apiVersion": "zalando.org/v1",
+      "kind": "TestFabricGateway",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zalando.org/v1\",\"kind\":\"TestFabricGateway\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-2op94yz64eg8na8hg39c57qct1\"},\"name\":\"fgtestapp\",\"namespace\":\"fabric\"},\"spec\":{\"paths\":{\"/limited/all\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":2}}},\"/limited/me\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":10000,\"target\":{\"stups_fabric-demo-app\":2}}}},\"/limited/other\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":10000,\"target\":{\"stups_spp-product-integration\":2}}}},\"/resources\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.nonexistant\"]},\"post\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.write\"]}},\"/resources/{id}\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"]},\"put\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.write\"]}},\"/resources/{id}/sub-resources/{id}\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"]},\"put\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.write\"]}},\"/starsources/*\":{\"get\":{\"x-fabric-privileges\":[\"uid\"]}},\"/whitelisted\":{\"get\":{\"x-fabric-privileges\":[\"uid\"],\"x-fabric-whitelist\":{\"service-list\":[\"stups_metacontroller\"]}}}},\"x-fabric-admins\":[\"bmooney\",\"fmoloney\",\"cgallagher\",\"ocullen\",\"changemefortesty\"],\"x-fabric-service\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}]}}\n"
+        },
+        "creationTimestamp": "2019-05-23T09:48:38Z",
+        "generation": 123,
+        "labels": {
+          "deployment-id": "d-2op94yz64eg8na8hg39c57qct1"
+        },
+        "name": "fgtestapp",
+        "namespace": "fabric",
+        "resourceVersion": "231986736",
+        "uid": "f0b2e65d-7d3f-11e9-912e-0a13213f0924"
+      },
+      "spec": {
+        "paths": {
+          "/limited/all": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 2
+              }
+            }
+          },
+          "/limited/me": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 10000,
+                "target": {
+                  "stups_fabric-demo-app": 2
+                }
+              }
+            }
+          },
+          "/limited/other": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ],
+              "x-fabric-ratelimits": {
+                "default-rate": 10000,
+                "target": {
+                  "stups_spp-product-integration": 2
+                }
+              }
+            }
+          },
+          "/resources": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.nonexistant"
+              ]
+            },
+            "post": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/resources/{id}": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ]
+            },
+            "put": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/resources/{id}/sub-resources/{id}": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.read"
+              ]
+            },
+            "put": {
+              "x-fabric-privileges": [
+                "uid",
+                "fabric-demo-app.write"
+              ]
+            }
+          },
+          "/starsources/*": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid"
+              ]
+            }
+          },
+          "/whitelisted": {
+            "get": {
+              "x-fabric-privileges": [
+                "uid"
+              ],
+              "x-fabric-whitelist": {
+                "service-list": [
+                  "stups_metacontroller"
+                ]
+              }
+            }
+          }
+        },
+        "x-fabric-admins": [
+          "bmooney",
+          "fmoloney",
+          "cgallagher",
+          "ocullen",
+          "changemefortesty"
+        ],
+        "x-fabric-service": [
+          {
+            "host": "fgtestapp.smart-product-platform-test.zalan.do",
+            "serviceName": "fgtestapp",
+            "servicePort": "http"
+          },
+          {
+            "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+            "serviceName": "fgtestapp",
+            "servicePort": "http"
+          }
+        ]
+      },
+      "status": {
+        "num_owned_ingress": 26,
+        "observedGeneration": 122,
+        "owned_ingress_names": [
+          "fgtestapp-put-resources-id-admins",
+          "fgtestapp-get-resources-id-sub-resources-id-all",
+          "fgtestapp-default-403-route",
+          "fgtestapp-put-resources-id-sub-resources-id-admins",
+          "fgtestapp-post-resources-admins",
+          "fgtestapp-get-limited-all-rl-all",
+          "fgtestapp-get-limited-other-rl-service-stupssppproductintegration",
+          "fgtestapp-get-resources-admins",
+          "fgtestapp-get-limited-me-rl-service-stupsfabricdemoapp",
+          "fgtestapp-get-resources-id-admins",
+          "fgtestapp-reject-http-route",
+          "fgtestapp-get-starsources-id-admins",
+          "fgtestapp-get-limited-other-admins",
+          "fgtestapp-get-resources-id-all",
+          "fgtestapp-get-resources-id-sub-resources-id-admins",
+          "fgtestapp-get-resources-all",
+          "fgtestapp-post-resources-all",
+          "fgtestapp-get-whitelisted-admins",
+          "fgtestapp-get-limited-me-rl-all",
+          "fgtestapp-get-whitelisted-service-stupsmetacontroller",
+          "fgtestapp-get-limited-all-admins",
+          "fgtestapp-get-limited-me-admins",
+          "fgtestapp-get-starsources-id-all",
+          "fgtestapp-get-limited-other-rl-all",
+          "fgtestapp-put-resources-id-sub-resources-id-all",
+          "fgtestapp-put-resources-id-all"
+        ]
+      }
+    },
+    "dryRun": false
+  }
+}

@@ -1,0 +1,17 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: {{ APPLICATION }}-stack-managed
+spec:
+  x-external-service-provider:
+    stackSetName: gw-test-stack
+    hosts:
+      - ss-{{ APPLICATION }}.{{ CLUSTER }}.zalan.do
+  x-fabric-admins:
+  - bmooney
+  - fmoloney
+  - cgallagher
+  - changedForTesting
+  paths:
+    /resources:
+      get: {}

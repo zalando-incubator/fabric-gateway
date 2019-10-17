@@ -1,0 +1,11 @@
+apiVersion: "zalando.org/v1"
+kind: PlatformCredentialsSet
+metadata:
+  name: {{{APPLICATION}}}-credentials-wl
+spec:
+  application: fabric-event-scheduler
+  token_version: v2
+  tokens:
+    test-app:
+      privileges:
+      - com.zalando::fabric-demo-app.read

@@ -1,0 +1,19 @@
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: {{{ APPLICATION }}}
+spec:
+  generateSelector: true
+  resyncPeriodSeconds: 5
+  parentResource:
+    apiVersion: zalando.org/v1
+    resource: {{ CRD_PLURAL }}
+  childResources:
+    - apiVersion: extensions/v1beta1
+      resource: ingresses
+      updateStrategy:
+        method: InPlace
+  hooks:
+    sync:
+      webhook:
+        url: "http://{{{ APPLICATION }}}/synch"

@@ -1,0 +1,1 @@
+{"annotations":{"zalando.org/backend-weights":{"fg-manual-test-stackset1":80,"fg-manual-test-stackset2":20}},"rules":[{"host":"fg-manual-tests.smart-product-platform-test.zalan.do","http":{"paths":[{"serviceName":"fg-manual-test-stackset1","servicePort":"http"},{"serviceName":"fg-manual-test-stackset2","servicePort":"http"}]}}]}

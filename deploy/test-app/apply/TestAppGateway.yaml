@@ -1,0 +1,73 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: {{ APPLICATION }}
+spec:
+  x-fabric-service:
+  - host: {{ APPLICATION }}.{{ CLUSTER }}.zalan.do
+    serviceName: {{ TEST_APPLICATION }}
+    servicePort: http
+  - host: alt-{{ APPLICATION }}.{{ CLUSTER }}.zalan.do
+    serviceName: {{ TEST_APPLICATION }}
+    servicePort: http
+  x-fabric-admins:
+  - bmooney
+  - fmoloney
+  - cgallagher
+  - changeForTesting
+  paths:
+    /resources:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.nonexistant
+      post:
+        x-fabric-privileges:
+        - fabric-demo-app.write
+    /resources/{id}:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+      put:
+        x-fabric-privileges:
+        - fabric-demo-app.write
+    /starsources/*:
+      get: {}
+    /resources/{id}/sub-resources/{id}:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+      put:
+        x-fabric-privileges:
+        - fabric-demo-app.write
+    /limited/all:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+        x-fabric-ratelimits:
+          default-rate: 2
+    /limited/me:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+        x-fabric-ratelimits:
+          default-rate: 10000
+          target:
+            stups_fabric-demo-app: 2
+    /limited/other:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+        x-fabric-ratelimits:
+          default-rate: 10000
+          target:
+            stups_spp-product-integration: 2
+    /whitelisted:
+      get:
+        x-fabric-whitelist:
+          service-list:
+            - stups_metacontroller
+    /user-whitelisted:
+      get:
+        x-fabric-employee-access:
+          user-list:
+            - notreal

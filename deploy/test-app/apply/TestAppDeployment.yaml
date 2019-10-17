@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ TEST_APPLICATION }}
+  labels:
+    application: {{ TEST_APPLICATION }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ TEST_APPLICATION }}
+  template:
+    metadata:
+      labels:
+        application: {{ TEST_APPLICATION }}
+    spec:
+      containers:
+        - name: {{ TEST_APPLICATION }}
+          image: jmalloc/echo-server:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 1
+              memory: 512Mi
+            limits:
+              memory: 512Mi

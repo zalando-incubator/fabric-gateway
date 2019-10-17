@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/apis/zalando.org/v1/namespaces/default/stacksets/crapname"
+  },
+  "response": {
+    "status": 404,
+    "bodyFileName": "stack-set-not-found.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fabric-gateway-k8s-api-access
+rules:
+  - apiGroups:
+      - zalando.org
+    resources:
+      - stackset
+    verbs:
+      - get

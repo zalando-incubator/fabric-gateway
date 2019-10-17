@@ -1,0 +1,25 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: {{ APPLICATION }}-bug2098
+spec:
+  x-fabric-service:
+  - host: bug2098-{{ APPLICATION }}.{{ CLUSTER }}.zalan.do
+    serviceName: {{ TEST_APPLICATION }}
+    servicePort: http
+  x-fabric-admins:
+  - bmooney
+  - fmoloney
+  - cgallagher
+  - changedForTesting
+  paths:
+    /{id}:
+      get:
+        x-fabric-privileges:
+          - fabric-demo-app.nonexistant
+    /**:
+      get: {}
+    /resources/{id}:
+      get:
+        x-fabric-privileges:
+          - fabric-demo-app.nonexistant

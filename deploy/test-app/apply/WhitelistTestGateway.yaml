@@ -1,0 +1,41 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: {{ APPLICATION }}-whitelisting
+spec:
+  x-fabric-service:
+  - host: wl-{{ APPLICATION }}.{{ CLUSTER }}.zalan.do
+    serviceName: {{ TEST_APPLICATION }}
+  x-fabric-whitelist:
+  - stups_fabric-event-scheduler
+  - stups_changedForTesting
+  paths:
+    /resources:
+      get:
+        x-fabric-privileges:
+        - fabric-demo-app.read
+        x-fabric-ratelimits:
+          default-rate: 10000
+          target:
+            stups_fabric-demo-app: 200
+      post:
+        x-fabric-privileges:
+        - fabric-demo-app.write
+    /resources/{id}:
+      get:
+        x-fabric-whitelist:
+          service-list:
+            - stups_metacontroller
+    /other-resource:
+      get:
+        x-fabric-whitelist:
+          state: disabled
+          service-list: []
+      post:
+        x-fabric-whitelist:
+          service-list: []
+    /resources/{id}/sub-resources/{id}:
+      get:
+        x-fabric-whitelist:
+          service-list:
+            - stups_metacontroller

@@ -1,0 +1,14 @@
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "stacksets.zalando.org \"crapname\" not found",
+  "reason": "NotFound",
+  "details": {
+    "name": "crapname",
+    "group": "zalando.org",
+    "kind": "stacksets"
+  },
+  "code": 404
+}

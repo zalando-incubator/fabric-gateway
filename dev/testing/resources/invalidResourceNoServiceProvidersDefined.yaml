@@ -1,0 +1,9 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: invalid-resource
+spec:
+  x-service-definition: fabric_gateway
+  paths:
+    /api:
+      get: {}

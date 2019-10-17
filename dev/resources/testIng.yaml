@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    zalando.org/skipper-predicate: Path("/**")
+  name: path-bug-test
+  namespace: fabric
+spec:
+  rules:
+    - host: path-bug-test.playground.zalan.do
+      http:
+        paths:
+          - backend:
+              serviceName: gateway-test-app
+              servicePort: http

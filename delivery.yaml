@@ -1,0 +1,127 @@
+# Use the script `./generate_pipelines.sh` piped into a file to generate the contents of the CDP delivery file
+version: "2017-09-20"
+
+pipeline:
+  - id: Build
+    overlay: fabric/scala_overlay
+    cache:
+      paths:
+        - ~/.sbt
+        - ~/.ivy2
+    type: script
+    vm: large
+    commands:
+      - desc: Test the Gateway Operator
+        cmd: |
+          sbt clean test assembly
+      - desc: Build Test Docker image and publish to PierOne
+        cmd: |
+          echo "Building app image ${CDP_BUILD_VERSION}"
+          TAG="pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator-review:${CDP_BUILD_VERSION}"
+          docker build -f docker/svc/Dockerfile -t "${TAG}" .
+          docker push "${TAG}"
+      - desc: Build LIVE Docker image and publish to PierOne
+        cmd: |
+          if [ -z "$CDP_PULL_REQUEST_NUMBER" ]; then
+            echo "Building app image ${CDP_BUILD_VERSION}"
+            TAG="pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator:${CDP_BUILD_VERSION}"
+            docker build -f docker/svc/Dockerfile -t "${TAG}" .
+            docker push "${TAG}"
+          fi
+      - desc: Build the end to end test image
+        cmd: |
+          if [ "$CDP_PULL_REQUEST_NUMBER" ]; then
+            TAG="pierone.stups.zalan.do/fabric/gateway-e2e-tests:${CDP_BUILD_VERSION}"
+            docker build -t "${TAG}" -f docker/e2e/Dockerfile .
+            docker push "${TAG}"
+          fi
+
+  - id: Playground-Operator-Deployment
+    desc: Deploy the metacontroller CRDs and Operator loop
+    type: process
+    process: microservice_standard_deployment
+    when:
+      branch:
+        exclude: master
+    target: &testCluster playground
+    config:
+      apply_permanent_resources:
+        env:
+          DEPLOYMENT_PATH: &operatorDeployPath deploy/operator
+          CRD_META_NAME: &crdMetaName fabricgateways.zalando.org
+          CRD_KIND: &crdKind FabricGateway
+          CRD_RESOURCE_NAME: &crdResourceName fabricgateway
+          CRD_PLURAL: &crdResourcePluralName fabricgateways
+          CRD_SHORTNAME: &crdShortname fg
+          APPLICATION: &testOperatorName fgtestapp-operator
+          NAMESPACE: &namespace fabric
+          IMAGE: &operatorImageName pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator-review
+          CLUSTER: *testCluster
+          VERSION: #{CDP_BUILD_VERSION}
+          NUM_REPLICAS: "1"
+
+  - id: E2E-TestApp-Deployment
+    desc: Deploy the test application
+    type: process
+    process: microservice_standard_deployment
+    when:
+      branch:
+        exclude: master
+    target: *testCluster
+    config:
+      apply_permanent_resources:
+        env:
+          DEPLOYMENT_PATH: deploy/test-app
+          APPLICATION: *testOperatorName
+          TEST_APPLICATION: gateway-test-app
+          NAMESPACE: *namespace
+          CLUSTER: *testCluster
+
+  - id: E2E-Tests
+    type: process
+    desc: End to End tests to be run against test fabric gateway
+    target: *testCluster
+    process: microservice_standard_test
+    debug_mode: true
+    when:
+      branch:
+        exclude: master
+    config:
+      apply_manifests:
+        env:
+          DEPLOYMENT_PATH: deploy/e2e-test-resources
+          APPLICATION: *testOperatorName
+      end2end_tests:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: test-runner
+              image: pierone.stups.zalan.do/fabric/gateway-e2e-tests:#{CDP_BUILD_VERSION}
+              resources:
+                requests:
+                  cpu: 1
+                  memory: "2Gi"
+                limits:
+                  memory: "2Gi"
+              env:
+                - name: AUT_HOST
+                  value: fgtestapp-operator.playground.zalan.do
+                - name: OAUTH2_ACCESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: fgtestapp-operator-credentials
+                      key: test-app-token-secret
+                - name: WHITELIST_ACCESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: fgtestapp-operator-credentials-wl
+                      key: test-app-token-secret
+                - name: RESOURCE_WHITELIST_ACCESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: fgtestapp-operator-credentials-resource-wl
+                      key: test-app-token-secret
+              command: ["sh", "-c"]
+              args:
+                - |
+                  sbt -DautHost=$AUT_HOST -DoauthToken=$OAUTH2_ACCESS_TOKEN -DwhiteListToken=$WHITELIST_ACCESS_TOKEN -DresourceWhiteListToken=$RESOURCE_WHITELIST_ACCESS_TOKEN e2e:test

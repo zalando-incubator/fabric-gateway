@@ -1,0 +1,2758 @@
+{
+  "controller": {
+    "kind": "CompositeController",
+    "apiVersion": "metacontroller.k8s.io/v1alpha1",
+    "metadata": {
+      "name": "fgtestapp",
+      "selfLink": "/apis/metacontroller.k8s.io/v1alpha1/compositecontrollers/fgtestapp",
+      "uid": "30242036-c6f3-11e8-90e2-0618dc6898fa",
+      "resourceVersion": "117329293",
+      "generation": 1,
+      "creationTimestamp": "2018-10-03T10:00:42Z",
+      "labels": {
+        "deployment-id": "d-bw3inczasxvwkg957qyruzwnz"
+      },
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"metacontroller.k8s.io/v1alpha1\",\"kind\":\"CompositeController\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-bw3inczasxvwkg957qyruzwnz\"},\"name\":\"fgtestapp\",\"namespace\":\"\"},\"spec\":{\"childResources\":[{\"apiVersion\":\"extensions/v1beta1\",\"resource\":\"ingresses\",\"updateStrategy\":{\"method\":\"Recreate\"}}],\"generateSelector\":true,\"hooks\":{\"sync\":{\"webhook\":{\"url\":\"http://fgtestapp-operator/synch\"}}},\"parentResource\":{\"apiVersion\":\"zalando.org/v1\",\"resource\":\"testfabricgateways\"}}}\n"
+      }
+    },
+    "spec": {
+      "parentResource": {
+        "apiVersion": "zalando.org/v1",
+        "resource": "testfabricgateways"
+      },
+      "childResources": [
+        {
+          "apiVersion": "extensions/v1beta1",
+          "resource": "ingresses",
+          "updateStrategy": {
+            "method": "Recreate",
+            "statusChecks": {}
+          }
+        }
+      ],
+      "hooks": {
+        "sync": {
+          "webhook": {
+            "url": "http://fgtestapp-operator/synch"
+          }
+        }
+      },
+      "generateSelector": true
+    },
+    "status": {}
+  },
+  "parent": {
+    "apiVersion": "zalando.org/v1",
+    "kind": "TestFabricGateway",
+    "metadata": {
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zalando.org/v1\",\"kind\":\"TestFabricGateway\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-29gfjc4fgjvbon9tnhv7busbkm\"},\"name\":\"fgtestapp\",\"namespace\":\"default\"},\"spec\":{\"paths\":{\"/limited/all\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":2}}},\"/limited/me\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":10000,\"target\":{\"stups_fabric-demo-app\":2}}}},\"/limited/other\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":10000,\"target\":{\"stups_spp-product-integration\":2}}}},\"/open\":{\"get\":{\"x-fabric-privileges\":[\"uid\"]}},\"/resources\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.nonexistant\"]},\"post\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.write\"]}},\"/resources/*\":{\"get\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.read\"],\"x-fabric-ratelimits\":{\"default-rate\":10}},\"put\":{\"x-fabric-privileges\":[\"uid\",\"fabric-demo-app.write\"]}}},\"x-fabric-service\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"serviceName\":\"fgtestapp\"},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"serviceName\":\"fgtestapp\"}],\"x-fabric-whitelist\":[\"bmooney\",\"fmoloney\",\"cgallagher\",\"adrakeford\"]}}\n"
+      },
+      "creationTimestamp": "2018-10-22T15:07:52Z",
+      "generation": 1,
+      "labels": {
+        "deployment-id": "d-29gfjc4fgjvbon9tnhv7busbkm"
+      },
+      "name": "fgtestapp",
+      "namespace": "default",
+      "resourceVersion": "118764618",
+      "selfLink": "/apis/zalando.org/v1/namespaces/default/testfabricgateways/fgtestapp",
+      "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+    },
+    "spec": {
+      "paths": {
+        "/limited/all": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.read"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 2
+            }
+          }
+        },
+        "/limited/me": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.read"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10000,
+              "target": {
+                "stups_fabric-demo-app": 2
+              }
+            }
+          }
+        },
+        "/limited/other": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.read"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10000,
+              "target": {
+                "stups_spp-product-integration": 2
+              }
+            }
+          }
+        },
+        "/open": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid"
+            ]
+          }
+        },
+        "/resources": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.nonexistant"
+            ]
+          },
+          "post": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.write"
+            ]
+          }
+        },
+        "/resources/*": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.read"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10
+            }
+          },
+          "put": {
+            "x-fabric-privileges": [
+              "uid",
+              "fabric-demo-app.write"
+            ]
+          }
+        }
+      },
+      "x-fabric-service": [
+        {
+          "host": "fgtestapp.smart-product-platform-test.zalan.do",
+          "serviceName": "fgtestapp"
+        },
+        {
+          "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+          "serviceName": "fgtestapp"
+        }
+      ],
+      "x-fabric-admins": [
+        "bmooney",
+        "fmoloney",
+        "cgallagher",
+        "adrakeford"
+      ]
+    },
+    "status": {
+      "num_owned_ingress": 0
+    }
+  },
+  "children": {
+    "Ingress.extensions/v1beta1": {
+      "fgtestapp-ingress-0": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(2, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/all\\\") \\u0026\\u0026 Method(\\\"GET\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-0\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(2, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/all\") && Method(\"GET\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-0",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745804",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-0",
+          "uid": "3fb2f2f9-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-1": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(10000, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-1\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(10000, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:56Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-1",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745805",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-1",
+          "uid": "41b998b7-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-10": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-10\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-10",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745806",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-10",
+          "uid": "3fbc5096-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-11": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-11\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-11",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745807",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-11",
+          "uid": "3fd15041-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-12": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-12\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:54Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-12",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745809",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-12",
+          "uid": "4069e736-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-13": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-13\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-13",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745810",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-13",
+          "uid": "3fb89d05-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-14": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-14\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:57Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-14",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745811",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-14",
+          "uid": "425232f6-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-15": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"PUT\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-15\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"PUT\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-15",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745812",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-15",
+          "uid": "3fefd2e0-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-16": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-16\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:55Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-16",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745813",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-16",
+          "uid": "41210ec0-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-17": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-17\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-17",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745814",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-17",
+          "uid": "3fb9677c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-18": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-18\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-18",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745815",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-18",
+          "uid": "3fba2cdc-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-19": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"PUT\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-19\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"PUT\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:57Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-19",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745816",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-19",
+          "uid": "4270b81b-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-2": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(2, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"sub\\\", \\\"stups_fabric-demo-app\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-2\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(2, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\") && JWTPayloadAllKV(\"sub\", \"stups_fabric-demo-app\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:55Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-2",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745817",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-2",
+          "uid": "410282f2-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-20": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"PUT\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-20\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"PUT\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:56Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-20",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745818",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-20",
+          "uid": "41d8308c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-21": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/all\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-21\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/all\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:54Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-21",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745819",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-21",
+          "uid": "40886e36-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-22": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-22\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:54Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-22",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745820",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-22",
+          "uid": "40a6fd87-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-23": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/all\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-23\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/all\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-23",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745822",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-23",
+          "uid": "400e7933-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-24": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"POST\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-24\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"POST\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:54Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-24",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745823",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-24",
+          "uid": "40c5ee73-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-25": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"PUT\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-25\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"PUT\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:55Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-25",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745824",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-25",
+          "uid": "40e40153-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-26": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-26\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:57Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-26",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745825",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-26",
+          "uid": "428f4861-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-27": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"POST\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-27\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"POST\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:58Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-27",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745826",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-27",
+          "uid": "42adbf04-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-28": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/all\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-28\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/all\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:58Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-28",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745827",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-28",
+          "uid": "42cc54e1-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-29": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"POST\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-29\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"POST\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:55Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-29",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745828",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-29",
+          "uid": "41403b66-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-3": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.write\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"PUT\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-3\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.write\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"PUT\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-3",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745829",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-3",
+          "uid": "3fb6b67c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-30": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-30\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:56Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-30",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745830",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-30",
+          "uid": "41f6a43c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-31": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-31\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:58Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-31",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745831",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-31",
+          "uid": "42eaccea-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-32": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-32\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:55Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-32",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745832",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-32",
+          "uid": "415e1cc0-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-33": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"adrakeford\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-33\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"adrakeford\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:57Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-33",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745833",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-33",
+          "uid": "42152ac3-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-34": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/all\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"bmooney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-34\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/all\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"bmooney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-34",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745834",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-34",
+          "uid": "3fb4d654-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-35": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-35\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-35",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745835",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-35",
+          "uid": "402ce04c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-36": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"POST\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"cgallagher\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-36\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"POST\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"cgallagher\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:56Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-36",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745836",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-36",
+          "uid": "419b164c-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-4": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(10, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources/*\\\") \\u0026\\u0026 Method(\\\"GET\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-4\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(10, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources/*\") && Method(\"GET\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:57Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-4",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745837",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-4",
+          "uid": "4233b0db-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-5": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.write\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"POST\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-5\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.write\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"POST\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:56Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-5",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745838",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-5",
+          "uid": "417c9c19-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-6": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.nonexistant\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/resources\\\") \\u0026\\u0026 Method(\\\"GET\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-6\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.nonexistant\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/resources\") && Method(\"GET\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-6",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745840",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-6",
+          "uid": "3fb3d8fe-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-7": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(10000, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-7\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(10000, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-7",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745841",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-7",
+          "uid": "3fbb139f-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-8": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\", \\\"fabric-demo-app.read\\\") -\\u003e localRatelimit(2, \\\"1m\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/other\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"sub\\\", \\\"stups_spp-product-integration\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-8\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\", \"fabric-demo-app.read\") -> localRatelimit(2, \"1m\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/other\") && Method(\"GET\") && JWTPayloadAllKV(\"sub\", \"stups_spp-product-integration\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:53Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-8",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745842",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-8",
+          "uid": "3fb79c73-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      },
+      "fgtestapp-ingress-9": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+          "annotations": {
+            "metacontroller.k8s.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"zalando.org/skipper-filter\":\"oauthTokeninfoAllScope(\\\"uid\\\") -\\u003e flowId(\\\"reuse\\\") -\\u003e forwardToken(\\\"X-TokenInfo-Forward\\\")\",\"zalando.org/skipper-predicate\":\"Path(\\\"/limited/me\\\") \\u0026\\u0026 Method(\\\"GET\\\") \\u0026\\u0026 JWTPayloadAllKV(\\\"https://identity.zalando.com/managed-id\\\", \\\"fmoloney\\\")\"},\"labels\":{\"controller-uid\":\"3f4ee45c-d60c-11e8-90e2-0618dc6898fa\"},\"name\":\"fgtestapp-ingress-9\",\"namespace\":\"default\"},\"spec\":{\"rules\":[{\"host\":\"fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}},{\"host\":\"alt-fgtestapp.smart-product-platform-test.zalan.do\",\"http\":{\"paths\":[{\"backend\":{\"serviceName\":\"fgtestapp\",\"servicePort\":\"http\"}}]}}]}}",
+            "zalando.org/skipper-filter": "oauthTokeninfoAllScope(\"uid\") -> flowId(\"reuse\") -> forwardToken(\"X-TokenInfo-Forward\")",
+            "zalando.org/skipper-predicate": "Path(\"/limited/me\") && Method(\"GET\") && JWTPayloadAllKV(\"https://identity.zalando.com/managed-id\", \"fmoloney\")"
+          },
+          "creationTimestamp": "2018-10-22T15:07:54Z",
+          "generation": 1,
+          "labels": {
+            "controller-uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+          },
+          "name": "fgtestapp-ingress-9",
+          "namespace": "default",
+          "ownerReferences": [
+            {
+              "apiVersion": "zalando.org/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "TestFabricGateway",
+              "name": "fgtestapp",
+              "uid": "3f4ee45c-d60c-11e8-90e2-0618dc6898fa"
+            }
+          ],
+          "resourceVersion": "118745843",
+          "selfLink": "/apis/extensions/v1beta1/namespaces/default/ingresses/fgtestapp-ingress-9",
+          "uid": "404b66fa-d60c-11e8-90e2-0618dc6898fa"
+        },
+        "spec": {
+          "rules": [
+            {
+              "host": "fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "host": "alt-fgtestapp.smart-product-platform-test.zalan.do",
+              "http": {
+                "paths": [
+                  {
+                    "backend": {
+                      "serviceName": "fgtestapp",
+                      "servicePort": "http"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "hostname": "aws-2618-lb-slxfv2yl5rgn-812157914.eu-central-1.elb.amazonaws.com"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,159 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: {{ CRD_META_NAME }}
+spec:
+  group: zalando.org
+  version: v1
+  names:
+    kind: {{ CRD_KIND }}
+    singular: {{ CRD_RESOURCE_NAME }}
+    plural: {{ CRD_PLURAL }}
+    shortNames:
+      - {{ CRD_SHORTNAME }}
+  scope: Namespaced
+  additionalPrinterColumns:
+    - name: Ingress_Count
+      type: integer
+      description: The number of ingressii owned by this gateway
+      JSONPath: .status.num_owned_ingress
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      type: object
+      required:
+        - spec
+      properties:
+        spec:
+          required:
+            - paths
+          properties:
+            x-fabric-service:
+              type: array
+              items:
+                type: object
+                required:
+                  - host
+                  - serviceName
+                properties:
+                  host:
+                    type: string
+                    description: This is the pulic host name for the service
+                    example: app-id.cluster-name.zalan.do
+                  serviceName:
+                    type: string
+                    description: This is the name of the K8s service which Skipper should target when forwarding requests
+                    example: app-id-service
+                  servicePort:
+                    type: string
+                    description: The port to use for the service. Must be the name of a named port defined in your k8s service. Defaults to "http". See https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
+                    example: http
+                    pattern: '^[a-z][-a-z0-9]*[^-]$'
+            x-external-service-provider:
+              type: object
+              required:
+                - stackSetName
+                - hosts
+              properties:
+                stackSetName:
+                  type: string
+                hosts:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+            x-fabric-admins:
+              type: array
+              minItems: 0
+              items:
+                type: string
+                description: |-
+                  UID of a user which will have open access to the full API. This will exclude this uid from
+                  any rate limits or authorization
+                example: jbloggs
+            x-fabric-whitelist:
+              type: array
+              items:
+                type: string
+                description: |-
+                  UID of a service which will be allowed access to the API if it matches all other authorization
+                  requirements. If there is a whitelist present, then ONLY services which are referenced in the whitelist
+                  will be able to access the API even if they match all other authorization requirements. If the whitelist
+                  is empty, then no service tokens can access via the gateway
+                example: stups_some-service-name
+            paths:
+              type: object
+              minProperties: 1
+              description: |-
+                Each key represents a path in the API. A single star matches a value between two slashes in a HTTP path
+              example: /api/resource, /api/resource/*
+              additionalProperties:
+                type: object
+                minProperties: 1
+                description: Each key represents a supported HTTP verb on the parent path
+                example: get, head, put, post, patch, delete
+                additionalProperties:
+                  type: object
+                  properties:
+                    x-fabric-privileges:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: string
+                        description: The name of a scope which will be extracted from the bearer token
+                        example: uid, service-name.write
+                    x-fabric-ratelimits:
+                      type: object
+                      required:
+                        - default-rate
+                      properties:
+                        default-rate:
+                          type: integer
+                          minimum: 1
+                          description: |-
+                            Non user specific value to apply to the route. If a client makes more requests than this
+                            value within the defined period, then they will start getting HTTP 429 responses.
+                        period:
+                          type: string
+                          enum:
+                            - minute
+                            - hour
+                        target:
+                          type: object
+                          description: |-
+                            A uid specific number of requests that can be made within the period before rate
+                            limiting is applied
+                          additionalProperties:
+                            type: integer
+                    x-fabric-whitelist:
+                      type: object
+                      required:
+                        - service-list
+                      properties:
+                        state:
+                          type: string
+                          enum:
+                            - enabled
+                            - disabled
+                          description: Turns whitelisting on and off for this path/operation. Default is `enabled`
+                        service-list:
+                          type: array
+                          items:
+                            type: string
+                            description: |-
+                              UID of a service which will be allowed access to the API if it matches all other authorization
+                              requirements. If there is a whitelist present, then ONLY services which are referenced in the whitelist
+                              will be able to access the API even if they match all other authorization requirements
+                            example: stups_some-service-name
+                    x-fabric-employee-access:
+                      type: object
+                      required:
+                        - user-list
+                      properties:
+                        user-list:
+                          type: array
+                          items:
+                            type: string
+                            description: |-
+                              UID of a user who should bypass scope checks, since user tokens can't have scopes.
