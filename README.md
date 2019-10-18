@@ -1,21 +1,21 @@
 # Fabric API Gateway
-![Gateway Operator](documentation/images/fatController.jpg)
 An API Gateway for Kubernetes that provides the following features:
 
   * Authentication
   * Authorization
   * Admin Access
+  * Employee Access
   * Service Whitelisting
   * Rate Limiting
   * Ensuring TLS    
 
 The Api Gateway is made up of the following components:
-  * Fabric Gateway CRD: A [K8S Custom Resource Definition]((https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)) for delcaring the Api Gateway rules   
+  * Fabric Gateway CRD: A [K8S Custom Resource Definition]((https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)) for declaring the Api Gateway rules   
   * Gateway Operator: A Kubernetes operator that implements it. 
 
 ### Dev Details
 #### Architecture
-Currently this gateway operator integrates with [Skipper](https://opensource.zalando.com/skipper/) as an ingress provider. The Gateway operator gives you the ability to consistently configure a suite of functionalities applied to a list of routes without having to tie yourself to any specific ingress implemetation. An overview of how this operator works once deployed can be seen below:
+Currently this gateway operator integrates with [Skipper](https://opensource.zalando.com/skipper/) as an ingress provider. The Gateway operator gives you the ability to consistently configure a suite of functionality applied to a list of routes without having to tie yourself to any specific ingress implementation. An overview of how this operator works once deployed can be seen below:
 ![Deployment Architecture](documentation/images/operatorArchitecture.png)
 
 #### Operator Service
@@ -26,7 +26,7 @@ The Gateway Operator is implemented as a callback for [metacontroller](https://g
 
 #### Code Format
 
-We use scalafmt to format code. Follow [the instructions](https://scalameta.org/scalafmt/docs/installation.html#intellij) to set it up with intellij.
+We use `scalafmt` to format code. Follow [the instructions](https://scalameta.org/scalafmt/docs/installation.html#intellij) to set it up with intellij.
 
 #### Building
 The project is using [SBT](https://www.scala-sbt.org/) as it's build tool. To build and run the unit and integration tests, execute the below command in the root of the project:
