@@ -1,7 +1,7 @@
 package ie.zalando.fabric.gateway.models
 
 import ie.zalando.fabric.gateway.models.SynchDomain._
-import ie.zalando.fabric.gateway.models.ValidationDomain.{RejectionReason, ResourceDetails}
+import ie.zalando.fabric.gateway.models.ValidationDomain.{RejectionReason, ResourceDetails, ValidationCorsConfig}
 
 object HttpModels {
 
@@ -18,6 +18,7 @@ object HttpModels {
                                namespace: String,
                                resource: ResourceDetails,
                                hasExternallyManagedServices: Boolean,
+                               corsConfig: ValidationCorsConfig,
                                definedServiceCount: Int)
 
   case class ValidationStatus(rejectionReasons: List[RejectionReason])

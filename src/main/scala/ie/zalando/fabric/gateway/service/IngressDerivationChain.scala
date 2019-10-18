@@ -1,5 +1,6 @@
 package ie.zalando.fabric.gateway.service
 
+import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
@@ -26,12 +27,13 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
   case class RateLimitDetails(rate: Int, period: RateLimitPeriod)
 
   case class RouteConfig(
-      tokenValidations: Set[RequiredScope] = Set.empty,
-      adminAccessForRoute: Set[String] = Set.empty,
-      serviceRestrictions: ServiceRestrictionDetails = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty),
-      userRestrictions: UserRestrictionDetails = UserRestrictionDetails(Set.empty),
-      rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty
-  )
+                          tokenValidations: Set[RequiredScope] = Set.empty,
+                          adminAccessForRoute: Set[String] = Set.empty,
+                          corsConfig: CorsConfig = CorsConfig(Disabled, Set.empty),
+                          serviceRestrictions: ServiceRestrictionDetails = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty),
+                          userRestrictions: UserRestrictionDetails = UserRestrictionDetails(Set.empty),
+                          rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty
+                        )
 
   type FlowContext = (Route, RouteConfig, GatewayContext)
 
@@ -46,6 +48,19 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
       (verb, _)        <- pathConf.operations
     } yield (Route(path, verb), RouteConfig())
 
+    val preflightCorsRoutes = if (gateway.corsConfig.state == Enabled) {
+      for {
+        (path, pathConf) <- gateway.paths
+        verbs            = pathConf.operations.keys.toSet
+      } yield
+        genCorsPreflightRoute(Route(path, Options),
+          GatewayContext(gateway, meta),
+          gateway.corsConfig.allowedOrigins,
+          verbs + Options)
+    } else {
+      List.empty
+    }
+
     val defaultRoutes =
       SkipperRouteDefinition(
         meta.name.concat(DnsString.DefaultRouteSuffix),
@@ -53,7 +68,7 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
         Nil,
         Some(
           SkipperCustomRoute(NEL.one(PathSubTreeMatch("/")),
-                             NEL.of(RequiredPrivileges(NEL.one("uid")), Status(404), DefaultRejectMsg, Shunt)))
+            NEL.of(RequiredPrivileges(NEL.one("uid")), Status(404), DefaultRejectMsg, Shunt)))
       ) :: SkipperRouteDefinition(
         meta.name.concat(DnsString.DefaultHttpRejectRouteSuffix),
         Nil,
@@ -84,7 +99,7 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
     for {
       skipperRoutes <- routeDerivationOutput
       backends      <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
-    } yield combineBackendsAndRoutes(backends, skipperRoutes, meta)
+    } yield combineBackendsAndRoutes(backends, skipperRoutes ++ preflightCorsRoutes, meta)
   }
 
   val authentication: GatewayFeatureDerivation = {
@@ -126,18 +141,18 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
         (opConf.resourceWhitelistConfig.state, globalWhitelistConfig.state) match {
           case (Inherited, Inherited | Enabled) =>
             (route,
-             config.copy(
-               serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = true, globalWhitelistConfig.services)),
-             context)
+              config.copy(
+                serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = true, globalWhitelistConfig.services)),
+              context)
           case (Inherited, Disabled) | (Disabled, _) =>
             (route,
-             config.copy(serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty[String])),
-             context)
+              config.copy(serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty[String])),
+              context)
           case (Enabled, _) =>
             (route,
-             config.copy(serviceRestrictions =
-               ServiceRestrictionDetails(isRouteRestricted = true, opConf.resourceWhitelistConfig.services)),
-             context)
+              config.copy(serviceRestrictions =
+                ServiceRestrictionDetails(isRouteRestricted = true, opConf.resourceWhitelistConfig.services)),
+              context)
         }
       }) getOrElse ((route, config, context))
   }
@@ -213,14 +228,37 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
     }
   }
 
+  def genCorsPreflightRoute(route: Route,
+                            gatewayContext: GatewayContext,
+                            allowedOrigins: Set[Uri],
+                            allowedMethods: Set[HttpVerb]): SkipperRouteDefinition = {
+    val predicates = NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic)
+    val filters = NEL.of(
+      EnableAccessLog(List(4, 5)),
+      Status(204),
+      FlowId,
+      CorsOrigin(allowedOrigins),
+      ResponseHeader("\"Access-Control-Allow-Methods\"", s""""${allowedMethods.map(_.value).mkString(", ")}""""),
+      ResponseHeader("\"Access-Control-Allow-Headers\"", "\"X-Flow-Id, Content-Type\""),
+      ResponseHeader("\"Access-Control-Allow-Credentials\"", "\"true\""),
+      Shunt
+    )
+    SkipperRouteDefinition(
+      gatewayContext.meta.name.concat(DnsString.corsPath(route.verb, route.path)),
+      List.empty,
+      List.empty,
+      Some(SkipperCustomRoute(predicates, filters))
+    )
+  }
+
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
     val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: Nil
     val filters    = EnableAccessLog(List(2, 4, 5)) :: RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
 
     SkipperRouteDefinition(gatewayContext.meta.name.concat(DnsString.userAdminPath(route.verb, route.path)),
-                           predicates,
-                           filters,
-                           customRoute = None)
+      predicates,
+      filters,
+      customRoute = None)
   }
 
   def genRestrictedServiceRoutes(route: Route,
@@ -265,7 +303,7 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
       Nil,
       Some(
         SkipperCustomRoute(NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic),
-                           NEL.of(Status(403), UnauthorizedRejectMsg, Shunt)))
+          NEL.of(Status(403), UnauthorizedRejectMsg, Shunt)))
     ) :: remainingServiceRoutes ::: rateLimitedWhitelistedRoutes
   }
 
@@ -329,10 +367,10 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
       gatewayContext.meta.name.concat(DnsString.rateLimitedUserPath(route.verb, route.path)),
       route.path :: MethodMatch(route.verb) :: UidMatch(uids) :: HttpsTraffic :: Nil,
       UidPrivilege ++ (GlobalUsersRouteRateLimit(gatewayContext.meta.name.value,
-                                                 route.path,
-                                                 MethodMatch(route.verb),
-                                                 rl.rate,
-                                                 rl.period) :: FlowId :: ForwardTokenInfo :: Nil),
+        route.path,
+        MethodMatch(route.verb),
+        rl.rate,
+        rl.period) :: FlowId :: ForwardTokenInfo :: Nil),
       None
     )
   }

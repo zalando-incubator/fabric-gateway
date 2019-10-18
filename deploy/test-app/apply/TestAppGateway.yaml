@@ -15,6 +15,11 @@ spec:
   - fmoloney
   - cgallagher
   - changeForTesting
+  x-fabric-cors-support:
+    state: enabled
+    allowedOrigins:
+      - example.com
+      - example-other.com
   paths:
     /resources:
       get:

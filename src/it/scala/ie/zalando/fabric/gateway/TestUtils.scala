@@ -71,5 +71,9 @@ object TestUtils {
       def payload: String =
         Source.fromResource("synch/sampleSynchRequestWithStacksetManagingServicesButNoTrafficStatus.json").mkString
     }
+    case object ValidSynchRequestWithCorsEnabled extends ResourcePayload {
+      def payload: String =
+        Source.fromResource("synch/sampleSynchRequestWithCors.json").mkString
+    }
   }
 }

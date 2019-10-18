@@ -1,5 +1,6 @@
 package ie.zalando.fabric.gateway.models
 
+import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
 
@@ -98,7 +99,7 @@ object SynchDomain {
                                   operation: MethodMatch,
                                   allowedRequests: Int,
                                   period: RateLimitPeriod)
-      extends SkipperFilter {
+    extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}"
 
     val skipperStringValue: String =
@@ -110,7 +111,7 @@ object SynchDomain {
                                        operation: MethodMatch,
                                        allowedRequests: Int,
                                        period: RateLimitPeriod)
-      extends SkipperFilter {
+    extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}_users"
 
     val skipperStringValue: String =
@@ -123,7 +124,7 @@ object SynchDomain {
                                           serviceMatch: ClientMatch,
                                           allowedRequests: Int,
                                           period: RateLimitPeriod)
-      extends SkipperFilter {
+    extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}_${serviceMatch.svcName}"
 
     val skipperStringValue: String =
@@ -144,6 +145,21 @@ object SynchDomain {
 
   case class Status(status: Int) extends SkipperFilter {
     val skipperStringValue: String = s"status($status)"
+  }
+
+  case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {
+    val skipperStringValue: String = {
+      val origins = allowedOrigins
+        .map { origin =>
+          s""""${origin.copy(scheme = Uri.httpScheme(securedConnection = true))}""""
+        }
+        .mkString(", ")
+      s"""corsOrigin($origins)"""
+    }
+  }
+
+  case class ResponseHeader(key: String, value: String) extends SkipperFilter {
+    val skipperStringValue: String = s"""appendResponseHeader($key, $value)"""
   }
 
   case object Shunt extends SkipperFilter {
@@ -204,6 +220,9 @@ object SynchDomain {
     def fromString(input: String): Option[DnsString] =
       if (isValidDnsName(input)) Some(DnsString(input))
       else None
+
+    def corsPath(verb: HttpVerb, path: PathMatch) =
+      DnsString(s"-${verb.value}-${formatPath(path.path)}-cors")
 
     def userAdminPath(verb: HttpVerb, path: PathMatch) =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-admins")
@@ -270,20 +289,23 @@ object SynchDomain {
 
   case class RateLimitDetails(defaultReqRate: Int, period: RateLimitPeriod, uidSpecific: Map[String, Int])
 
+  sealed trait CorsState
   sealed trait WhitelistingState
-  case object Enabled   extends WhitelistingState
-  case object Disabled  extends WhitelistingState
+  case object Enabled   extends WhitelistingState with CorsState
+  case object Disabled  extends WhitelistingState with CorsState
   case object Inherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
   case class EmployeeAccessConfig(employees: Set[String])
 
+  case class CorsConfig(state: CorsState, allowedOrigins: Set[Uri])
+
   case class ActionAuthorizations(
-      requiredPrivileges: NonEmptyList[String],
-      rateLimit: Option[RateLimitDetails],
-      resourceWhitelistConfig: WhitelistConfig,
-      employeeAccessConfig: EmployeeAccessConfig
-  )
+                                   requiredPrivileges: NonEmptyList[String],
+                                   rateLimit: Option[RateLimitDetails],
+                                   resourceWhitelistConfig: WhitelistConfig,
+                                   employeeAccessConfig: EmployeeAccessConfig
+                                 )
 
   case class PathConfig(operations: GatewayPathRestrictions)
 
@@ -309,6 +331,7 @@ object SynchDomain {
   case class GatewaySpec(serviceProvider: ServiceProvider,
                          admins: Set[String],
                          globalWhitelistConfig: WhitelistConfig,
+                         corsConfig: CorsConfig,
                          paths: GatewayPaths)
 
   case class GatewayMeta(name: DnsString, namespace: String)
