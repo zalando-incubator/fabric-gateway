@@ -99,7 +99,7 @@ object SynchDomain {
                                   operation: MethodMatch,
                                   allowedRequests: Int,
                                   period: RateLimitPeriod)
-    extends SkipperFilter {
+      extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}"
 
     val skipperStringValue: String =
@@ -111,7 +111,7 @@ object SynchDomain {
                                        operation: MethodMatch,
                                        allowedRequests: Int,
                                        period: RateLimitPeriod)
-    extends SkipperFilter {
+      extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}_users"
 
     val skipperStringValue: String =
@@ -124,7 +124,7 @@ object SynchDomain {
                                           serviceMatch: ClientMatch,
                                           allowedRequests: Int,
                                           period: RateLimitPeriod)
-    extends SkipperFilter {
+      extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}_${serviceMatch.svcName}"
 
     val skipperStringValue: String =
@@ -289,23 +289,22 @@ object SynchDomain {
 
   case class RateLimitDetails(defaultReqRate: Int, period: RateLimitPeriod, uidSpecific: Map[String, Int])
 
-  sealed trait CorsState
   sealed trait WhitelistingState
-  case object Enabled   extends WhitelistingState with CorsState
-  case object Disabled  extends WhitelistingState with CorsState
+  case object Enabled   extends WhitelistingState
+  case object Disabled  extends WhitelistingState
   case object Inherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
   case class EmployeeAccessConfig(employees: Set[String])
 
-  case class CorsConfig(state: CorsState, allowedOrigins: Set[Uri])
+  case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
 
   case class ActionAuthorizations(
-                                   requiredPrivileges: NonEmptyList[String],
-                                   rateLimit: Option[RateLimitDetails],
-                                   resourceWhitelistConfig: WhitelistConfig,
-                                   employeeAccessConfig: EmployeeAccessConfig
-                                 )
+      requiredPrivileges: NonEmptyList[String],
+      rateLimit: Option[RateLimitDetails],
+      resourceWhitelistConfig: WhitelistConfig,
+      employeeAccessConfig: EmployeeAccessConfig
+  )
 
   case class PathConfig(operations: GatewayPathRestrictions)
 
@@ -331,7 +330,7 @@ object SynchDomain {
   case class GatewaySpec(serviceProvider: ServiceProvider,
                          admins: Set[String],
                          globalWhitelistConfig: WhitelistConfig,
-                         corsConfig: CorsConfig,
+                         corsConfig: Option[CorsConfig],
                          paths: GatewayPaths)
 
   case class GatewayMeta(name: DnsString, namespace: String)

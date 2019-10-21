@@ -29,8 +29,10 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val ResourceWhitelistedUser   = "resourceWhitelistedUser"
   val InheritedWhitelistDetails = WhitelistConfig(Set(), Inherited)
   val UserWhitelist             = EmployeeAccessConfig(Set.empty)
-  val EnabledCors               = CorsConfig(Enabled, Set(Uri.from(host = "example.com"), Uri.from(host = "example-other.com")))
-  val DisabledCors              = CorsConfig(Disabled, Set.empty)
+  val EnabledCors = Some(
+    CorsConfig(Set(Uri.from(host = "example.com"), Uri.from(host = "example-other.com")),
+               Set("Content-Type", "Authorization", "X-Flow-id")))
+  val DisabledCors: Option[CorsConfig] = None
 
   val sampleGateway = GatewaySpec(
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc"))))),
@@ -50,11 +52,11 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             NEL.of("uid", "service.write"),
             Some(
               RateLimitDetails(10,
-                PerMinute,
-                Map(
-                  AdminUser   -> 25,
-                  "otherUser" -> 35
-                ))),
+                               PerMinute,
+                               Map(
+                                 AdminUser   -> 25,
+                                 "otherUser" -> 35
+                               ))),
             InheritedWhitelistDetails,
             UserWhitelist
           )
@@ -89,12 +91,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             NEL.of("uid", "service.write"),
             Some(
               RateLimitDetails(10,
-                PerMinute,
-                Map(
-                  AdminUser       -> 25,
-                  WhitelistedUser -> 25,
-                  "otherUser"     -> 35
-                ))),
+                               PerMinute,
+                               Map(
+                                 AdminUser       -> 25,
+                                 WhitelistedUser -> 25,
+                                 "otherUser"     -> 35
+                               ))),
             InheritedWhitelistDetails,
             UserWhitelist
           )
@@ -129,12 +131,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             NEL.of("uid", "service.write"),
             Some(
               RateLimitDetails(10,
-                PerMinute,
-                Map(
-                  AdminUser       -> 25,
-                  WhitelistedUser -> 25,
-                  "otherUser"     -> 35
-                ))),
+                               PerMinute,
+                               Map(
+                                 AdminUser       -> 25,
+                                 WhitelistedUser -> 25,
+                                 "otherUser"     -> 35
+                               ))),
             WhitelistConfig(Set(ResourceWhitelistedUser), Enabled),
             UserWhitelist
           )
@@ -186,8 +188,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   val testableRouteDerivationWithCatchAll: List[IngressDefinition] =
     Await.result(ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-      GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
-      10.seconds)
+                                                        GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+                 10.seconds)
 
   def testableWhitelistRoutesDerivation(gw: GatewaySpec): List[IngressDefinition] =
     Await.result(
@@ -204,7 +206,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val routes = Await
       .result(
         ingressDerivationLogic.deriveRoutesFor(sampleGateway.copy(admins = Set.empty[String]),
-          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -216,7 +218,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val routes = Await
       .result(
         ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -229,7 +231,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val defaultRoute = Await
       .result(
         ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
         10.seconds
       )
       .head
@@ -247,7 +249,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val routes = Await
       .result(
         ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -281,13 +283,13 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       PathMatch("/api/resource") -> PathConfig(
         Map(
           Get -> ActionAuthorizations(NEL.of("uid"),
-            Some(RateLimitDetails(10, PerMinute, Map("a" -> 20, "b" -> 25, "c" -> 30))),
-            InheritedWhitelistDetails,
-            UserWhitelist),
+                                      Some(RateLimitDetails(10, PerMinute, Map("a" -> 20, "b" -> 25, "c" -> 30))),
+                                      InheritedWhitelistDetails,
+                                      UserWhitelist),
           Post -> ActionAuthorizations(NEL.of("uid"),
-            Some(RateLimitDetails(2, PerMinute, Map("a" -> 10, "c" -> 10))),
-            InheritedWhitelistDetails,
-            UserWhitelist)
+                                       Some(RateLimitDetails(2, PerMinute, Map("a" -> 10, "c" -> 10))),
+                                       InheritedWhitelistDetails,
+                                       UserWhitelist)
         ))
     )
     val gwSpec = GatewaySpec(
@@ -327,13 +329,13 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       PathMatch("/api/resource") -> PathConfig(
         Map(
           Get -> ActionAuthorizations(NEL.of("uid"),
-            Some(RateLimitDetails(10, PerMinute, Map("a" -> 20, "b" -> 25, "c" -> 30))),
-            InheritedWhitelistDetails,
-            UserWhitelist),
+                                      Some(RateLimitDetails(10, PerMinute, Map("a" -> 20, "b" -> 25, "c" -> 30))),
+                                      InheritedWhitelistDetails,
+                                      UserWhitelist),
           Post -> ActionAuthorizations(NEL.of("uid"),
-            Some(RateLimitDetails(2, PerMinute, Map("a" -> 10, "c" -> 10))),
-            InheritedWhitelistDetails,
-            UserWhitelist)
+                                       Some(RateLimitDetails(2, PerMinute, Map("a" -> 10, "c" -> 10))),
+                                       InheritedWhitelistDetails,
+                                       UserWhitelist)
         ))
     )
     val gwSpec = GatewaySpec(
@@ -538,7 +540,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     routes.exists { route =>
       route.metadata.routeDefinition.predicates.contains(ClientMatch(ResourceWhitelistedUser)) &&
-        route.metadata.routeDefinition.filters.contains(RequiredPrivileges(NEL.of("uid", "service.write")))
+      route.metadata.routeDefinition.filters.contains(RequiredPrivileges(NEL.of("uid", "service.write")))
     } shouldBe true
   }
 
@@ -681,7 +683,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
     optionsRoutes.map(_.metadata.name) should contain theSameElementsAs List("whitelisted-gateway-options-api-resource-cors",
-      "whitelisted-gateway-options-api-resource-id-cors")
+                                                                             "whitelisted-gateway-options-api-resource-id-cors")
     optionsRoutes.foreach { optionsRoute =>
       val corsFilter = optionsRoute.metadata.routeDefinition.customRoute.flatMap(_.filters.find(_.isInstanceOf[CorsOrigin]))
       corsFilter should not be empty
@@ -689,12 +691,19 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     }
   }
 
+  it should "not add options routes when cors support is not configured" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGloballyWhitelistedGateway)
+
+    val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
+    optionsRoutes shouldBe empty
+  }
+
   def isAdminRoute(route: IngressDefinition): Boolean = {
     val defn = route.metadata.routeDefinition
     defn.customRoute.isEmpty &&
-      !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
-      !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
-      route.metadata.name.endsWith("admins")
+    !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
+    !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
+    route.metadata.name.endsWith("admins")
   }
 
   def isCorsRoute(route: IngressDefinition): Boolean = {
@@ -705,9 +714,9 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   def isWhitelistedUserRoute(route: IngressDefinition): Boolean = {
     val defn = route.metadata.routeDefinition
     defn.customRoute.isEmpty &&
-      !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
-      !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
-      route.metadata.name.endsWith("-users-all")
+    !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
+    !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
+    route.metadata.name.endsWith("-users-all")
   }
 
   def isCatchAllRoute(route: IngressDefinition): Boolean = {

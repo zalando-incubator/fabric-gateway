@@ -31,21 +31,18 @@ class CorsSpec extends FunSpec with Matchers {
       notAllowed.code shouldBe 204
 
       origin1.headers should contain allOf (
-        "Access-Control-Allow-Methods"     -> "GET, PUT, OPTIONS",
-        "Access-Control-Allow-Credentials" -> "true",
-        "Access-Control-Allow-Headers"     -> "X-Flow-Id, Content-Type",
-        "Access-Control-Allow-Origin"      -> "https://example.com",
+        "Access-Control-Allow-Methods" -> "GET, PUT, OPTIONS",
+        "Access-Control-Allow-Headers" -> "Content-Type, Authorization, X-Flow-Id",
+        "Access-Control-Allow-Origin"  -> "https://example.com",
       )
       origin2.headers should contain allOf (
-        "Access-Control-Allow-Methods"     -> "GET, PUT, OPTIONS",
-        "Access-Control-Allow-Credentials" -> "true",
-        "Access-Control-Allow-Headers"     -> "X-Flow-Id, Content-Type",
-        "Access-Control-Allow-Origin"      -> "https://example-other.com",
+        "Access-Control-Allow-Methods" -> "GET, PUT, OPTIONS",
+        "Access-Control-Allow-Headers" -> "Content-Type, Authorization, X-Flow-Id",
+        "Access-Control-Allow-Origin"  -> "https://example-other.com",
       )
       notAllowed.headers should contain allOf (
-        "Access-Control-Allow-Methods"     -> "GET, PUT, OPTIONS",
-        "Access-Control-Allow-Credentials" -> "true",
-        "Access-Control-Allow-Headers"     -> "X-Flow-Id, Content-Type"
+        "Access-Control-Allow-Methods" -> "GET, PUT, OPTIONS",
+        "Access-Control-Allow-Headers" -> "Content-Type, Authorization, X-Flow-Id"
       )
       notAllowed.headers.map(_._1) should not contain ("Access-Control-Allow-Origin")
     }

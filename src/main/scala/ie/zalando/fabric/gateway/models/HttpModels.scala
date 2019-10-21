@@ -18,7 +18,7 @@ object HttpModels {
                                namespace: String,
                                resource: ResourceDetails,
                                hasExternallyManagedServices: Boolean,
-                               corsConfig: ValidationCorsConfig,
+                               corsConfig: Option[ValidationCorsConfig],
                                definedServiceCount: Int)
 
   case class ValidationStatus(rejectionReasons: List[RejectionReason])

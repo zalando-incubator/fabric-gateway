@@ -5,8 +5,8 @@ import cats.data.Validated._
 import cats.data._
 import cats.implicits._
 import ie.zalando.fabric.gateway.models.HttpModels.ValidationRequest
-import ie.zalando.fabric.gateway.models.SynchDomain.{CorsState, Enabled, HttpVerb, Options}
-import ie.zalando.fabric.gateway.models.ValidationDomain.{DecisionStatus, RejectionReason, ResourceDetails}
+import ie.zalando.fabric.gateway.models.SynchDomain.{HttpVerb, Options}
+import ie.zalando.fabric.gateway.models.ValidationDomain.{DecisionStatus, RejectionReason, ResourceDetails, ValidationCorsConfig}
 
 import scala.util.{Failure, Success, Try}
 
@@ -57,11 +57,14 @@ object ResourcePersistenceValidations {
       validatePathsNonEmpty(validationRequest.resource),
       validationRequest.resource.paths.keys.toList.map(validateStarStarPathPosition).sequence,
       validateStackSetIntegration(validationRequest.hasExternallyManagedServices, validationRequest.definedServiceCount),
-      validationRequest.corsConfig.allowedOrigins.toList.map(hostname => validateCorsHostname(hostname)).sequence,
+      validationRequest.corsConfig
+        .map(_.allowedOrigins.toList.map(hostname => validateCorsHostname(hostname)))
+        .getOrElse(List.empty)
+        .sequence,
       pathVerbPairs.map {
-        case (path, verb) => validateCorsOptionsRoutes(validationRequest.corsConfig.state, path, verb)
+        case (path, verb) => validateCorsOptionsRoutes(validationRequest.corsConfig, path, verb)
       }.sequence
-      ).mapN((_, _, _, _, _) => false) match {
+    ).mapN((_, _, _, _, _) => false) match {
       case Valid(notRejected) => DecisionStatus(notRejected)
       case Invalid(reasons) =>
         DecisionStatus(
@@ -99,8 +102,10 @@ object ResourcePersistenceValidations {
     }
   }
 
-  def validateCorsOptionsRoutes(corsState: CorsState, path: String, verb: HttpVerb): ValidationResult[String] = {
-    if (corsState == Enabled && verb == Options) {
+  def validateCorsOptionsRoutes(corsConfig: Option[ValidationCorsConfig],
+                                path: String,
+                                verb: HttpVerb): ValidationResult[String] = {
+    if (corsConfig.isDefined && verb == Options) {
       CorsDefinedWithOptionsRoute(path).invalidNel
     } else {
       s"$path:$verb".valid

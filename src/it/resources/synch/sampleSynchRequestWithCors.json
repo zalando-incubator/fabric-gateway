@@ -120,10 +120,14 @@
         "jblogs"
       ],
       "x-fabric-cors-support": {
-        "state": "enabled",
         "allowedOrigins": [
           "example.com",
           "example-other.com"
+        ],
+        "allowedHeaders": [
+          "Content-Type",
+          "Authorization",
+          "X-Flow-Id"
         ]
       }
     }

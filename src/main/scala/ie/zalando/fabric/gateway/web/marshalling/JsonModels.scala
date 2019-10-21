@@ -34,7 +34,7 @@ trait JsonModels {
       case "DELETE"  => Some(Delete)
       case "CONNECT" => Some(Connect)
       case _         => None
-    }
+  }
 
   implicit val decodeFabricService: Decoder[FabricServiceDefinition] = (c: HCursor) =>
     for {
@@ -43,8 +43,8 @@ trait JsonModels {
       svcPort <- c.downField("servicePort").as[Option[String]]
     } yield
       FabricServiceDefinition(host.getOrElse("IN-PROGRESS"),
-        svcName.getOrElse("IN-PROGRESS"),
-        svcPort.getOrElse(HttpModels.DefaultIngressServiceProtocol))
+                              svcName.getOrElse("IN-PROGRESS"),
+                              svcPort.getOrElse(HttpModels.DefaultIngressServiceProtocol))
 
   implicit val decodeUri: Decoder[Uri] = (c: HCursor) =>
     for {
@@ -53,24 +53,9 @@ trait JsonModels {
 
   implicit val decodeCorsSupport: Decoder[CorsConfig] = (c: HCursor) =>
     for {
-      state          <- c.downField("state").as[CorsState]
       allowedOrigins <- c.downField("allowedOrigins").as[Set[Uri]]
-    } yield {
-      CorsConfig(state, allowedOrigins)
-    }
-
-  implicit val decodeCorsState: Decoder[CorsState] = (c: HCursor) =>
-    for {
-      maybeState <- c.as[Option[String]]
-    } yield
-      maybeState
-        .map(_.toUpperCase.trim)
-        .map {
-          case "ENABLED"  => Enabled
-          case "DISABLED" => Disabled
-          case _          => Enabled
-        }
-        .getOrElse(Enabled)
+      allowedHeaders <- c.downField("allowedHeaders").as[Set[String]]
+    } yield CorsConfig(allowedOrigins, allowedHeaders)
 
   implicit val decodeAsDummyIngressDefinition: Decoder[IngressDefinition] = (_: HCursor) =>
     Right(
@@ -98,7 +83,7 @@ trait JsonModels {
           }
           .getOrElse(PerMinute),
         perUidLimits.getOrElse(Map())
-      )
+    )
 
   implicit val decodeResourceWhitelist: Decoder[WhitelistConfig] = (c: HCursor) =>
     for {
@@ -116,7 +101,7 @@ trait JsonModels {
             case _           => Enabled
           }
           .getOrElse(Enabled)
-      )
+    )
 
   implicit val decodeUserWhitelist: Decoder[EmployeeAccessConfig] = (c: HCursor) =>
     for {
@@ -135,7 +120,7 @@ trait JsonModels {
         rateLimit,
         serviceWhitelist.getOrElse(WhitelistConfig(Set(), Inherited)),
         employeeAccess.getOrElse(EmployeeAccessConfig(Set()))
-      )
+    )
 
   def deriveServiceProvider(fabricDefinedServices: Option[Set[FabricServiceDefinition]],
                             stacksetManagedServices: Option[StackSetProvidedServices]): Decoder.Result[ServiceProvider] = {
@@ -172,9 +157,9 @@ trait JsonModels {
         serviceProvider,
         admins.toSeq.flatten.toSet,
         whitelist.map(s => WhitelistConfig(s, Enabled)).getOrElse(WhitelistConfig(Set(), Disabled)),
-        cors.getOrElse(CorsConfig(Disabled, Set.empty)),
+        cors,
         paths.mapValues(PathConfig)
-      )
+    )
 
   implicit val decodeGatewayOwnership: Decoder[GatewayStatus] = (c: HCursor) =>
     for {
@@ -213,7 +198,7 @@ trait JsonModels {
           gwName
         })
       GatewayMeta(dnsCompliantGatewayName, namespace)
-    }
+  }
 
   implicit val decodeSynchParent: Decoder[ControlledGatewayResource] = (c: HCursor) =>
     for {
@@ -278,20 +263,20 @@ trait JsonModels {
       namespace   <- c.downField("request").downField("namespace").as[String]
       optResource <- c.downField("request").downField("object").downField("spec").downField("paths").as[Option[ResourceDetails]]
       stackSetIntegration <- c.downField("request")
-        .downField("object")
-        .downField("spec")
-        .downField("x-external-service-provider")
-        .as[Option[StackSetProvidedServices]]
+                              .downField("object")
+                              .downField("spec")
+                              .downField("x-external-service-provider")
+                              .as[Option[StackSetProvidedServices]]
       corsConfig <- c.downField("request")
-        .downField("object")
-        .downField("spec")
-        .downField("x-fabric-cors-support")
-        .as[Option[ValidationCorsConfig]]
+                     .downField("object")
+                     .downField("spec")
+                     .downField("x-fabric-cors-support")
+                     .as[Option[ValidationCorsConfig]]
       definedServiceCount <- c.downField("request")
-        .downField("object")
-        .downField("spec")
-        .downField("x-fabric-service")
-        .as[Option[Set[FabricServiceDefinition]]]
+                              .downField("object")
+                              .downField("spec")
+                              .downField("x-fabric-service")
+                              .as[Option[Set[FabricServiceDefinition]]]
     } yield
       ValidationRequest(
         uid,
@@ -299,17 +284,16 @@ trait JsonModels {
         namespace,
         optResource.getOrElse(ResourceDetails(Map.empty)),
         stackSetIntegration.isDefined,
-        corsConfig.getOrElse(ValidationCorsConfig(Disabled, Set.empty)),
+        corsConfig,
         definedServiceCount.map(_.size).getOrElse(0)
-      )
+    )
 
   implicit val decodeValidationCorsSupport: Decoder[ValidationCorsConfig] = (c: HCursor) =>
     for {
-      state          <- c.downField("state").as[CorsState]
       allowedOrigins <- c.downField("allowedOrigins").as[Set[String]]
     } yield {
-      ValidationCorsConfig(state, allowedOrigins)
-    }
+      ValidationCorsConfig(allowedOrigins)
+  }
 
   implicit val encodeValidationStatus: Encoder[ValidationStatus] =
     Encoder.forProduct1("reason")(resp => resp.rejectionReasons.map(_.reason).mkString(", "))

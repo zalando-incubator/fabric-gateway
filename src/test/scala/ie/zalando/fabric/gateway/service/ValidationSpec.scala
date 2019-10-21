@@ -2,7 +2,7 @@ package ie.zalando.fabric.gateway.service
 
 import cats.data.Validated.{Invalid, Valid}
 import ie.zalando.fabric.gateway.models.HttpModels.ValidationRequest
-import ie.zalando.fabric.gateway.models.SynchDomain.{Enabled, Get, Options}
+import ie.zalando.fabric.gateway.models.SynchDomain.{Get, Options}
 import ie.zalando.fabric.gateway.models.ValidationDomain.{ResourceDetails, ValidationCorsConfig}
 import io.circe.{Json, JsonObject}
 import org.scalatest.prop.TableDrivenPropertyChecks._
@@ -18,37 +18,6 @@ class ValidationSpec extends FlatSpec with Matchers {
       case Invalid(nel) =>
         nel.size shouldBe 1
         nel.head.errorMessage shouldBe "There must be at least 1 path defined"
-    }
-  }
-
-  "Cors Validation" should "pass when cors is enabled and there are no options verbs" in {
-    ResourcePersistenceValidations.validateCorsOptionsRoutes(Enabled, "/resourceDetails", Get) match {
-      case Invalid(_)      => fail("Should not have failed validation")
-      case Valid(pathVerb) => pathVerb shouldBe "/resourceDetails:Get"
-    }
-  }
-
-  "Cors Validation" should "fail when cors is enabled and options endpoints are specified" in {
-    ResourcePersistenceValidations.validateCorsOptionsRoutes(Enabled, "/resourceDetails", Options) match {
-      case Invalid(nel) =>
-        nel.size shouldBe 1
-        nel.head.errorMessage shouldBe "You may not define an options endpoint when cors support is configured. Options endpoint found under '/resourceDetails'"
-      case Valid(_) => fail("Should have failed validation")
-    }
-  }
-
-  "Cors Validation" should "fail when * is used as an allowed origin" in {
-    ResourcePersistenceValidations.validateCorsHostname("*") match {
-      case Invalid(nel) =>
-        nel.size shouldBe 1
-        nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
-      case Valid(_) => fail("Should have failed")
-    }
-    ResourcePersistenceValidations.validateCorsHostname("*.example.com") match {
-      case Invalid(nel) =>
-        nel.size shouldBe 1
-        nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
-      case Valid(_) => fail("Should have failed")
     }
   }
 
@@ -90,7 +59,38 @@ class ValidationSpec extends FlatSpec with Matchers {
     }
   }
 
-  it should "should return all errors" in {
+  "Cors Validation" should "pass when cors is enabled and there are no options verbs" in {
+    ResourcePersistenceValidations.validateCorsOptionsRoutes(Some(ValidationCorsConfig(Set.empty)), "/resourceDetails", Get) match {
+      case Invalid(_)      => fail("Should not have failed validation")
+      case Valid(pathVerb) => pathVerb shouldBe "/resourceDetails:Get"
+    }
+  }
+
+  it should "fail when cors is enabled and options endpoints are specified" in {
+    ResourcePersistenceValidations.validateCorsOptionsRoutes(Some(ValidationCorsConfig(Set.empty)), "/resourceDetails", Options) match {
+      case Invalid(nel) =>
+        nel.size shouldBe 1
+        nel.head.errorMessage shouldBe "You may not define an options endpoint when cors support is configured. Options endpoint found under '/resourceDetails'"
+      case Valid(_) => fail("Should have failed validation")
+    }
+  }
+
+  it should "fail when * is used as an allowed origin" in {
+    ResourcePersistenceValidations.validateCorsHostname("*") match {
+      case Invalid(nel) =>
+        nel.size shouldBe 1
+        nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
+      case Valid(_) => fail("Should have failed")
+    }
+    ResourcePersistenceValidations.validateCorsHostname("*.example.com") match {
+      case Invalid(nel) =>
+        nel.size shouldBe 1
+        nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
+      case Valid(_) => fail("Should have failed")
+    }
+  }
+
+  "Resource Validation" should "should return all errors" in {
     val vr = ValidationRequest(
       uid = "uid",
       name = "name",
@@ -103,7 +103,7 @@ class ValidationSpec extends FlatSpec with Matchers {
           "/**/another/sad/path" -> Map(Get -> EmptyJson)
         )),
       hasExternallyManagedServices = false,
-      corsConfig = ValidationCorsConfig(Enabled, Set("exampl^U£^£^&£)&e.com", "*", "example-other.com")),
+      corsConfig = Some(ValidationCorsConfig(Set("exampl^U£^£^&£)&e.com", "*", "example-other.com"))),
       definedServiceCount = 1
     )
     val decision = ResourcePersistenceValidations.isValid(vr)
