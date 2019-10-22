@@ -17,21 +17,21 @@ pipeline:
       - desc: Build Test Docker image and publish to PierOne
         cmd: |
           echo "Building app image ${CDP_BUILD_VERSION}"
-          TAG="pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator-review:${CDP_BUILD_VERSION}"
+          TAG="registry-write.opensource.zalan.do/fabric/gateway-k8s-operator-review:${CDP_BUILD_VERSION}"
           docker build -f docker/svc/Dockerfile -t "${TAG}" .
           docker push "${TAG}"
       - desc: Build LIVE Docker image and publish to PierOne
         cmd: |
           if [ -z "$CDP_PULL_REQUEST_NUMBER" ]; then
             echo "Building app image ${CDP_BUILD_VERSION}"
-            TAG="pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator:${CDP_BUILD_VERSION}"
+            TAG="registry-write.opensource.zalan.do/fabric/gateway-k8s-operator:${CDP_BUILD_VERSION}"
             docker build -f docker/svc/Dockerfile -t "${TAG}" .
             docker push "${TAG}"
           fi
       - desc: Build the end to end test image
         cmd: |
           if [ "$CDP_PULL_REQUEST_NUMBER" ]; then
-            TAG="pierone.stups.zalan.do/fabric/gateway-e2e-tests:${CDP_BUILD_VERSION}"
+            TAG="registry-write.opensource.zalan.do/fabric/gateway-e2e-tests:${CDP_BUILD_VERSION}"
             docker build -t "${TAG}" -f docker/e2e/Dockerfile .
             docker push "${TAG}"
           fi
@@ -55,7 +55,7 @@ pipeline:
           CRD_SHORTNAME: &crdShortname fg
           APPLICATION: &testOperatorName fgtestapp-operator
           NAMESPACE: &namespace fabric
-          IMAGE: &operatorImageName pierone.stups.zalan.do/fabric/fabric-gateway-k8s-operator-review
+          IMAGE: &operatorImageName registry.opensource.zalan.do/fabric/gateway-k8s-operator-review
           CLUSTER: *testCluster
           VERSION: #{CDP_BUILD_VERSION}
           NUM_REPLICAS: "1"
@@ -96,7 +96,7 @@ pipeline:
           restartPolicy: Never
           containers:
             - name: test-runner
-              image: pierone.stups.zalan.do/fabric/gateway-e2e-tests:#{CDP_BUILD_VERSION}
+              image: registry.opensource.zalan.do/fabric/gateway-e2e-tests:#{CDP_BUILD_VERSION}
               resources:
                 requests:
                   cpu: 1
