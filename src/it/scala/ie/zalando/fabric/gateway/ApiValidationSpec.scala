@@ -203,4 +203,19 @@ class ApiValidationSpec
       ingressii should have length 0
     }
   }
+
+  it should "Create routes for handling OPTIONS requests when CORS is enabled" in {
+    synchRequest(ValidSynchRequestWithCorsEnabled.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      val ingressii = responseAs[TestSynchResponse].ingressii
+      val corsRoutes = ingressii
+        .filter(_.name.contains("cors"))
+        .flatMap(_.route)
+      corsRoutes.size should be > 0
+      corsRoutes should contain theSameElementsAs List(
+        """Path("/api/resource") && Method("OPTIONS") && Header("X-Forwarded-Proto", "https") -> enableAccessLog(4, 5) -> status(204) -> flowId("reuse") -> corsOrigin("https://example.com", "https://example-other.com") -> appendResponseHeader("Access-Control-Allow-Methods", "POST, OPTIONS") -> appendResponseHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Flow-Id") -> <shunt>""",
+        """Path("/api/resource/:id") && Method("OPTIONS") && Header("X-Forwarded-Proto", "https") -> enableAccessLog(4, 5) -> status(204) -> flowId("reuse") -> corsOrigin("https://example.com", "https://example-other.com") -> appendResponseHeader("Access-Control-Allow-Methods", "GET, PATCH, PUT, OPTIONS") -> appendResponseHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Flow-Id") -> <shunt>""",
+        """Path("/events") && Method("OPTIONS") && Header("X-Forwarded-Proto", "https") -> enableAccessLog(4, 5) -> status(204) -> flowId("reuse") -> corsOrigin("https://example.com", "https://example-other.com") -> appendResponseHeader("Access-Control-Allow-Methods", "POST, OPTIONS") -> appendResponseHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Flow-Id") -> <shunt>"""
+      )
+    }
+  }
 }

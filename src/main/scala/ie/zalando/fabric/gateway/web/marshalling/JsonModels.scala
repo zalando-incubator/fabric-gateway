@@ -1,10 +1,11 @@
 package ie.zalando.fabric.gateway.web.marshalling
 
+import akka.http.scaladsl.model.Uri
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.HttpModels
 import ie.zalando.fabric.gateway.models.HttpModels._
 import ie.zalando.fabric.gateway.models.SynchDomain._
-import ie.zalando.fabric.gateway.models.ValidationDomain.ResourceDetails
+import ie.zalando.fabric.gateway.models.ValidationDomain.{ResourceDetails, ValidationCorsConfig}
 import ie.zalando.fabric.gateway.service.SkipperConfig._
 import io.circe._
 import io.circe.syntax._
@@ -44,6 +45,17 @@ trait JsonModels {
       FabricServiceDefinition(host.getOrElse("IN-PROGRESS"),
                               svcName.getOrElse("IN-PROGRESS"),
                               svcPort.getOrElse(HttpModels.DefaultIngressServiceProtocol))
+
+  implicit val decodeUri: Decoder[Uri] = (c: HCursor) =>
+    for {
+      host <- c.as[String]
+    } yield Uri.from(host = host)
+
+  implicit val decodeCorsSupport: Decoder[CorsConfig] = (c: HCursor) =>
+    for {
+      allowedOrigins <- c.downField("allowedOrigins").as[Set[Uri]]
+      allowedHeaders <- c.downField("allowedHeaders").as[Set[String]]
+    } yield CorsConfig(allowedOrigins, allowedHeaders)
 
   implicit val decodeAsDummyIngressDefinition: Decoder[IngressDefinition] = (_: HCursor) =>
     Right(
@@ -137,6 +149,7 @@ trait JsonModels {
       stackSetIntegrationState <- c.downField("x-external-service-provider").as[Option[StackSetProvidedServices]]
       admins                   <- c.downField("x-fabric-admins").as[Option[Set[String]]]
       whitelist                <- c.downField("x-fabric-whitelist").as[Option[Set[String]]]
+      cors                     <- c.downField("x-fabric-cors-support").as[Option[CorsConfig]]
       paths                    <- c.downField("paths").as[Map[PathMatch, GatewayPathRestrictions]]
       serviceProvider          <- deriveServiceProvider(services, stackSetIntegrationState)
     } yield
@@ -144,6 +157,7 @@ trait JsonModels {
         serviceProvider,
         admins.toSeq.flatten.toSet,
         whitelist.map(s => WhitelistConfig(s, Enabled)).getOrElse(WhitelistConfig(Set(), Disabled)),
+        cors,
         paths.mapValues(PathConfig)
     )
 
@@ -240,7 +254,7 @@ trait JsonModels {
     Encoder.forProduct2("status", "children")(resp => (resp.status, resp.desiredIngressDefinitions))
 
   implicit val decodeResourceDetails: Decoder[ResourceDetails] = (c: HCursor) =>
-    Right(ResourceDetails(c.keys.map(_.toList).getOrElse(Nil)))
+    c.as[Map[String, Map[HttpVerb, Json]]].map(paths => ResourceDetails(paths))
 
   implicit val decodeValidationRequest: Decoder[ValidationRequest] = (c: HCursor) =>
     for {
@@ -253,6 +267,11 @@ trait JsonModels {
                               .downField("spec")
                               .downField("x-external-service-provider")
                               .as[Option[StackSetProvidedServices]]
+      corsConfig <- c.downField("request")
+                     .downField("object")
+                     .downField("spec")
+                     .downField("x-fabric-cors-support")
+                     .as[Option[ValidationCorsConfig]]
       definedServiceCount <- c.downField("request")
                               .downField("object")
                               .downField("spec")
@@ -263,10 +282,18 @@ trait JsonModels {
         uid,
         optName.getOrElse("Un-named Gateway"),
         namespace,
-        optResource.getOrElse(ResourceDetails(Nil)),
+        optResource.getOrElse(ResourceDetails(Map.empty)),
         stackSetIntegration.isDefined,
+        corsConfig,
         definedServiceCount.map(_.size).getOrElse(0)
     )
+
+  implicit val decodeValidationCorsSupport: Decoder[ValidationCorsConfig] = (c: HCursor) =>
+    for {
+      allowedOrigins <- c.downField("allowedOrigins").as[Set[String]]
+    } yield {
+      ValidationCorsConfig(allowedOrigins)
+  }
 
   implicit val encodeValidationStatus: Encoder[ValidationStatus] =
     Encoder.forProduct1("reason")(resp => resp.rejectionReasons.map(_.reason).mkString(", "))

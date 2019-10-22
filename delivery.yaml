@@ -124,4 +124,4 @@ pipeline:
               command: ["sh", "-c"]
               args:
                 - |
-                  sbt -DautHost=$AUT_HOST -DoauthToken=$OAUTH2_ACCESS_TOKEN -DwhiteListToken=$WHITELIST_ACCESS_TOKEN -DresourceWhiteListToken=$RESOURCE_WHITELIST_ACCESS_TOKEN e2e:test
+                  sbt -DautHost=$AUT_HOST -DoauthToken=$OAUTH2_ACCESS_TOKEN -DwhiteListToken=$WHITELIST_ACCESS_TOKEN -DresourceWhiteListToken=$RESOURCE_WHITELIST_ACCESS_TOKEN -Dsun.net.http.allowRestrictedHeaders=true e2e:test

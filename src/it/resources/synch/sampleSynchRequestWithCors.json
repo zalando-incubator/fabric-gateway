@@ -1,0 +1,138 @@
+{
+  "controller": {
+    "metadata": {
+      "name": "fabric-gateway-operator",
+      "selfLink": "/apis/metacontroller.k8s.io/v1alpha1/compositecontrollers/fabric-gateway-operator",
+      "uid": "f8e794cb-a7b2-11e8-8a04-0aa4eeea574e",
+      "resourceVersion": "100656107",
+      "generation": 1,
+      "creationTimestamp": "2018-08-24T15:32:55Z",
+      "labels": {
+        "deployment-id": "d-4zhsdviy5w6yvbvwq4o8q6e3x"
+      },
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"metacontroller.k8s.io/v1alpha1\",\"kind\":\"CompositeController\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-4zhsdviy5w6yvbvwq4o8q6e3x\"},\"name\":\"fabric-gateway-operator\",\"namespace\":\"\"},\"spec\":{\"childResources\":[{\"apiVersion\":\"extensions/v1beta1\",\"resource\":\"ingresses\",\"updateStrategy\":{\"method\":\"Recreate\"}}],\"generateSelector\":true,\"hooks\":{\"sync\":{\"webhook\":{\"url\":\"http://fabric-gateway-operator/synch\"}}},\"parentResource\":{\"apiVersion\":\"zalando.org/v1\",\"resource\":\"fabricgateways\"}}}\n",
+        "zalando.org/backend-weights": {
+          "my-app-1": 80,
+          "my-app-2": 20
+        }
+      }
+    },
+    "spec": {
+      "parentResource": {
+        "apiVersion": "zalando.org/v1",
+        "resource": "fabricgateways"
+      },
+      "childResources": [
+        {
+          "apiVersion": "extensions/v1beta1",
+          "resource": "ingresses",
+          "updateStrategy": {
+            "method": "Recreate",
+            "statusChecks": {}
+          }
+        }
+      ],
+      "hooks": {
+        "sync": {
+          "webhook": {
+            "url": "http://fabric-gateway-operator/synch"
+          }
+        }
+      },
+      "generateSelector": true
+    },
+    "status": {}
+  },
+  "parent": {
+    "apiVersion": "zalando.org/v1",
+    "kind": "FabricGateway",
+    "metadata": {
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zalando.org/v1\",\"kind\":\"FabricGateway\",\"metadata\":{\"annotations\":{},\"name\":\"my-app-gateway\",\"namespace\":\"default\"},\"spec\":{\"paths\":{\"/api/resource\":{\"post\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimits\":{\"default-rate\":10,\"period\":\"minute\",\"target\":{\"spp_service_name\":50}}}},\"/api/resource/*\":{\"get\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.read\"]}},\"patch\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimit\":{\"default-rate\":10}},\"put\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimit\":{\"default-rate\":10}}},\"/events\":{\"post\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.read\"]}}}},\"service\":{\"host\":\"my-app.smart-product-platform-test.zalan.do\",\"serviceName\":\"my-app-service-name\"},\"whitelist\":[\"jblogs\"]}}\n"
+      },
+      "clusterName": "",
+      "creationTimestamp": "2018-09-07T07:57:57Z",
+      "generation": 1,
+      "name": "my-app-gateway",
+      "namespace": "some-namespace",
+      "resourceVersion": "103077506",
+      "selfLink": "/apis/zalando.org/v1/namespaces/default/fabricgateways/my-app-gateway",
+      "uid": "bbd2e8ce-b273-11e8-91ce-0ae88fb011ae"
+    },
+    "spec": {
+      "paths": {
+        "/api/resource": {
+          "post": {
+            "x-fabric-privileges": [
+              "uid",
+              "spp-application.write"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10,
+              "period": "minute",
+              "target": {
+                "spp_service_name": 50
+              }
+            }
+          }
+        },
+        "/api/resource/*": {
+          "get": {
+            "x-fabric-privileges": [
+              "uid",
+              "spp-application.read"
+            ]
+          },
+          "patch": {
+            "x-fabric-privileges": [
+              "uid",
+              "spp-application.write"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10
+            }
+          },
+          "put": {
+            "x-fabric-privileges": [
+              "uid",
+              "spp-application.write"
+            ],
+            "x-fabric-ratelimits": {
+              "default-rate": 10
+            }
+          }
+        },
+        "/events": {
+          "post": {
+            "x-fabric-privileges": [
+              "uid",
+              "spp-application.read"
+            ]
+          }
+        }
+      },
+      "x-fabric-service": [{
+        "host": "my-app.smart-product-platform-test.zalan.do",
+        "serviceName": "my-app-service-name"
+      }],
+      "x-fabric-admins": [
+        "jblogs"
+      ],
+      "x-fabric-cors-support": {
+        "allowedOrigins": [
+          "example.com",
+          "example-other.com"
+        ],
+        "allowedHeaders": [
+          "Content-Type",
+          "Authorization",
+          "X-Flow-Id"
+        ]
+      }
+    }
+  },
+  "children": {
+    "Ingress.extensions/v1beta1": {}
+  }
+}

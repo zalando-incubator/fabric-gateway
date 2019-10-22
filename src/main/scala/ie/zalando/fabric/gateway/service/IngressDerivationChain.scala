@@ -1,14 +1,16 @@
 package ie.zalando.fabric.gateway.service
 
+import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.collection.immutable.Iterable
 import scala.concurrent.{ExecutionContext, Future}
 
-class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat: Materializer, ctxt: ExecutionContext) {
+class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit mat: Materializer, ctxt: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[IngressDerivationChain])
 
@@ -84,7 +86,37 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
     for {
       skipperRoutes <- routeDerivationOutput
       backends      <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
-    } yield combineBackendsAndRoutes(backends, skipperRoutes, meta)
+    } yield {
+      val finalRoutes = gateway.corsConfig.fold(skipperRoutes) { corsConfig =>
+        withCors(gateway, meta.name, corsConfig, skipperRoutes)
+      }
+      combineBackendsAndRoutes(backends, finalRoutes, meta)
+    }
+  }
+
+  def withCors(gateway: GatewaySpec,
+               gatewayName: DnsString,
+               corsConfig: CorsConfig,
+               existingRoutes: List[SkipperRouteDefinition]): List[SkipperRouteDefinition] = {
+    val preflightCorsRoutes: Iterable[SkipperRouteDefinition] = for {
+      (path, pathConf) <- gateway.paths
+      verbs            = pathConf.operations.keys.toSet
+    } yield
+      genCorsPreflightRoute(Route(path, Options),
+                            gatewayName,
+                            corsConfig.allowedOrigins,
+                            corsConfig.allowedHeaders,
+                            verbs + Options)
+
+    val existingRoutesWithCors: List[SkipperRouteDefinition] = existingRoutes.map { route =>
+      if (route.customRoute.isEmpty) {
+        route.copy(filters = route.filters :+ CorsOrigin(corsConfig.allowedOrigins))
+      } else {
+        route
+      }
+    }
+
+    existingRoutesWithCors ++ preflightCorsRoutes.toList
   }
 
   val authentication: GatewayFeatureDerivation = {
@@ -211,6 +243,29 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
         route.copy(filters = NonCustomerRealm :: route.filters)
       } else route
     }
+  }
+
+  def genCorsPreflightRoute(route: Route,
+                            gatewayName: DnsString,
+                            allowedOrigins: Set[Uri],
+                            allowedHeaders: Set[String],
+                            allowedMethods: Set[HttpVerb]): SkipperRouteDefinition = {
+    val predicates = NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic)
+    val filters = NEL.of(
+      EnableAccessLog(List(4, 5)),
+      Status(204),
+      FlowId,
+      CorsOrigin(allowedOrigins),
+      ResponseHeader("\"Access-Control-Allow-Methods\"", s""""${allowedMethods.map(_.value).mkString(", ")}""""),
+      ResponseHeader("\"Access-Control-Allow-Headers\"", s""""${allowedHeaders.mkString(", ")}""""),
+      Shunt
+    )
+    SkipperRouteDefinition(
+      gatewayName.concat(DnsString.corsPath(route.verb, route.path)),
+      List.empty,
+      List.empty,
+      Some(SkipperCustomRoute(predicates, filters))
+    )
   }
 
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
@@ -346,7 +401,7 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
   def serviceMappingsFromProvider(provider: ServiceProvider, namespace: String): Future[Set[IngressBackend]] = provider match {
     case SchemaDefinedServices(svcMappings) => Future.successful(svcMappings)
     case StackSetProvidedServices(hosts, stackName) if hosts.nonEmpty =>
-      stackSetOpertions
+      stackSetOperations
         .getStatus(StackSetIdentifer(stackName, namespace))
         .map {
           case Some(status) =>
@@ -425,5 +480,5 @@ class IngressDerivationChain(stackSetOpertions: StackSetOperations)(implicit mat
 
   val useTlsV1_1Annotation: Map[String, String] = Map(
     "zalando.org/aws-load-balancer-ssl-policy" -> "ELBSecurityPolicy-FS-2018-06")
-  val UidPrivilege = requiredPrivileges(Set(RequiredScope("uid"))).toList
+  val UidPrivilege: List[RequiredPrivileges] = requiredPrivileges(Set(RequiredScope("uid"))).toList
 }

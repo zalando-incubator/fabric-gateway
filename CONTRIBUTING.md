@@ -1,6 +1,6 @@
-# Contributing to _projectname_
+# Contributing to Fabric Gateway
 
-**Thank you for your interest in _projectname_. Your contributions are highly welcome.**
+**Thank you for your interest in Fabric Gateway. Your contributions are highly welcome.**
 
 There are multiple ways of getting involved:
 

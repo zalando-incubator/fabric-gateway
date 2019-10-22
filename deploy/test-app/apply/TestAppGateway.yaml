@@ -15,6 +15,14 @@ spec:
   - fmoloney
   - cgallagher
   - changeForTesting
+  x-fabric-cors-support:
+    allowedOrigins:
+      - example.com
+      - example-other.com
+    allowedHeaders:
+      - Content-Type
+      - Authorization
+      - X-Flow-Id
   paths:
     /resources:
       get:

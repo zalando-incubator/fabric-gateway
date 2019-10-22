@@ -1,6 +1,7 @@
 package ie.zalando.fabric.gateway.service
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain._
@@ -28,11 +29,16 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val ResourceWhitelistedUser   = "resourceWhitelistedUser"
   val InheritedWhitelistDetails = WhitelistConfig(Set(), Inherited)
   val UserWhitelist             = EmployeeAccessConfig(Set.empty)
+  val EnabledCors = Some(
+    CorsConfig(Set(Uri.from(host = "example.com"), Uri.from(host = "example-other.com")),
+               Set("Content-Type", "Authorization", "X-Flow-id")))
+  val DisabledCors: Option[CorsConfig] = None
 
   val sampleGateway = GatewaySpec(
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc"))))),
     Set(AdminUser),
     WhitelistConfig(Set(), Disabled),
+    DisabledCors,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -71,6 +77,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
+    DisabledCors,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -110,6 +117,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
+    DisabledCors,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -149,6 +157,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
+    DisabledCors,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -287,6 +296,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svcName"))))),
       Set.empty[String],
       WhitelistConfig(Set.empty[String], Disabled),
+      DisabledCors,
       gatewayPaths
     )
 
@@ -332,6 +342,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svcName"))))),
       Set.empty[String],
       WhitelistConfig(Set("a"), Enabled),
+      DisabledCors,
       gatewayPaths
     )
 
@@ -373,6 +384,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   it should "generate the correct routes for non black or whitelisted access" in {
     val baseRoutes = testableRouteDerivation
       .filterNot(isAdminRoute)
+      .filterNot(isCorsRoute)
 
     baseRoutes
       .map(_.metadata)
@@ -615,6 +627,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val predicates = routes
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
+      .filterNot(isCorsRoute)
       .map(_.metadata.routeDefinition.predicates)
 
     predicates.forall(_.contains(HttpsTraffic)) shouldBe true
@@ -629,6 +642,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val routeFilters = routes
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
+      .filterNot(isCorsRoute)
       .map(_.metadata.routeDefinition.filters)
 
     routeFilters should not be empty
@@ -664,12 +678,53 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     allRoutes.filter(isWhitelistedUserRoute) shouldBe empty
   }
 
+  "Cors Support" should "add an options route to each path" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
+
+    val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
+    optionsRoutes.map(_.metadata.name) should contain theSameElementsAs List("whitelisted-gateway-options-api-resource-cors",
+                                                                             "whitelisted-gateway-options-api-resource-id-cors")
+    optionsRoutes.foreach { optionsRoute =>
+      val corsFilter = optionsRoute.metadata.routeDefinition.customRoute.flatMap(_.filters.find(_.isInstanceOf[CorsOrigin]))
+      corsFilter should not be empty
+      corsFilter.get.skipperStringValue() should equal("corsOrigin(\"https://example.com\", \"https://example-other.com\")")
+    }
+  }
+
+  it should "add the cors filter to all other non-custom routes" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
+
+    val nonCustomRoutes = ingresses.filter(_.metadata.routeDefinition.customRoute.isEmpty)
+    nonCustomRoutes.foreach { nonCustomRoute =>
+      val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.find(_.isInstanceOf[CorsOrigin])
+      corsFilter should not be empty
+      corsFilter.get.skipperStringValue() should equal("corsOrigin(\"https://example.com\", \"https://example-other.com\")")
+    }
+  }
+
+  it should "not add options routes when cors support is not configured" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+
+    val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
+    optionsRoutes shouldBe empty
+    val nonCustomRoutes = ingresses.filter(_.metadata.routeDefinition.customRoute.isEmpty)
+    nonCustomRoutes.foreach { nonCustomRoute =>
+      val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.filter(_.isInstanceOf[CorsOrigin])
+      corsFilter shouldBe empty
+    }
+  }
+
   def isAdminRoute(route: IngressDefinition): Boolean = {
     val defn = route.metadata.routeDefinition
     defn.customRoute.isEmpty &&
     !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
     !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
     route.metadata.name.endsWith("admins")
+  }
+
+  def isCorsRoute(route: IngressDefinition): Boolean = {
+    val metadata = route.metadata
+    metadata.name.contains("-cors") && metadata.routeDefinition.customRoute.isDefined
   }
 
   def isWhitelistedUserRoute(route: IngressDefinition): Boolean = {

@@ -1,5 +1,6 @@
 package ie.zalando.fabric.gateway.models
 
+import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
 
@@ -146,6 +147,21 @@ object SynchDomain {
     val skipperStringValue: String = s"status($status)"
   }
 
+  case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {
+    val skipperStringValue: String = {
+      val origins = allowedOrigins
+        .map { origin =>
+          s""""${origin.copy(scheme = Uri.httpScheme(securedConnection = true))}""""
+        }
+        .mkString(", ")
+      s"""corsOrigin($origins)"""
+    }
+  }
+
+  case class ResponseHeader(key: String, value: String) extends SkipperFilter {
+    val skipperStringValue: String = s"""appendResponseHeader($key, $value)"""
+  }
+
   case object Shunt extends SkipperFilter {
     val skipperStringValue: String = "<shunt>"
   }
@@ -204,6 +220,9 @@ object SynchDomain {
     def fromString(input: String): Option[DnsString] =
       if (isValidDnsName(input)) Some(DnsString(input))
       else None
+
+    def corsPath(verb: HttpVerb, path: PathMatch) =
+      DnsString(s"-${verb.value}-${formatPath(path.path)}-cors")
 
     def userAdminPath(verb: HttpVerb, path: PathMatch) =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-admins")
@@ -278,6 +297,8 @@ object SynchDomain {
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
   case class EmployeeAccessConfig(employees: Set[String])
 
+  case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
+
   case class ActionAuthorizations(
       requiredPrivileges: NonEmptyList[String],
       rateLimit: Option[RateLimitDetails],
@@ -309,6 +330,7 @@ object SynchDomain {
   case class GatewaySpec(serviceProvider: ServiceProvider,
                          admins: Set[String],
                          globalWhitelistConfig: WhitelistConfig,
+                         corsConfig: Option[CorsConfig],
                          paths: GatewayPaths)
 
   case class GatewayMeta(name: DnsString, namespace: String)
