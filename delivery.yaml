@@ -17,14 +17,14 @@ pipeline:
       - desc: Build Test Docker image and publish to PierOne
         cmd: |
           echo "Building app image ${CDP_BUILD_VERSION}"
-          TAG="pierone.stups.zalan.do/fabric/fabric-gateway-operator-review:${CDP_BUILD_VERSION}"
+          TAG="pierone.stups.zalan.do/fabric/gateway-k8s-operator-review:${CDP_BUILD_VERSION}"
           docker build -f docker/svc/Dockerfile -t "${TAG}" .
           docker push "${TAG}"
       - desc: Build LIVE Docker image and publish to PierOne
         cmd: |
           if [ -z "$CDP_PULL_REQUEST_NUMBER" ]; then
             echo "Building app image ${CDP_BUILD_VERSION}"
-            TAG="pierone.stups.zalan.do/fabric/fabric-gateway-operator:${CDP_BUILD_VERSION}"
+            TAG="pierone.stups.zalan.do/fabric/gateway-k8s-operator:${CDP_BUILD_VERSION}"
             docker build -f docker/svc/Dockerfile -t "${TAG}" .
             docker push "${TAG}"
           fi
@@ -55,7 +55,7 @@ pipeline:
           CRD_SHORTNAME: &crdShortname fg
           APPLICATION: &testOperatorName fgtestapp-operator
           NAMESPACE: &namespace fabric
-          IMAGE: &operatorImageName pierone.stups.zalan.do/fabric/fabric-gateway-operator-review
+          IMAGE: &operatorImageName pierone.stups.zalan.do/fabric/gateway-k8s-operator-review
           CLUSTER: *testCluster
           VERSION: #{CDP_BUILD_VERSION}
           NUM_REPLICAS: "1"
