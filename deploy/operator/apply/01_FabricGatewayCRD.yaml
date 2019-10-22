@@ -86,8 +86,9 @@ spec:
               type: object
               description: |
                 This section configures Cross-Origin Resource Sharing (CORS) support in the gateway.
-                An HTTP OPTIONS endpoint will be created for each path, fulfilling the preflight requirement for CORS.
-                Note: Your service should handle returning Access-Control-Allow-Origin and Access-Control-Allow-Credentials for non-Options requests.
+                When this is configured:
+                  1. An HTTP OPTIONS endpoint will be created for each path, fulfilling the preflight requirement for CORS.
+                  2. Each route defined in this gateway will return the `access-control-allow-origin` header for origins configured here.
               required:
                 - allowedOrigins
                 - allowedHeaders
