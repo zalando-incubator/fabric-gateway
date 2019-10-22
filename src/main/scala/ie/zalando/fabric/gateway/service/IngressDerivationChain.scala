@@ -48,20 +48,6 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
       (verb, _)        <- pathConf.operations
     } yield (Route(path, verb), RouteConfig())
 
-    val preflightCorsRoutes: Iterable[SkipperRouteDefinition] = gateway.corsConfig
-      .map { corsConfig =>
-        for {
-          (path, pathConf) <- gateway.paths
-          verbs            = pathConf.operations.keys.toSet
-        } yield
-          genCorsPreflightRoute(Route(path, Options),
-                                GatewayContext(gateway, meta),
-                                corsConfig.allowedOrigins,
-                                corsConfig.allowedHeaders,
-                                verbs + Options)
-      }
-      .getOrElse(List.empty)
-
     val defaultRoutes =
       SkipperRouteDefinition(
         meta.name.concat(DnsString.DefaultRouteSuffix),
@@ -100,7 +86,37 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
     for {
       skipperRoutes <- routeDerivationOutput
       backends      <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
-    } yield combineBackendsAndRoutes(backends, skipperRoutes ++ preflightCorsRoutes, meta)
+    } yield {
+      val finalRoutes = gateway.corsConfig.fold(skipperRoutes) { corsConfig =>
+        withCors(gateway, meta.name, corsConfig, skipperRoutes)
+      }
+      combineBackendsAndRoutes(backends, finalRoutes, meta)
+    }
+  }
+
+  def withCors(gateway: GatewaySpec,
+               gatewayName: DnsString,
+               corsConfig: CorsConfig,
+               existingRoutes: List[SkipperRouteDefinition]): List[SkipperRouteDefinition] = {
+    val preflightCorsRoutes: Iterable[SkipperRouteDefinition] = for {
+      (path, pathConf) <- gateway.paths
+      verbs            = pathConf.operations.keys.toSet
+    } yield
+      genCorsPreflightRoute(Route(path, Options),
+                            gatewayName,
+                            corsConfig.allowedOrigins,
+                            corsConfig.allowedHeaders,
+                            verbs + Options)
+
+    val existingRoutesWithCors: List[SkipperRouteDefinition] = existingRoutes.map { route =>
+      if (route.customRoute.isEmpty) {
+        route.copy(filters = route.filters :+ CorsOrigin(corsConfig.allowedOrigins))
+      } else {
+        route
+      }
+    }
+
+    existingRoutesWithCors ++ preflightCorsRoutes.toList
   }
 
   val authentication: GatewayFeatureDerivation = {
@@ -230,7 +246,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
   }
 
   def genCorsPreflightRoute(route: Route,
-                            gatewayContext: GatewayContext,
+                            gatewayName: DnsString,
                             allowedOrigins: Set[Uri],
                             allowedHeaders: Set[String],
                             allowedMethods: Set[HttpVerb]): SkipperRouteDefinition = {
@@ -245,7 +261,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
       Shunt
     )
     SkipperRouteDefinition(
-      gatewayContext.meta.name.concat(DnsString.corsPath(route.verb, route.path)),
+      gatewayName.concat(DnsString.corsPath(route.verb, route.path)),
       List.empty,
       List.empty,
       Some(SkipperCustomRoute(predicates, filters))

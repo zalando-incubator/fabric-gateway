@@ -38,7 +38,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc"))))),
     Set(AdminUser),
     WhitelistConfig(Set(), Disabled),
-    EnabledCors,
+    DisabledCors,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -362,7 +362,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Route derivation" should "generate a list of Skipper Routes" in {
-    testableRouteDerivation.size shouldBe 9
+    testableRouteDerivation.size shouldBe 7
   }
 
   it should "generate a distinct name for each route" in {
@@ -679,7 +679,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Cors Support" should "add an options route to each path" in {
-    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
 
     val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
     optionsRoutes.map(_.metadata.name) should contain theSameElementsAs List("whitelisted-gateway-options-api-resource-cors",
@@ -691,11 +691,27 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     }
   }
 
+  it should "add the cors filter to all other non-custom routes" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
+
+    val nonCustomRoutes = ingresses.filter(_.metadata.routeDefinition.customRoute.isEmpty)
+    nonCustomRoutes.foreach { nonCustomRoute =>
+      val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.find(_.isInstanceOf[CorsOrigin])
+      corsFilter should not be empty
+      corsFilter.get.skipperStringValue() should equal("corsOrigin(\"https://example.com\", \"https://example-other.com\")")
+    }
+  }
+
   it should "not add options routes when cors support is not configured" in {
-    val ingresses = testableWhitelistRoutesDerivation(sampleGloballyWhitelistedGateway)
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
 
     val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
     optionsRoutes shouldBe empty
+    val nonCustomRoutes = ingresses.filter(_.metadata.routeDefinition.customRoute.isEmpty)
+    nonCustomRoutes.foreach { nonCustomRoute =>
+      val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.filter(_.isInstanceOf[CorsOrigin])
+      corsFilter shouldBe empty
+    }
   }
 
   def isAdminRoute(route: IngressDefinition): Boolean = {
