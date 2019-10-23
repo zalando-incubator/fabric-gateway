@@ -1,0 +1,291 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: fabricgateways.zalando.org
+spec:
+  group: zalando.org
+  version: v1
+  names:
+    kind: FabricGateway
+    singular: fabricgateway
+    plural: fabricgateways
+    shortNames:
+      - fg
+  scope: Namespaced
+  additionalPrinterColumns:
+    - name: Ingress_Count
+      type: integer
+      description: The number of ingressii owned by this gateway
+      JSONPath: .status.num_owned_ingress
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      type: object
+      required:
+        - spec
+      properties:
+        spec:
+          required:
+            - paths
+          properties:
+            x-fabric-service:
+              type: array
+              items:
+                type: object
+                required:
+                  - host
+                  - serviceName
+                properties:
+                  host:
+                    type: string
+                    description: This is the pulic host name for the service
+                    example: app-id.cluster-name.zalan.do
+                  serviceName:
+                    type: string
+                    description: This is the name of the K8s service which Skipper should target when forwarding requests
+                    example: app-id-service
+                  servicePort:
+                    type: string
+                    description: The port to use for the service. Must be the name of a named port defined in your k8s service. Defaults to "http". See https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
+                    example: http
+                    pattern: '^[a-z][-a-z0-9]*[^-]$'
+            x-external-service-provider:
+              type: object
+              required:
+                - stackSetName
+                - hosts
+              properties:
+                stackSetName:
+                  type: string
+                hosts:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+            x-fabric-admins:
+              type: array
+              minItems: 0
+              items:
+                type: string
+                description: |-
+                  UID of a user which will have open access to the full API. This will exclude this uid from
+                  any rate limits or authorization
+                example: jbloggs
+            x-fabric-whitelist:
+              type: array
+              items:
+                type: string
+                description: |-
+                  UID of a service which will be allowed access to the API if it matches all other authorization
+                  requirements. If there is a whitelist present, then ONLY services which are referenced in the whitelist
+                  will be able to access the API even if they match all other authorization requirements. If the whitelist
+                  is empty, then no service tokens can access via the gateway
+                example: stups_some-service-name
+            x-fabric-cors-support:
+              type: object
+              description: |
+                This section configures Cross-Origin Resource Sharing (CORS) support in the gateway.
+                When this is configured:
+                  1. An HTTP OPTIONS endpoint will be created for each path, fulfilling the preflight requirement for CORS.
+                  2. Each route defined in this gateway will return the `access-control-allow-origin` header for origins configured here.
+              required:
+                - allowedOrigins
+                - allowedHeaders
+              properties:
+                allowedOrigins:
+                  type: array
+                  minItems: 1
+                  description: |
+                    List of origins that should be allowed to access your API. Defaults to an empty list.
+                  items:
+                    type: string
+                    description: |
+                      A hostname that should be allowed access your API. "*" is not allowed.
+                    example: foo.example.com
+                allowedHeaders:
+                  type: array
+                  minItems: 1
+                  description: |
+                    List of headers which are allowed to be used as part of CORS requests. Typically you should list Authorization, Content-Type, and X-Flow-Id at a minimum.
+                  items:
+                    type: string
+                    description: |
+                      A header which an XHR request should be allowed to use.
+                    example: Authorization
+            paths:
+              type: object
+              minProperties: 1
+              description: |-
+                Each key represents a path in the API. A single star matches a value between two slashes in a HTTP path
+              example: /api/resource, /api/resource/*
+              additionalProperties:
+                type: object
+                minProperties: 1
+                description: Each key represents a supported HTTP verb on the parent path
+                example: get, head, put, post, patch, delete
+                additionalProperties:
+                  type: object
+                  properties:
+                    x-fabric-privileges:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: string
+                        description: The name of a scope which will be extracted from the bearer token
+                        example: uid, service-name.write
+                    x-fabric-ratelimits:
+                      type: object
+                      required:
+                        - default-rate
+                      properties:
+                        default-rate:
+                          type: integer
+                          minimum: 1
+                          description: |-
+                            Non user specific value to apply to the route. If a client makes more requests than this
+                            value within the defined period, then they will start getting HTTP 429 responses.
+                        period:
+                          type: string
+                          enum:
+                            - minute
+                            - hour
+                        target:
+                          type: object
+                          description: |-
+                            A uid specific number of requests that can be made within the period before rate
+                            limiting is applied
+                          additionalProperties:
+                            type: integer
+                    x-fabric-whitelist:
+                      type: object
+                      required:
+                        - service-list
+                      properties:
+                        state:
+                          type: string
+                          enum:
+                            - enabled
+                            - disabled
+                          description: Turns whitelisting on and off for this path/operation. Default is `enabled`
+                        service-list:
+                          type: array
+                          items:
+                            type: string
+                            description: |-
+                              UID of a service which will be allowed access to the API if it matches all other authorization
+                              requirements. If there is a whitelist present, then ONLY services which are referenced in the whitelist
+                              will be able to access the API even if they match all other authorization requirements
+                            example: stups_some-service-name
+                    x-fabric-employee-access:
+                      type: object
+                      required:
+                        - user-list
+                      properties:
+                        user-list:
+                          type: array
+                          items:
+                            type: string
+                            description: |-
+                              UID of a user who should bypass scope checks, since user tokens can't have scopes.
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: gateway-operator
+webhooks:
+  - name: fabricgateway.check.webhook
+    failurePolicy: Fail
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - zalando.org
+        apiVersions:
+          - "*"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - fabricgateways
+    clientConfig:
+      service:
+        namespace: fabric
+        name: gateway-operator
+        path: "/validate"
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUV1VENDQXFHZ0F3SUJBZ0lFSWdtS1ZqQU5CZ2txaGtpRzl3MEJBUXdGQURCck1Rc3dDUVlEVlFRR0V3SkoNClJURVBNQTBHQTFVRUNCTUdSSFZpYkdsdU1ROHdEUVlEVlFRSEV3WkVkV0pzYVc0eEVEQU9CZ05WQkFvVEIxcGgNCmJHRnVaRzh4RnpBVkJnTlZCQXNURGtsdVpuSmhjM1J5ZFdOMGRYSmxNUTh3RFFZRFZRUURFd1pHWVdKeWFXTXcNCkhoY05NVGt3T0RJNE1UQTBPVE0zV2hjTk5EY3dNVEV5TVRBME9UTTNXakJwTVFzd0NRWURWUVFHRXdKSlJURVANCk1BMEdBMVVFQ0JNR1JIVmliR2x1TVE4d0RRWURWUVFIRXdaRWRXSnNhVzR4RURBT0JnTlZCQW9UQjFwaGJHRnUNClpHOHhEekFOQmdOVkJBc1RCa1poWW5KcFl6RVZNQk1HQTFVRUF3d01LaTVtWVdKeWFXTXVjM1pqTUlJQklqQU4NCkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXA3M2tLMTNnRE1iRFdpZTJQWUdXOUJ4N2lYK0oNCk9KK2ppNGJlQjdKclpOZi9WQWRjQThFQzRwK0RZODkzNEJwUVZOaisyS1NqeEplSHBYWmI1SXl0UldmWlJQQSsNCnE5a1AwbTRXaDFtZjVyRTZORjMyQWF3SGZUY2VINzF2L1BJQnFzWFQxTkUwcHB0T3ZWeFA2VlRCemtDbExqMGINCk5WSVR0YTRhZDVGb1p3YTRJVlVLTEpiTkRCUThyK2ZDWVFzUlZrWkRwRGtZRWk5eVg4Yk9pWndmclByMWNuWUoNCkRCRXRrNXJxYXNOalJQRW1saElXK05wY2RLdCtaOWpRaVJ2d21JcVBNNCtpbmgyRmhYVmp3U1JzK1hvbktNVVcNCm1RU0VkZS9YK21DcEo2bVdnNUphaWhyMTdIT1NDNHdZMXdDZkZGVzBKTVkvR2ZvcUZHK29JWjRCMVFJREFRQUINCm8yY3daVEFkQmdOVkhRNEVGZ1FVeVdPKzlwb2s2WW5xZlpKUDFFeGNMN2RFS09Vd0RnWURWUjBQQVFIL0JBUUQNCkFnV2dNQjhHQTFVZEl3UVlNQmFBRkh0c2ZLc2EyTk9JUy81VFM1NEMxbVBSanNNcU1CTUdBMVVkSlFRTU1Bb0cNCkNDc0dBUVVGQndNQk1BMEdDU3FHU0liM0RRRUJEQVVBQTRJQ0FRQzVmTEdscXlGTXVsbzRjcThsOHhma25EVHANCldhY09LKzNoZXRuVmJoSGxOOHpoZnBHVDV5blFydGphOHpCY0NKaXFxUUlWcHdrMzJCRThRQzBia3Rlb0hMYzANCjA1MFF2OWh6OFNjTDA1VzR3eXY3WXRHa3VIcjFERGxST2p0bmhGQWRKS0MvTTM4UXUyZDFwS0h3aXlnZlBsN1ANCnVRbXlxejZQYmdMWFFkb3oycG5nMnl3ODdaV0k1d3FET05ja0dxUEtIQWJLZzk5K2hsZjF0ZlQvSXU1MTVOT2sNCnV3NDArV1dkSW01Ni9EekVWZTgvZXJVeE0xb2gyR3VqRUN6eEQ3TzVoNEtPQytBT3ZqT2Q4RVhTODJZS2ttci8NCjZvc0FnVnpTanZnVDBNdGVQYUpNb2tSM2JXNmhtRi9JYU53RUpuUmpZbmxBYlI5TFZTb2czV3hyTkhkWVZCZGkNClY3WTdGc3F0RWs5UDVmeFpMaTg0dUpvYmxKSEo0Q2g4SjdJZTA3aFplTWdGV0xtRzBRL3lIeUM5ZUZlM3BFc3QNClFFU0Iva0YvL09PS0pndW5mS2p1UzVOVk5TanlyZTdlQ0s3dzNFbmw0bVJQM0hiMExvU0NFaEF6MDFBVGRFSWMNCis4VE5aZnZ4aVF6QXFPNExlekErcS9LUUc3Qmtnb2dVVVkzeWxWMmdIWU9Lbk1Bb1NnVldhR2NjcTNON2dENkgNCmlDVzdBUHVyaEpXU1ZzYzBiR1hPOGpGelVpZVpjSXhUeDdscUVQREYxbDhSc2ptWnM4Z2l5S0JJUk9VLzNmeTINClpKNjJtMGIydGk2elVUTm5ibWVzU1NDdU9WUk1Ya01WTjBibHJpVjl6UmE2VGxWK1M3NEk2VjFQZVpHSzBxT3QNClMyUzVBVjJCM2M1Y2haMlJwZz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: gateway-operator
+spec:
+  generateSelector: true
+  resyncPeriodSeconds: 5
+  parentResource:
+    apiVersion: zalando.org/v1
+    resource: fabricgateways
+  childResources:
+    - apiVersion: extensions/v1beta1
+      resource: ingresses
+      updateStrategy:
+        method: InPlace
+  hooks:
+    sync:
+      webhook:
+        url: "http://gateway-operator/synch"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: gateway-operator
+  template:
+    metadata:
+      labels:
+        application: gateway-operator
+    spec:
+      containers:
+        - name: gateway-operator
+          image: "registry.opensource.zalan.do/fabric/gateway-k8s-operator:master-3"
+          env:
+          - name: LOG_LEVEL
+            value: DEBUG
+          - name: WEBHOOK_TLS_ENABLED
+            value: "TRUE"
+          - name: WEBHOOK_TLS_UNSAFE_KEYSTORE_ENABLED
+            value: "TRUE"
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          resources:
+            requests:
+              cpu: 1
+              memory: 1024Mi
+            limits:
+              memory: 1024Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-operator
+spec:
+  selector:
+    application: gateway-operator
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+---
