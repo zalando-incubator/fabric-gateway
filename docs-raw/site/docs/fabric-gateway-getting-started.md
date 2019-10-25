@@ -14,7 +14,11 @@ You can find instructions at [Skipper Ingress](https://opensource.zalando.com/sk
 ## Install API Gateway Operator
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/docs/installation/basic-install.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/01_FabricGatewayCRD.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/02_GatewayCRDSchemaValidation.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/03_MetacontrollerGatewaySynchHook.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/07_OperatorDeployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/08_OperatorService.yaml
 ```
 
 ## Worked Example
