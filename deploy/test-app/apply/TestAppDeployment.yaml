@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ TEST_APPLICATION }}
+  name: gateway-test-app
   labels:
-    application: {{ TEST_APPLICATION }}
+    application: gateway-test-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      application: {{ TEST_APPLICATION }}
+      application: gateway-test-app
   template:
     metadata:
       labels:
-        application: {{ TEST_APPLICATION }}
+        application: gateway-test-app
     spec:
       containers:
-        - name: {{ TEST_APPLICATION }}
+        - name: gateway-test-app
           image: jmalloc/echo-server:latest
           ports:
             - containerPort: 8080

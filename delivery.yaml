@@ -1,6 +1,5 @@
 # Use the script `./generate_pipelines.sh` piped into a file to generate the contents of the CDP delivery file
 version: "2017-09-20"
-
 pipeline:
   - id: Build
     overlay: fabric/scala_overlay
@@ -48,17 +47,9 @@ pipeline:
       apply_permanent_resources:
         env:
           DEPLOYMENT_PATH: &operatorDeployPath deploy/operator
-          CRD_META_NAME: &crdMetaName fabricgateways.zalando.org
-          CRD_KIND: &crdKind FabricGateway
-          CRD_RESOURCE_NAME: &crdResourceName fabricgateway
-          CRD_PLURAL: &crdResourcePluralName fabricgateways
-          CRD_SHORTNAME: &crdShortname fg
-          APPLICATION: &testOperatorName fgtestapp-operator
-          NAMESPACE: &namespace fabric
-          IMAGE: &operatorImageName registry.opensource.zalan.do/fabric/gateway-k8s-operator-review
           CLUSTER: *testCluster
+          IMAGE: &operatorImageName registry.opensource.zalan.do/fabric/gateway-k8s-operator-review
           VERSION: #{CDP_BUILD_VERSION}
-          NUM_REPLICAS: "1"
 
   - id: E2E-TestApp-Deployment
     desc: Deploy the test application
@@ -72,10 +63,6 @@ pipeline:
       apply_permanent_resources:
         env:
           DEPLOYMENT_PATH: deploy/test-app
-          APPLICATION: *testOperatorName
-          TEST_APPLICATION: gateway-test-app
-          NAMESPACE: *namespace
-          CLUSTER: *testCluster
 
   - id: E2E-Tests
     type: process
@@ -90,7 +77,6 @@ pipeline:
       apply_manifests:
         env:
           DEPLOYMENT_PATH: deploy/e2e-test-resources
-          APPLICATION: *testOperatorName
       end2end_tests:
         spec:
           restartPolicy: Never

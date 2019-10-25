@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ TEST_APPLICATION }}
+  name: gateway-test-app
   labels:
-    application: {{ TEST_APPLICATION }}
+    application: gateway-test-app
 spec:
   selector:
-    application: {{ TEST_APPLICATION }}
+    application: gateway-test-app
   ports:
   - name: http
     port: 80

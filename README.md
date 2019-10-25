@@ -24,8 +24,7 @@ See the [Getting Started](https://zalando-incubator.github.io/fabric-gateway) gu
 The `docs` folder contains the [documentation site](https://zalando-incubator.github.io/fabric-gateway/), and is built using [mkdocs](https://www.mkdocs.org/). To update the `docs` folder, make your modifications in the `docs-raw` folder and run:
 
 ```sh
-cd docs-raw
-mkdocs build -d ../docs
+./make-site.sh
 ```
 
 ### Architecture

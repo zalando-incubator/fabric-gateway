@@ -1,7 +1,7 @@
 apiVersion: "zalando.org/v1"
 kind: PlatformCredentialsSet
 metadata:
-  name: {{{APPLICATION}}}-credentials
+  name: testOperatorName-credentials
 spec:
   application: fabric-demo-app
   token_version: v2
