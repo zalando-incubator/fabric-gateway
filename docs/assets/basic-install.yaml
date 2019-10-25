@@ -239,6 +239,24 @@ spec:
         url: "http://fgtestapp-operator/synch"
 ---
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: fgtestapp-operator
+spec:
+  selector:
+    application: fgtestapp-operator
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -257,7 +275,7 @@ spec:
     spec:
       containers:
         - name: fgtestapp-operator
-          image: "{{{IMAGE}}}:{{{VERSION}}}"
+          image: "registry.opensource.zalan.do/fabric/gateway-k8s-operator:master-4"
           env:
           - name: LOG_LEVEL
             value: DEBUG
@@ -278,21 +296,3 @@ spec:
               memory: 1024Mi
             limits:
               memory: 1024Mi
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: fgtestapp-operator
-spec:
-  selector:
-    application: fgtestapp-operator
-  ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: 8080
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 8443
