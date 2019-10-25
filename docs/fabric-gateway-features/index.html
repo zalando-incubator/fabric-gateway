@@ -552,7 +552,7 @@
                 
                 <h1 id="fabric-gateway">Fabric Gateway<a class="headerlink" href="#fabric-gateway" title="Permanent link">&para;</a></h1>
 <p>Powered by <a href="https://github.com/zalando/skipper">Skipper</a>, Fabric Gateway is a security-audited and scalable solution that makes it easy for developers to secure and monitor APIs at scale.</p>
-<p><img alt="Gateway only" src="../images/GatewayOnly.png" /></p>
+<p><img alt="Gateway only" src="../img/gateway-only.png" /></p>
 <p>The Gateway operates at the Kubernetes Ingress layer and is capable of providing the above features (and more) for all inbound traffic, so application developers don&rsquo;t have to.
 A companion <a href="https://zmon.zalando.net/grafana/dashboard/db/fabric">Grafana dashboard</a> allows developers to monitor their Gateway-secured APIs with fine-grained per-client performance visibility.</p>
 <p>To enable the Fabric Gateway for an application simply add this Kubernetes <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">Custom Resource Definition</a> (CRD) to its CDP setup (e.g., by placing in <code>deploy/apply</code>). <strong>N.B.</strong> You should not have both a <code>FabricGateway</code> and a standard <code>Ingress</code> resource defined, as the default ingress would not give you any authentication but would allow traffic access to your unprotected backend service. If you are using <code>FabricGateway</code> to manage auth for your service, then please remove any existing ingress resources.</p>

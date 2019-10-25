@@ -2,7 +2,7 @@
 
 Powered by [Skipper](https://github.com/zalando/skipper), Fabric Gateway is a security-audited and scalable solution that makes it easy for developers to secure and monitor APIs at scale.
 
-![Gateway only](images/GatewayOnly.png)
+![Gateway only](img/gateway-only.png)
 
 The Gateway operates at the Kubernetes Ingress layer and is capable of providing the above features (and more) for all inbound traffic, so application developers don't have to.
 A companion [Grafana dashboard](https://zmon.zalando.net/grafana/dashboard/db/fabric) allows developers to monitor their Gateway-secured APIs with fine-grained per-client performance visibility.
