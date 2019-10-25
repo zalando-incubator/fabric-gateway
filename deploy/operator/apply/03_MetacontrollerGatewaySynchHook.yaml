@@ -1,13 +1,13 @@
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
-  name: {{{ APPLICATION }}}
+  name: gateway-operator
 spec:
   generateSelector: true
   resyncPeriodSeconds: 5
   parentResource:
     apiVersion: zalando.org/v1
-    resource: {{ CRD_PLURAL }}
+    resource: fabricgateways
   childResources:
     - apiVersion: extensions/v1beta1
       resource: ingresses
@@ -16,4 +16,4 @@ spec:
   hooks:
     sync:
       webhook:
-        url: "http://{{{ APPLICATION }}}/synch"
+        url: "http://gateway-operator/synch"

@@ -9,7 +9,7 @@ lazy val logbackJsonVersion = "0.1.5"
 
 lazy val commonSettings = Seq(
   scalaVersion := "2.12.8",
-  name := "fabric-gateway-k8s-operator",
+  name := "fabric-gateway",
   organization := "ie.zalando",
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
