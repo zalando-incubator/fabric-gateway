@@ -448,7 +448,11 @@ Once you have installed both of those, the gateway can be installed by applying 
 <h2 id="install-skipper-ingress">Install Skipper Ingress<a class="headerlink" href="#install-skipper-ingress" title="Permanent link">&para;</a></h2>
 <p>You can find instructions at <a href="https://opensource.zalando.com/skipper/kubernetes/ingress-controller/#install-skipper-as-ingress-controller">Skipper Ingress</a></p>
 <h2 id="install-api-gateway-operator">Install API Gateway Operator<a class="headerlink" href="#install-api-gateway-operator" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/docs/installation/basic-install.yaml
+<div class="codehilite"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/01_FabricGatewayCRD.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/02_GatewayCRDSchemaValidation.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/03_MetacontrollerGatewaySynchHook.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/07_OperatorDeployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/deploy/apply/08_OperatorService.yaml
 </pre></div>
 
 <h2 id="worked-example">Worked Example<a class="headerlink" href="#worked-example" title="Permanent link">&para;</a></h2>
