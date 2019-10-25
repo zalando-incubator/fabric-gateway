@@ -63,6 +63,7 @@ pipeline:
       apply_permanent_resources:
         env:
           DEPLOYMENT_PATH: deploy/test-app
+          CLUSTER: *testCluster
 
   - id: E2E-Tests
     type: process
