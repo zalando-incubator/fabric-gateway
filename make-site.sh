@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cd docs-raw/site
-mkdocs build -d ../docs
+mkdocs build -d ../../docs
 
 cd ../..
 combined_install='docs/assets/basic-install.yaml'
