@@ -85,9 +85,9 @@ for services:
 - Admin Access
 - Service Whitelisting
 - Resource Whitelisting
-- ~~API Monitoring~~ # This is now provided by default by the [API Portal](https://apis.zalando.net/)
 - Encryption In Transit
 - Rate Limiting
+- [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 
 To create a gateway for your application, you will need to include a gateway resource (sample definition below) in your
 `deploy/apply` folder. If you are using the [Fabric CDP gen](/cdp) then this gateway resource will be generated for you.
