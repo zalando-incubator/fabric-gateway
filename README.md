@@ -13,21 +13,20 @@ The following features are supported:
 * Plaintext Request Rejection
 * [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 
-### Examples
-
-You will find examples of the above features in the [examples](/examples) folder.
-
 ## Getting Started
 
-The Gateway depends on [metacontroller](https://metacontroller.app/guide/install/) and [Skipper Ingress](https://opensource.zalando.com/skipper/kubernetes/ingress-controller/#install-skipper-as-ingress-controller). Once you have installed both of those, the gateway can be installed by applying some yaml:
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/docs/installation/basic-install.yaml
-```
-
-Link to instructions for installing metacontroller, skipper ingress, the crd, gateway controller.
+See the [Getting Started](https://zalando-incubator.github.io/fabric-gateway) guide.
 
 ## Development
+
+### Updating Documentation Site
+
+The `docs` folder contains the [documentation site](https://zalando-incubator.github.io/fabric-gateway/), and is built using [mkdocs](https://www.mkdocs.org/). To update the `docs` folder, make your modifications in the `docs-raw` folder and run:
+
+```sh
+cd docs-raw
+mkdocs build -d ../docs
+```
 
 ### Architecture
 

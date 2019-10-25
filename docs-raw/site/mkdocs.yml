@@ -1,0 +1,41 @@
+site_name: Fabric Gateway
+nav:
+- Fabric Gateway:
+  - Home: index.md
+  - Getting Started: fabric-gateway-getting-started.md
+  - Features: fabric-gateway-features.md
+
+theme:
+  name: material
+
+repo_url: https://github.com/zalando-incubator/fabric-gateway
+repo_name: GitHub
+edit_uri: edit/master/docs/
+
+# Possible extensions: https://python-markdown.github.io/sitemap.html
+# More extensions: https://facelessuser.github.io/pymdown-extensions/
+markdown_extensions:
+- toc:
+    permalink: true
+- admonition
+- smarty
+- extra
+- codehilite
+- pymdownx.magiclink
+- pymdownx.superfences
+- pymdownx.details
+- pymdownx.mark
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_div_format
+- pymdownx.tilde
+
+extra_css:
+- https://unpkg.com/mermaid@7.1.2/dist/mermaid.css
+- https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css
+extra_javascript:
+- https://unpkg.com/mermaid@7.1.2/dist/mermaid.min.js
+
+strict: true
