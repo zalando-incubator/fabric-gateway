@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fgtestapp-operator
+  name: gateway-operator
   annotations:
     downscaler/exclude: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      application: fgtestapp-operator
+      application: gateway-operator
   template:
     metadata:
       labels:
-        application: fgtestapp-operator
+        application: gateway-operator
     spec:
       containers:
-        - name: fgtestapp-operator
+        - name: gateway-operator
           image: "{{{IMAGE}}}:{{{VERSION}}}"
           env:
           - name: LOG_LEVEL

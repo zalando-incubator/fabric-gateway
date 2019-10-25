@@ -1,10 +1,10 @@
 apiVersion: zalando.org/v1
 kind: FabricGateway
 metadata:
-  name: fgtestapp-operator-bug2098
+  name: gateway-operator-bug2098
 spec:
   x-fabric-service:
-  - host: bug2098-fgtestapp-operator.{{ CLUSTER }}.zalan.do
+  - host: bug2098-gateway-operator.{{ CLUSTER }}.zalan.do
     serviceName: gateway-test-app
     servicePort: http
   x-fabric-admins:
