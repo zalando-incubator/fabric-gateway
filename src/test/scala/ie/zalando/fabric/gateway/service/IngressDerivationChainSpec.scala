@@ -74,7 +74,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   )
 
   val sampleGloballyWhitelistedGateway = GatewaySpec(
-    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
+    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", NamedServicePort("named")))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
@@ -114,7 +114,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   )
 
   val sampleResourceWhitelistingGateway = GatewaySpec(
-    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
+    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", NamedServicePort("named")))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
@@ -154,7 +154,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   )
 
   val sampleUserWhitelistingGateway = GatewaySpec(
-    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", "named"))))),
+    SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svc", NamedServicePort("named")))))),
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
@@ -609,13 +609,13 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   "Service Port" should "default to http when it is missing from the gateway spec" in {
     testableRouteDerivationWithCatchAll
       .flatMap(_.hostMappings)
-      .map(_.services.head.portIdentifier) should contain only "http"
+      .map(_.services.head.portIdentifier) should contain only NamedServicePort("http")
   }
 
   it should "use the provided value when it is set in the gateway spec" in {
     testableWhitelistRoutesDerivation(sampleGloballyWhitelistedGateway)
       .flatMap(_.hostMappings)
-      .map(_.services.head.portIdentifier) should contain only "named"
+      .map(_.services.head.portIdentifier) should contain only NamedServicePort("named")
   }
 
   "Secure Traffic Feature" should "all non-default routes have a Https traffic check" in {

@@ -17,11 +17,8 @@
     "uid": "6ad211ef-aa2d-11e9-bff4-0aa6f2255a6a"
   },
   "spec": {
-    "ingress": {
-      "backendPort": "ingress",
-      "hosts": [
-        "my-test-stackset.smart-product-platform-test.zalan.do"
-      ]
+    "externalIngress": {
+      "backendPort": 8080
     },
     "stackLifecycle": {
       "limit": 5,
@@ -80,12 +77,12 @@
     "traffic": [
       {
         "serviceName": "my-test-stackset-svc1",
-        "servicePort": "http",
+        "servicePort": 8080,
         "weight": 80
       },
       {
         "serviceName": "my-test-stackset-svc2",
-        "servicePort": "http",
+        "servicePort": 8080,
         "weight": 20
       }
     ]

@@ -2,7 +2,7 @@ package ie.zalando.fabric.gateway.web.marshalling
 
 import akka.http.scaladsl.model.Uri
 import cats.data.{NonEmptyList => NEL}
-import ie.zalando.fabric.gateway.models.HttpModels
+import ie.zalando.fabric.gateway.models.{HttpModels, SynchDomain}
 import ie.zalando.fabric.gateway.models.HttpModels._
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import ie.zalando.fabric.gateway.models.ValidationDomain.{ResourceDetails, ValidationCorsConfig}
@@ -40,11 +40,11 @@ trait JsonModels {
     for {
       host    <- c.downField("host").as[Option[String]]
       svcName <- c.downField("serviceName").as[Option[String]]
-      svcPort <- c.downField("servicePort").as[Option[String]]
+      svcPort <- c.downField("servicePort").as[Option[K8sServicePortIdentifier]]
     } yield
       FabricServiceDefinition(host.getOrElse("IN-PROGRESS"),
                               svcName.getOrElse("IN-PROGRESS"),
-                              svcPort.getOrElse(HttpModels.DefaultIngressServiceProtocol))
+                              svcPort.getOrElse(SynchDomain.DefaultIngressServiceProtocol))
 
   implicit val decodeUri: Decoder[Uri] = (c: HCursor) =>
     for {
@@ -167,10 +167,18 @@ trait JsonModels {
       ownedIngressNames <- c.downField("owned_ingress_names").as[Option[Set[String]]]
     } yield GatewayStatus(numOwnedIngress, ownedIngressNames.getOrElse(Set.empty))
 
+  implicit val decodeK8sServicePortIdentifier: Decoder[K8sServicePortIdentifier] = (c: HCursor) => {
+    c.value match {
+      case s if s.isString => c.as[String].map(NamedServicePort.apply)
+      case i if i.isNumber => c.as[Int].map(NumericServicePort.apply)
+      case _ => Left(DecodingFailure(s"${c.value} was not successfully converted to a K8sServicePortIdentifier", Nil))
+    }
+  }
+
   implicit val decodeServiceDescription: Decoder[ServiceDescription] = (c: HCursor) =>
     for {
       name <- c.downField("serviceName").as[String]
-      port <- c.downField("servicePort").as[String]
+      port <- c.downField("servicePort").as[K8sServicePortIdentifier]
     } yield ServiceDescription(name, port)
 
   implicit val decodeIngressBackend: Decoder[IngressBackend] = (c: HCursor) =>
@@ -220,6 +228,13 @@ trait JsonModels {
         ("servicePort", sd.portIdentifier.asJson),
       )
     )
+  }
+
+  implicit val encodeK8sServicePortIdentifier: Encoder[K8sServicePortIdentifier] = (port: K8sServicePortIdentifier) => {
+    port match {
+      case NamedServicePort(namedPort)     => Json.fromString(namedPort)
+      case NumericServicePort(numericPort) => Json.fromInt(numericPort)
+    }
   }
 
   implicit val encodeIngressBackend: Encoder[Set[IngressBackend]] = (mappings: Set[IngressBackend]) => {

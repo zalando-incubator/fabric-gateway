@@ -2,12 +2,13 @@ package ie.zalando.fabric.gateway
 
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import ie.zalando.fabric.gateway.TestJsonModels._
+import ie.zalando.fabric.gateway.models.SynchDomain.K8sServicePortIdentifier
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import io.circe.{Decoder, HCursor, Json}
 
 object TestJsonModels {
 
-  case class TestableIngressBackend(serviceName: String, servicePort: String)
+  case class TestableIngressBackend(serviceName: String, servicePort: K8sServicePortIdentifier)
   case class IngressRule(host: String, paths: Seq[TestableIngressBackend])
   case class TestableIngress(name: String,
                              namespace: String,
@@ -27,7 +28,7 @@ trait TestJsonModels extends JsonModels with FailFastCirceSupport {
   implicit val decodeEgressIngressBackend: Decoder[TestableIngressBackend] = (c: HCursor) =>
     for {
       name <- c.downField("backend").downField("serviceName").as[String]
-      port <- c.downField("backend").downField("servicePort").as[String]
+      port <- c.downField("backend").downField("servicePort").as[K8sServicePortIdentifier]
     } yield TestableIngressBackend(name, port)
 
   implicit val decodeIngressRule: Decoder[IngressRule] = (c: HCursor) =>

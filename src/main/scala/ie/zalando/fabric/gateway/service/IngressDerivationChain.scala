@@ -412,7 +412,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
                     host,
                     services
                       .map(stackSvcDesc =>
-                        ServiceDescription(stackSvcDesc.serviceName, stackSvcDesc.servicePort, Some(stackSvcDesc.weight)))
+                        ServiceDescription(stackSvcDesc.serviceName, NumericServicePort(stackSvcDesc.servicePort), Some(stackSvcDesc.weight)))
                       .toSet)
                 }
               case _ =>
