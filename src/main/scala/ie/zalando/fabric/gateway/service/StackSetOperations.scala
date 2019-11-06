@@ -9,9 +9,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 case class StackSetIdentifer(name: String, namespace: String)
-case class StackSetIngress(backendPort: String, hosts: Seq[String])
-case class StackSetSpec(ingress: StackSetIngress)
-case class StackDefinedService(serviceName: String, servicePort: String, weight: Int)
+case class StackSetIngress(backendPort: Int)
+case class StackSetSpec(externalIngress: Option[StackSetIngress])
+case class StackDefinedService(serviceName: String, servicePort: Int, weight: Int)
 case class StackSetStatus(readyStacks: Int, stacks: Int, stacksWithTraffic: Int, traffic: Option[Seq[StackDefinedService]])
 
 class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: ExecutionContext) {

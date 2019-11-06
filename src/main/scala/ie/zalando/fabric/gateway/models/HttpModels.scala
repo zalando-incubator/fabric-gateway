@@ -7,7 +7,6 @@ object HttpModels {
 
   val IngressKind                   = "Ingress"
   val IngressApiVersion             = "extensions/v1beta1"
-  val DefaultIngressServiceProtocol = "http"
   val DefaultNamespace              = "default"
 
   case class ControlledGatewayResource(status: Option[GatewayStatus], spec: GatewaySpec, metadata: GatewayMeta)

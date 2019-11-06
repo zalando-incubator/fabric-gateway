@@ -279,9 +279,16 @@ object SynchDomain {
 
   case class IngressMetaData(routeDefinition: SkipperRouteDefinition, name: String, namespace: String)
 
-  case class FabricServiceDefinition(host: String, service: String, port: String)
+  sealed trait K8sServicePortIdentifier
+  case class NamedServicePort(name: String) extends K8sServicePortIdentifier
+  case class NumericServicePort(port: Int) extends K8sServicePortIdentifier
+
+  val DefaultIngressServiceProtocol = NamedServicePort("http")
+
+  case class FabricServiceDefinition(host: String, service: String, port: K8sServicePortIdentifier)
+
   case class ServiceDescription(name: String,
-                                portIdentifier: String = HttpModels.DefaultIngressServiceProtocol,
+                                portIdentifier: K8sServicePortIdentifier = DefaultIngressServiceProtocol,
                                 trafficWeight: Option[Int] = None)
   case class IngressBackend(host: String, services: Set[ServiceDescription])
 
