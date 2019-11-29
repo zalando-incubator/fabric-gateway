@@ -83,6 +83,9 @@ We use feature flags to optionally enable/disable functionality for the Gateway 
 * WEBHOOK_TLS_JKS_FILE_LOCATION: If you are enabling TLS as per the above mentioned feature flag and do not wish to use the unsafe bundled keystore, you can provide a location to load your own keystore from using this env var. This location should be a file path available at startup for the service.
 * WEBHOOK_TLS_JKS_PASSWORD: If you are using your own Keystore as per the above env var, then you need to provide a Base64 encoded password to access the keystore via this env var.
 
+* VERSIONED_HOSTS_ENABLED: When this is true, our stackset feature will generate a version-specific host with all auth rules intact for accessing a specific version of a service. 
+* VERSIONED_HOSTS_BASE_DOMAIN: This must be set when `VERSIONED_HOSTS_ENABLED` is set. This will be used as the base domain for the versioned hosts. For example if this is `my-domain.com` and a stackset has service `my-service`, then the version-specific domain is `my-service.my-domain.com`. 
+
 ### Operational
 
 When a fabric gateway is created you can view it using [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/):
