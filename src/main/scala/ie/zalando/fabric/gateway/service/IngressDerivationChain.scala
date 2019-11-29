@@ -411,7 +411,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                   versionedHostsBase.map(baseHost => s"${service.serviceName}.$baseHost").map { versionedHost =>
                     Set(IngressBackend(
                       versionedHost,
-                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), Some(service.weight)))
+                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), None))
                     )
                     )
                   }

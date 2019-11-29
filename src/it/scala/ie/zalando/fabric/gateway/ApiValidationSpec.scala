@@ -10,6 +10,7 @@ import ie.zalando.fabric.gateway.TestUtils.TestData._
 import ie.zalando.fabric.gateway.TestUtils._
 import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations}
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
+import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import skuber.k8sInit
@@ -204,11 +205,17 @@ class ApiValidationSpec
       mainIngressii.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only("my-test-stackset-svc1", "my-test-stackset-svc2")
       }
+      mainIngressii.map(_.allAnnos).foreach { annos =>
+        annos should contain ("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80,\"my-test-stackset-svc2\":20}"))
+      }
       versionedHost1.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only "my-test-stackset-svc1"
       }
       versionedHost2.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only "my-test-stackset-svc2"
+      }
+      (versionedHost1++versionedHost2).map(_.allAnnos).foreach { annos =>
+        annos.keys should not contain "zalando.org/backend-weights"
       }
     }
   }
