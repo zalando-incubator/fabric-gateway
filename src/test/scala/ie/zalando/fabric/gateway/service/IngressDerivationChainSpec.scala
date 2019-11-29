@@ -22,7 +22,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   val kubernetesClient       = mock[KubernetesClient]
   val stackSetOperations     = new StackSetOperations(kubernetesClient)
-  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations)
+  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
 
   val AdminUser                 = "adminUser"
   val WhitelistedUser           = "whitelistedUser"

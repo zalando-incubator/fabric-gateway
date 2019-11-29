@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.stream.ActorMaterializer
-import ie.zalando.fabric.gateway.features.TlsEndpointSupport
+import ie.zalando.fabric.gateway.features.{OperatorConfig, TlsEndpointSupport}
 import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations}
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, HttpsContext, OperationalRoutes}
 import skuber.k8sInit
@@ -20,7 +20,7 @@ object Boot extends App with GatewayWebhookRoutes with OperationalRoutes with Ht
 
   val k8s            = k8sInit
   val ssOps          = new StackSetOperations(k8s)
-  val ingDerivations = new IngressDerivationChain(ssOps)
+  val ingDerivations = new IngressDerivationChain(ssOps, OperatorConfig.versionedHostsBase)
 
   lazy val routes: Route = createRoutesFromDerivations(ingDerivations) ~ operationalRoutes
 

@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.immutable.Iterable
 import scala.concurrent.{ExecutionContext, Future}
 
-class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit mat: Materializer, ctxt: ExecutionContext) {
+class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHostsBase: Option[String])(implicit mat: Materializer, ctxt: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[IngressDerivationChain])
 
@@ -85,12 +85,12 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
 
     for {
       skipperRoutes <- routeDerivationOutput
-      backends      <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
+      backendSets   <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
     } yield {
       val finalRoutes = gateway.corsConfig.fold(skipperRoutes) { corsConfig =>
         withCors(gateway, meta.name, corsConfig, skipperRoutes)
       }
-      combineBackendsAndRoutes(backends, finalRoutes, meta)
+      backendSets.toList.flatMap(backends => combineBackendsAndRoutes(backends, finalRoutes, meta))
     }
   }
 
@@ -398,8 +398,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
     }
   }
 
-  def serviceMappingsFromProvider(provider: ServiceProvider, namespace: String): Future[Set[IngressBackend]] = provider match {
-    case SchemaDefinedServices(svcMappings) => Future.successful(svcMappings)
+  def serviceMappingsFromProvider(provider: ServiceProvider, namespace: String): Future[Set[Set[IngressBackend]]] = provider match {
+    case SchemaDefinedServices(svcMappings) => Future.successful(Set(svcMappings))
     case StackSetProvidedServices(hosts, stackName) if hosts.nonEmpty =>
       stackSetOperations
         .getStatus(StackSetIdentifer(stackName, namespace))
@@ -407,25 +407,37 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations)(implicit ma
           case Some(status) =>
             status.traffic match {
               case Some(services) if services.nonEmpty =>
-                hosts.map { host =>
+                val versionSpecificBackends = services.flatMap { service =>
+                  versionedHostsBase.map(baseHost => s"${service.serviceName}.$baseHost").map { versionedHost =>
+                    Set(IngressBackend(
+                      versionedHost,
+                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), Some(service.weight)))
+                    )
+                    )
+                  }
+                }.toSet
+
+                val mainBackendSet = Set(hosts.map { host =>
                   IngressBackend(
                     host,
                     services
                       .map(stackSvcDesc =>
                         ServiceDescription(stackSvcDesc.serviceName, NumericServicePort(stackSvcDesc.servicePort), Some(stackSvcDesc.weight)))
                       .toSet)
-                }
+                })
+
+                mainBackendSet ++ versionSpecificBackends
               case _ =>
                 log.debug(s"No services defined in the status response for SS[$namespace:$stackName]")
-                Set.empty[IngressBackend]
+                Set.empty[Set[IngressBackend]]
             }
           case None =>
             log.debug(s"No status object for for SS[$namespace:$stackName]")
-            Set.empty[IngressBackend]
+            Set.empty[Set[IngressBackend]]
         }
     case StackSetProvidedServices(_, _) =>
       log.debug("No hosts are defined for this gateway, cannot create ingressii")
-      Future.successful(Set.empty[IngressBackend])
+      Future.successful(Set.empty[Set[IngressBackend]])
   }
 
   def combineBackendsAndRoutes(backends: Set[IngressBackend],
