@@ -24,6 +24,8 @@ spec:
             value: "TRUE"
           - name: WEBHOOK_TLS_UNSAFE_KEYSTORE_ENABLED
             value: "TRUE"
+          - name: VERSIONED_HOSTS_ENABLED
+            value: "TRUE"
           - name: VERSIONED_HOSTS_BASE_DOMAIN
             value: "{{{CLUSTER}}}.zalan.do"
           ports:

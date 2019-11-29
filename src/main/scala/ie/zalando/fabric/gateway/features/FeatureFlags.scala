@@ -14,3 +14,8 @@ object TlsEndpointSupport extends FeatureFlag {
 object UseUnsafeDefaultKeystore extends FeatureFlag {
   val envName = "WEBHOOK_TLS_UNSAFE_KEYSTORE_ENABLED"
 }
+
+object VersionedHostsEnabled extends FeatureFlag {
+  val envName = "VERSIONED_HOSTS_ENABLED"
+  val baseDomainEnvName = "VERSIONED_HOSTS_BASE_DOMAIN"
+}
