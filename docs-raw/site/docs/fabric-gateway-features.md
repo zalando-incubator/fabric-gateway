@@ -88,6 +88,7 @@ for services:
 - Encryption In Transit
 - Rate Limiting
 - [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+- External Service Management
 
 To create a gateway for your application, you will need to include a gateway resource (sample definition below) in your
 `deploy/apply` folder. If you are using the [Fabric CDP gen](/cdp) then this gateway resource will be generated for you.
@@ -272,6 +273,24 @@ spec:
         x-fabric-privileges:
           - "spp-application.write"
 ```
+
+### External Service Management
+It is possible to integrate the Fabric Gateway with other operators which manage the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). The `x-external-service-provider` key should be set as per the below example.
+```yaml
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: stackset-managed-test
+spec:
+  x-external-service-provider:
+    hosts:
+      - stackset-managed-test.cluster.zalan.do
+    stackSetName: <name-of-stackset-k8s-resource>
+  paths:
+    /resources:
+      get: {}
+```
+In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.
 
 ## Other
 
