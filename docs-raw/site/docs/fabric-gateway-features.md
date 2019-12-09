@@ -290,7 +290,7 @@ spec:
     /resources:
       get: {}
 ```
-In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The gateway will initially be created in a state where no ingress resources are generated. It will remain like this until it finds the named StackSet and reads the service naming details from it.
+In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.
 
 ## Other
 
