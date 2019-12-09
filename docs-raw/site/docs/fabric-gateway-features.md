@@ -275,7 +275,7 @@ spec:
 ```
 
 ### External Service Management
-It is possible to integrate the Gateway Operator with other operators which manage the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). The `x-external-service-provider` key should be set as per the below example.
+It is possible to integrate the Fabric Gateway with other operators which manage the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). The `x-external-service-provider` key should be set as per the below example.
 ```yaml
 apiVersion: zalando.org/v1
 kind: FabricGateway
