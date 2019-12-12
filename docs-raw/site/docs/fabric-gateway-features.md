@@ -1,13 +1,12 @@
 # Fabric Gateway
 
-Powered by [Skipper](https://github.com/zalando/skipper), Fabric Gateway is a security-audited and scalable solution that makes it easy for developers to secure and monitor APIs at scale.
+Fabric Gateway is a Kubernetes control plane for [Skipper](https://github.com/zalando/skipper), the open-source HTTP router. It delivers a feature-rich API gateway that secures applications at the point of ingress to a Kubernetes cluster. It is a security-audited and scalable solution that makes it easy for developers to secure and monitor APIs at scale.
 
 ![Gateway only](img/gateway-only.png)
 
-The Gateway operates at the Kubernetes Ingress layer and is capable of providing the above features (and more) for all inbound traffic, so application developers don't have to.
-A companion [Grafana dashboard](https://zmon.zalando.net/grafana/dashboard/db/fabric) allows developers to monitor their Gateway-secured APIs with fine-grained per-client performance visibility.
+## Configuration
 
-To enable the Fabric Gateway for an application simply add this Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (CRD) to its CDP setup (e.g., by placing in `deploy/apply`). **N.B.** You should not have both a `FabricGateway` and a standard `Ingress` resource defined, as the default ingress would not give you any authentication but would allow traffic access to your unprotected backend service. If you are using `FabricGateway` to manage auth for your service, then please remove any existing ingress resources.
+Fabric Gateway is configured via a Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (CRD) of kind `FabricGateway`. To enable for an application create the `FabricGateway` resource in your cluster. 
 
 ```yaml
 apiVersion: zalando.org/v1
@@ -15,6 +14,7 @@ kind: FabricGateway
 metadata:
   name: my-app-gateway
 spec:
+  # Simple Mode with static Service
   x-fabric-service:
     - host: my-app.smart-product-platform-test.zalan.do
       serviceName: my-app-service-name
@@ -54,6 +54,48 @@ spec:
           - "spp-application.read"
 ```
 
+Gateway can be configured to work in Dynamic Mode with an external [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) provider such as [StackSets](https://github.com/zalando-incubator/stackset-controller), or in Simple Mode with a static service defined. See Dynamic Mode and Simple Mode sub-sections below.
+
+**N.B.** If using `FabricGateway` to manage auth for your service, remove any existing ingress resources for your service. You should not have both as an existing ingress could allow unauthenticated traffic to your backend service. 
+
+### Dynamic Mode - Externally Managed Services (eg StackSets)
+
+In Dynamic Mode Fabric Gateway will work with an external operator that manages the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). This is enabled by setting the `x-external-service-provider` key as per the below example.
+```yaml
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: stackset-managed-test
+spec:
+  x-external-service-provider:
+    hosts:
+      - stackset-managed-test.cluster.zalan.do
+    stackSetName: <name-of-stackset-k8s-resource>
+  paths:
+    /resources:
+      get: {}
+```
+In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.
+
+### Simple Mode - Static Service
+
+In Simple Mode an existing Kubernetes service is declared in the `FabricGateway` resource. This is done by setting the `x-fabric-service` key as per the below example.
+
+```yaml
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: stackset-managed-test
+spec:
+  x-fabric-service:
+    - host: my-app.smart-product-platform-test.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  paths:
+    /resources:
+      get: {}
+```
+
 For `servicePort`, you **must** specify a **named** port from your service definition. If you don't specify `servicePort`, Fabric Gateway defaults to a port named 'http'.  
 Below is an example of a service with a named port:
 
@@ -77,21 +119,16 @@ spec:
 
 ## Gateway Features
 
-Currently the gateway attempts to solve the following re-occurring requirements
-for services:
+Fabric Gateway provides the following features. 
 
 - Authentication
 - Authorization
 - Admin Access
 - Service Whitelisting
-- Resource Whitelisting
+- Employee Whitelisting
 - Encryption In Transit
 - Rate Limiting
 - [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
-- External Service Management
-
-To create a gateway for your application, you will need to include a gateway resource (sample definition below) in your
-`deploy/apply` folder. If you are using the [Fabric CDP gen](/cdp) then this gateway resource will be generated for you.
 
 ### Authentication
 
@@ -162,7 +199,7 @@ Server: Skipper
 All created Skipper routes will match incoming requests first by their host.  
 If you have multiple hosts for a service, then each of these needs to be listed in the gateway resource.
 
-### Whitelisting
+### Service Whitelisting
 
 You can define either a global or a route-level whitelist for your gateway as per the below examples.
 What this means is that only services whose names are defined in the whitelist will be able
@@ -273,25 +310,6 @@ spec:
         x-fabric-privileges:
           - "spp-application.write"
 ```
-
-### External Service Management
-It is possible to integrate the Fabric Gateway with other operators which manage the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). The `x-external-service-provider` key should be set as per the below example.
-```yaml
-apiVersion: zalando.org/v1
-kind: FabricGateway
-metadata:
-  name: stackset-managed-test
-spec:
-  x-external-service-provider:
-    hosts:
-      - stackset-managed-test.cluster.zalan.do
-    stackSetName: <name-of-stackset-k8s-resource>
-  paths:
-    /resources:
-      get: {}
-```
-In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.
-
 ## Other
 
 ### Path Matching
