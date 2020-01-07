@@ -9,6 +9,7 @@ import ie.zalando.fabric.gateway.models.HttpModels._
 import ie.zalando.fabric.gateway.service.{IngressDerivationChain, ResourcePersistenceValidations}
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import ie.zalando.fabric.gateway.web.marshalling.VerboseLoggingUnmarshalling._
+import ie.zalando.fabric.gateway.web.tracing.TracingDirectives.trace
 
 import scala.concurrent.ExecutionContext
 
@@ -22,19 +23,22 @@ trait GatewayWebhookRoutes extends JsonModels {
     pathPrefix("synch") {
       pathEnd {
         post {
-          entity(as[SynchRequest]) { synchRequest =>
-            extractExecutionContext { ec =>
-              implicit val execCtxt: ExecutionContext = ec
+          trace("metacontroller_synchronization") { span =>
+            entity(as[SynchRequest]) { synchRequest =>
+              extractExecutionContext { ec =>
+                implicit val execCtxt: ExecutionContext = ec
 
-              complete {
-                ingressDerivationLogic
-                  .deriveRoutesFor(synchRequest.controlledResource.spec, synchRequest.controlledResource.metadata)
-                  .map { routes =>
-                    val resp = SynchResponse(ingressDerivationLogic.deriveStateFrom(synchRequest.currentState), routes)
-                    log.debug(s"Synch Request response: $resp")
+                complete {
+                  ingressDerivationLogic
+                    .deriveRoutesFor(synchRequest.controlledResource.spec, synchRequest.controlledResource.metadata)
+                    .map { routes =>
+                      val resp = SynchResponse(ingressDerivationLogic.deriveStateFrom(synchRequest.currentState), routes)
+                      log.debug(s"Synch Request response: $resp")
+                      span.setTag("response_payload", resp.toString)
 
-                    resp
-                  }
+                      resp
+                    }
+                }
               }
             }
           }
@@ -44,18 +48,20 @@ trait GatewayWebhookRoutes extends JsonModels {
       pathPrefix("validate") {
         pathEnd {
           post {
-            entity(as[ValidationRequest]) { validation =>
-              val decision = ResourcePersistenceValidations.isValid(validation)
+            trace("kubernetes_validation") { _ =>
+              entity(as[ValidationRequest]) { validation =>
+                val decision = ResourcePersistenceValidations.isValid(validation)
 
-              val resp =
-                if (decision.rejected)
-                  ValidationResponse(validation.uid, allowed = false, Some(ValidationStatus(decision.reasons)))
-                else
-                  ValidationResponse(validation.uid, allowed = true, None)
+                val resp =
+                  if (decision.rejected)
+                    ValidationResponse(validation.uid, allowed = false, Some(ValidationStatus(decision.reasons)))
+                  else
+                    ValidationResponse(validation.uid, allowed = true, None)
 
-              val respWrapper = AdmissionReviewResponseWrapper(response = resp)
-              log.info(s"Validation response for ${validation.name} in ${validation.namespace}: $respWrapper")
-              complete(respWrapper)
+                val respWrapper = AdmissionReviewResponseWrapper(response = resp)
+                log.info(s"Validation response for ${validation.name} in ${validation.namespace}: $respWrapper")
+                complete(respWrapper)
+              }
             }
           }
         }
