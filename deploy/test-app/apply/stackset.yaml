@@ -1,0 +1,27 @@
+kind: StackSet
+apiVersion: zalando.org/v1
+metadata:
+  labels:
+    application: gw-test-stack
+  name: gw-test-stack
+spec:
+  externalIngress:
+    backendPort: 5678
+  stackTemplate:
+    spec:
+      replicas: 1
+      version: v1
+      podTemplate:
+        spec:
+          containers:
+            - name: gw-test-stack
+              image: hashicorp/http-echo
+              args: ["-text", "Stack V1"]
+              ports:
+                - containerPort: 5678
+              resources:
+                requests:
+                  cpu: 1
+                  memory: 100Mi
+                limits:
+                  memory: 100Mi
