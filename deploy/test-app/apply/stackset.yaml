@@ -1,9 +1,9 @@
-apiVersion: zalando.org/v1
 kind: StackSet
+apiVersion: zalando.org/v1
 metadata:
   labels:
-    application: ss-stack
-  name: ss-stack
+    application: gw-test-stack
+  name: gw-test-stack
 spec:
   externalIngress:
     backendPort: 5678
@@ -14,7 +14,7 @@ spec:
       podTemplate:
         spec:
           containers:
-            - name: gw-test-app
+            - name: gw-test-stack
               image: hashicorp/http-echo
               args: ["-text", "Stack V1"]
               ports:

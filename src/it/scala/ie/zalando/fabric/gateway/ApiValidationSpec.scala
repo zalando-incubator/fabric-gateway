@@ -148,7 +148,7 @@ class ApiValidationSpec
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe false
       resp.uid shouldBe "formatting-errors"
-      resp.status.get.reason shouldBe "There must be at least 1 path defined, You must have at least 1 `x-fabric-service` defined, or mark the gateway as `x-service-definition: stackset`"
+      resp.status.get.reason shouldBe "There must be at least 1 path defined, You must have 1 of the `x-fabric-service` or `x-external-service-provider` keys defined"
     }
   }
 

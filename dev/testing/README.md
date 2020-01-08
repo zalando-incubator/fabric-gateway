@@ -2,7 +2,7 @@
 In accordance with the principles of continuous delivery, we strive to cover off the majority of tests for the Gateway product with an automated test suite. These tests are executed on CDP for each push to a branch which has an open PR for it. These tests cover three different areas, unit testing, integration testing and system tests. Due to how we integrate with metacontroller in the architecture of the Gateway operator, these system tests are quite important. Unfortunately due to the nature of how we use CDP to provision resources on K8s, we cannot test the failure scenarios in an automated sense. What follows is an outline of the manual tests that should be performed to validate Gateway changes that may have an effect on the integration contract between Gateway Operator and Metacontroller.
 
 ## Results
-Last Test Execution: 17/Sep/2019
+Last Test Execution: 08/Jan/2020
 
 |Test|Result|
 | --- | --- |
@@ -11,10 +11,8 @@ Last Test Execution: 17/Sep/2019
 |[Schema Validation 3](#empty-operation-for-path-validation)|Pass|
 |[Admission Controller 1](#path-wildcard-in-middle-of-path)|Pass|
 |[Admission Controller 2](#single-service-provider-defined)|Pass|
-|[StackSets 1](#metadata-propogation)|Pass|
-|[StackSets 2](#removing-metadata-removes-ingress)|Pass|
-|[StackSets 3](#gateway-resource-updates-preserve-metadata)|Pass|
-|[StackSets 4](#updating-metadata-results-in-ingress-updates)|Pass|
+|[StackSets 1](#stackset-polling)|Pass|
+|[StackSets 2](#testing-load-balancing)|Pass|
 
 ## Scenarios
 All resources required for these tests can be found in the [resources](resources) folder...
@@ -58,99 +56,55 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
  1. Attempt to create a resource with two service providers defined:    
    `zkubectl apply -f resources/invalidResourceMultipleServiceProvidersDefined.yaml`
  1. You receive a message stating:    
-   `You cannot define a service "x-fabric-service" and also set external management like "x-service-definition: stackset"`
+   `You cannot define services with the "x-fabric-service" key and also set external management using "x-external-service-provider"`
  1. Attempt to create a resource with no service providers defined:    
     `zkubectl apply -f resources/invalidResourceNoServiceProvidersDefined.yaml`
  1. You receive a message stating:
-    `You must have at least 1 "x-fabric-service" defined, or mark the gateway as "x-service-definition: stackset"`   
+    `You must have 1 of the "x-fabric-service" or "x-external-service-provider" keys defined`   
  1. To check that no resource has been created, run the below and ensure that `no resources found` is returned:    
    `zkubectl get FabricGateway invalid-resource`
 
 ### StackSet Integration
 `StackSets` are the first external service manager for a `FabricGateway`. They integrate by setting the appropriate metadata on a `FabricGateway` resource.
 
-#### Metadata Propogation
- 1. Attempt to create a resource with `x-service-definition` set to `stackset`:    
+#### StackSet Polling
+ 1. Attempt to create a resource with `x-external-service-provider` key defined:    
    `zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml`
  1. The operation should complete successfully with the below message:    
    `fabricgateway.zalando.org/managed-by-stackset-1 created`
  1. There should be no ingresses created for the resource yet, describing the resource with below command should have an `INGRESS_COUNT` of 0:    
    `zkubectl get FabricGateway managed-by-stackset-1`
- 1. We need to create two services and a deployment for the next part. Execute the below commands and ensure they all complete successfully.    
+ 1. Create the associated stackset with the below command.    
    `zkubectl apply -f resources/stackSetup.yaml`
- 1. Start to edit the resource with the below command:    
-   `zkubectl edit FabricGateway managed-by-stackset-1`    
-    Add the contents of [this file](resources/stackset_metadata.json) under `metadata.annotations."zalando.org/ingress-override"` path in the YAML
  1. There should be now be ingresses created for the resource, describe the resource with below command and check we have an `INGRESS_COUNT` of 3:    
    `zkubectl get FabricGateway managed-by-stackset-1`
- 1. Ensure that the `zalando.org/backend-weights` annotation is on the created ingress by executing the below:    
+ 1. Ensure that the `zalando.org/backend-weights: '{"ss-stack-v1":100}'` annotation is on the created ingress by executing the below:    
    `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
- 1. Validate that the requests are being roughly balanced 4:1 to each service by issuing a number of requests and checking that the deplpoyment id periodically changes:    
-   `curl -si -H "Authorization: Bearer $(ztoken)" https://fg-manual-tests.smart-product-platform-test.zalan.do/api | grep Deploymentidentifier`
  1. Tear Down    
    ```
   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
   zkubectl delete -f resources/stackSetup.yaml
    ```
 
-#### Removing Metadata Removes Ingress
+#### Testing Load Balancing
   1. Attempt to create a resource managed by stacksets:    
    ```
    zkubectl apply -f resources/stackSetup.yaml    
-   zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml
-   ```
-  1. Add the metadata annotation as per [this test](#metadata-propogation):    
+   zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml    
+   zkubectl apply -f resources/stackUpdate.yaml    
+   ```    
   1. Ensure that the current `INGRESS_COUNT` is 3    
     `zkubectl get FabricGateway managed-by-stackset-1`
-  1. Edit the `FabricGateway` resource again and remove the annotation added in the above step:    
-    `zkubectl edit FabricGateway managed-by-stackset-1`
-  1. Ensure that the current `INGRESS_COUNT` is 0    
-    `zkubectl get FabricGateway managed-by-stackset-1`
-  1. Check that the previously existing ingressii are gone:    
-    `zkubectl get ingress managed-by-stackset-1-get-api-all`
-  1. Tear Down    
-   ```
-   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
-   zkubectl delete -f resources/stackSetup.yaml
-   ```
-
-#### Gateway Resource Updates Preserve Metadata
-  1. Attempt to create a resource managed by stacksets:    
-   ```
-   zkubectl apply -f resources/stackSetup.yaml    
-   zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml
-   ```
-  1. Add the metadata annotation as per [this test](#metadata-propogation):    
-  1. Ensure that the current `INGRESS_COUNT` is 3    
-    `zkubectl get FabricGateway managed-by-stackset-1`
-  1. Run the below to add an extra path to the `FabricGateway` resource:    
-    `zkubectl apply -f resources/validUpdatedManagedResource.yaml`
-  1. Ensure that the current `INGRESS_COUNT` is 4    
-    `zkubectl get FabricGateway managed-by-stackset-1`
-  1. Ensure that the `zalando.org/backend-weights` annotation is still on the original ingress:    
+  1. Ensure that both stacks appear in the weights annotation: `zalando.org/backend-weights: '{"ss-stack-v1":100, "ss-stack-v2":0}'`:    
+     `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
+  1. Move some traffic over to the new stack using the below command    
+    `zkubectl traffic ss-stack ss-stack-v2 50`
+  1. Make sure the weights annotation has updated on the ingress: `zalando.org/backend-weights: '{"ss-stack-v1":50, "ss-stack-v2":50}'`:    
     `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
+  1. Fire some curl request like below and check that the response is roughly even between "Stack V1" and "Stack V2"`:    
+    `curl -i -H "Authorization: Bearer $(ztoken)" https://test.smart-product-platform-test.zalan.do/api`    
   1. Tear Down    
    ```
    zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
-   zkubectl delete -f resources/stackSetup.yaml
-   ```
-
-#### Updating Metadata results in Ingress Updates
-  1. Attempt to create a resource managed by stacksets:    
-   ```
-   zkubectl apply -f resources/stackSetup.yaml    
-   zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml
-   ```
-  1. Add the metadata annotation as per [this test](#metadata-propogation):    
-  1. Ensure that the correct `zalando.org/backend-weights` annotation is on the ingress:    
-    `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
-  1. Start to edit the resource with the below command:    
-    `zkubectl edit FabricGateway managed-by-stackset-1`    
-     Update the `zalando.org/ingress-override` annotation with the contents of [this file](resources/stackset_metadata_update.json)    
-  1. Ensure that the correct `zalando.org/backend-weights` annotation is on the ingress:    
-    `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`  
-  1. Tear Down    
-   ```
-   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
-   zkubectl delete -f resources/stackSetup.yaml
+   zkubectl delete -f resources/stackUpdate.yaml
    ```

@@ -31,7 +31,7 @@ object ResourcePersistenceValidations {
 
   case object NoStackSetIntegrationAndNoServicesDefined extends GatewayValidation {
     def errorMessage: String =
-      "You must have at least 1 `x-fabric-service` defined, or mark the gateway as `x-service-definition: stackset`"
+      "You must have 1 of the `x-fabric-service` or `x-external-service-provider` keys defined"
   }
 
   case class CorsDefinedWithOptionsRoute(route: String) extends GatewayValidation {
