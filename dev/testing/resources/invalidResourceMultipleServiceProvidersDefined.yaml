@@ -6,7 +6,10 @@ spec:
   x-fabric-service:
   - host: test.smart-product-platform-test.zalan.do
     serviceName: fgtestapp
-  x-service-definition: stackset
+  x-external-service-provider:
+    stackSetName: ss-stack
+    hosts:
+      - test.smart-product-platform-test.zalan.do
   paths:
     /api:
       get: {}

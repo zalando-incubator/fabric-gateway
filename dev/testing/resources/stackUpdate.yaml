@@ -10,13 +10,13 @@ spec:
   stackTemplate:
     spec:
       replicas: 1
-      version: v1
+      version: v2
       podTemplate:
         spec:
           containers:
             - name: gw-test-app
               image: hashicorp/http-echo
-              args: ["-text", "Stack V1"]
+              args: ["-text", "Stack V2"]
               ports:
                 - containerPort: 5678
               resources:

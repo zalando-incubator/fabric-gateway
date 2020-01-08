@@ -3,7 +3,10 @@ kind: FabricGateway
 metadata:
   name: managed-by-stackset-1
 spec:
-  x-service-definition: stackset
+  x-external-service-provider:
+    stackSetName: ss-stack
+    hosts:
+      - test.smart-product-platform-test.zalan.do
   paths:
     /api:
       get: {}
