@@ -6,6 +6,6 @@ rules:
   - apiGroups:
       - zalando.org
     resources:
-      - stackset
+      - stacksets
     verbs:
       - get
