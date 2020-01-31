@@ -217,6 +217,8 @@ class ApiValidationSpec
       (versionedHost1++versionedHost2).map(_.allAnnos).foreach { annos =>
         annos.keys should not contain "zalando.org/backend-weights"
       }
+      // all ingress names should be unique
+      ingressii.map(_.name).toSet.size shouldBe ingressii.size
     }
   }
 

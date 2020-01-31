@@ -290,7 +290,7 @@ object SynchDomain {
   case class ServiceDescription(name: String,
                                 portIdentifier: K8sServicePortIdentifier = DefaultIngressServiceProtocol,
                                 trafficWeight: Option[Int] = None)
-  case class IngressBackend(host: String, services: Set[ServiceDescription])
+  case class IngressBackend(host: String, services: Set[ServiceDescription], extraName: Option[String] = None)
 
   case class IngressDefinition(hostMappings: Set[IngressBackend], metadata: IngressMetaData)
 

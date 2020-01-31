@@ -411,7 +411,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                   versionedHostsBase.map(baseHost => s"${service.serviceName}.$baseHost").map { versionedHost =>
                     Set(IngressBackend(
                       versionedHost,
-                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), None))
+                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), None)),
+                      Some(service.serviceName)
                     )
                     )
                   }
@@ -445,7 +446,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                                meta: GatewayMeta): List[IngressDefinition] = {
     val creatableRoutes = if (backends.isEmpty) Nil else routes
 
-    creatableRoutes.map { skipperRoute =>
+    creatableRoutes.flatMap { skipperRoute =>
       val serviceWeights: Set[(String, Int)] = backends
         .flatMap(
           _.services
@@ -467,14 +468,22 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         tlsAnnotatedRoute
       }
 
-      IngressDefinition(
-        backends,
-        IngressMetaData(
-          annotatedRoute,
-          annotatedRoute.name.value,
-          meta.namespace
+      val namesToBackends = backends.groupBy { backend =>
+        backend.extraName.map{ serviceSpecificName =>
+          s"${annotatedRoute.name.value}-${serviceSpecificName}"
+        }.getOrElse(annotatedRoute.name.value)
+      }
+
+      namesToBackends.map { case (name, backends) =>
+        IngressDefinition(
+          backends,
+          IngressMetaData(
+            annotatedRoute,
+            name,
+            meta.namespace
+          )
         )
-      )
+      }
     }
   }
 
