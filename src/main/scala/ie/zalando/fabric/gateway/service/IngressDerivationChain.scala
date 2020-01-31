@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.immutable.Iterable
 import scala.concurrent.{ExecutionContext, Future}
 
-class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHostsBase: Option[String])(implicit mat: Materializer, ctxt: ExecutionContext) {
+class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHostsEnabled: Boolean)(implicit mat: Materializer, ctxt: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[IngressDerivationChain])
 
@@ -85,13 +85,38 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
 
     for {
       skipperRoutes <- routeDerivationOutput
-      backendSets   <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
+      backends      <- serviceMappingsFromProvider(gateway.serviceProvider, meta.namespace)
     } yield {
       val finalRoutes = gateway.corsConfig.fold(skipperRoutes) { corsConfig =>
         withCors(gateway, meta.name, corsConfig, skipperRoutes)
       }
-      backendSets.toList.flatMap(backends => combineBackendsAndRoutes(backends, finalRoutes, meta))
+      val ingressDefinitions = combineBackendsAndRoutes(backends, finalRoutes, meta)
+
+      gateway.serviceProvider match {
+        case StackSetProvidedServices(_, _) if versionedHostsEnabled => appendServiceSpecificHosts(ingressDefinitions)
+        case _ => ingressDefinitions
+      }
     }
+  }
+
+  def appendServiceSpecificHosts(ingresses: List[IngressDefinition]): List[IngressDefinition] = {
+    val serviceSpecificIngresses = for {
+      ingress <- ingresses
+      hostMapping <- ingress.hostMappings
+      splitHost = hostMapping.host.split('.')
+      if splitHost.length == 4 && splitHost(2) == "zalan" && splitHost(3) == "do"
+      service <- hostMapping.services
+      versionedHost = s"${service.name}.${splitHost.drop(1).mkString(".")}"
+    } yield {
+      val name = s"${ingress.metadata.name}-${service.name}"
+      val annotations  = ingress.metadata.routeDefinition.additionalAnnotations.filterKeys(_ != "zalando.org/backend-weights")
+      val routeDefinition = ingress.metadata.routeDefinition.copy(additionalAnnotations = annotations)
+      val metadata = ingress.metadata.copy(name = name, routeDefinition = routeDefinition)
+
+      ingress.copy(metadata = metadata, hostMappings = Set(IngressBackend(versionedHost, Set(service))))
+    }
+
+    ingresses ++ serviceSpecificIngresses
   }
 
   def withCors(gateway: GatewaySpec,
@@ -398,8 +423,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     }
   }
 
-  def serviceMappingsFromProvider(provider: ServiceProvider, namespace: String): Future[Set[Set[IngressBackend]]] = provider match {
-    case SchemaDefinedServices(svcMappings) => Future.successful(Set(svcMappings))
+  def serviceMappingsFromProvider(provider: ServiceProvider, namespace: String): Future[Set[IngressBackend]] = provider match {
+    case SchemaDefinedServices(svcMappings) => Future.successful(svcMappings)
     case StackSetProvidedServices(hosts, stackName) if hosts.nonEmpty =>
       stackSetOperations
         .getStatus(StackSetIdentifer(stackName, namespace))
@@ -407,38 +432,25 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           case Some(status) =>
             status.traffic match {
               case Some(services) if services.nonEmpty =>
-                val versionSpecificBackends = services.flatMap { service =>
-                  versionedHostsBase.map(baseHost => s"${service.serviceName}.$baseHost").map { versionedHost =>
-                    Set(IngressBackend(
-                      versionedHost,
-                      Set(ServiceDescription(service.serviceName, NumericServicePort(service.servicePort), None)),
-                      Some(service.serviceName)
-                    )
-                    )
-                  }
-                }.toSet
-
-                val mainBackendSet = Set(hosts.map { host =>
+                hosts.map { host =>
                   IngressBackend(
                     host,
                     services
                       .map(stackSvcDesc =>
                         ServiceDescription(stackSvcDesc.serviceName, NumericServicePort(stackSvcDesc.servicePort), Some(stackSvcDesc.weight)))
                       .toSet)
-                })
-
-                mainBackendSet ++ versionSpecificBackends
+                }
               case _ =>
                 log.debug(s"No services defined in the status response for SS[$namespace:$stackName]")
-                Set.empty[Set[IngressBackend]]
+                Set.empty[IngressBackend]
             }
           case None =>
             log.debug(s"No status object for for SS[$namespace:$stackName]")
-            Set.empty[Set[IngressBackend]]
+            Set.empty[IngressBackend]
         }
     case StackSetProvidedServices(_, _) =>
       log.debug("No hosts are defined for this gateway, cannot create ingressii")
-      Future.successful(Set.empty[Set[IngressBackend]])
+      Future.successful(Set.empty[IngressBackend])
   }
 
   def combineBackendsAndRoutes(backends: Set[IngressBackend],
@@ -446,7 +458,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                                meta: GatewayMeta): List[IngressDefinition] = {
     val creatableRoutes = if (backends.isEmpty) Nil else routes
 
-    creatableRoutes.flatMap { skipperRoute =>
+    creatableRoutes.map { skipperRoute =>
       val serviceWeights: Set[(String, Int)] = backends
         .flatMap(
           _.services
@@ -468,22 +480,14 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         tlsAnnotatedRoute
       }
 
-      val namesToBackends = backends.groupBy { backend =>
-        backend.extraName.map{ serviceSpecificName =>
-          s"${annotatedRoute.name.value}-${serviceSpecificName}"
-        }.getOrElse(annotatedRoute.name.value)
-      }
-
-      namesToBackends.map { case (name, backends) =>
-        IngressDefinition(
-          backends,
-          IngressMetaData(
-            annotatedRoute,
-            name,
-            meta.namespace
-          )
+      IngressDefinition(
+        backends,
+        IngressMetaData(
+          annotatedRoute,
+          annotatedRoute.name.value,
+          meta.namespace
         )
-      }
+      )
     }
   }
 

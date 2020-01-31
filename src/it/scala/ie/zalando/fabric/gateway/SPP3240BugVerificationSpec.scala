@@ -21,7 +21,7 @@ class SPP3240BugVerificationSpec
 
   val k8sClient = mock[KubernetesClient]
   val ssOps     = new StackSetOperations(k8sClient)
-  val ingDeriv  = new IngressDerivationChain(ssOps, None)
+  val ingDeriv  = new IngressDerivationChain(ssOps, false)
 
   "Gateway Controller API" should "be able to handle the ingress creation response from metacontroller" in {
     synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingDeriv)) ~> check {

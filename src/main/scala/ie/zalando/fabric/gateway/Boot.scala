@@ -18,15 +18,9 @@ object Boot extends App with GatewayWebhookRoutes with OperationalRoutes with Ht
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val dispatcher: ExecutionContext    = system.dispatcher
 
-  val versionedHostsBaseDomain = VersionedHostsEnabled.runIfEnabled { () =>
-    sys.env.get(VersionedHostsEnabled.baseDomainEnvName).map(_.toLowerCase.trim)
-  }.getOrElse {
-    throw new IllegalStateException(s"ENV Var '${VersionedHostsEnabled.baseDomainEnvName}' needs to be populated if '${VersionedHostsEnabled.envName}' is enabled")
-  }
-
   val k8s            = k8sInit
   val ssOps          = new StackSetOperations(k8s)
-  val ingDerivations = new IngressDerivationChain(ssOps, versionedHostsBaseDomain)
+  val ingDerivations = new IngressDerivationChain(ssOps, VersionedHostsEnabled.isFeatureEnabled)
 
   lazy val routes: Route = createRoutesFromDerivations(ingDerivations) ~ operationalRoutes
 

@@ -29,7 +29,7 @@ class ApiValidationSpec
 
   val kubernetesClient       = k8sInit
   val stackSetOperations     = new StackSetOperations(kubernetesClient)
-  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
+  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, false)
 
   var wireMockServer: WireMockServer = _
 
@@ -191,12 +191,12 @@ class ApiValidationSpec
 
   it should "add version-specific hosts to ingresses for a stackset managed resource when configured" in {
     synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
-      createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, Some("playground.zalan.do")))) ~> check {
+      createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, true))) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
 
       val mainIngressii = ingressii.filter(_.rules.map(_.host).contains("my-app.smart-product-platform-test.zalan.do"))
-      val versionedHost1 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc1.playground.zalan.do"))
-      val versionedHost2 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc2.playground.zalan.do"))
+      val versionedHost1 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc1.smart-product-platform-test.zalan.do"))
+      val versionedHost2 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc2.smart-product-platform-test.zalan.do"))
 
       mainIngressii should have length 13
       versionedHost1 should have length 13
