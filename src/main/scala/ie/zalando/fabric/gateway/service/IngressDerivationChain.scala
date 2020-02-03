@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.immutable.Iterable
 import scala.concurrent.{ExecutionContext, Future}
 
-class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHostsEnabled: Boolean)(implicit mat: Materializer, ctxt: ExecutionContext) {
+class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHostsBaseDomain: Option[String])(implicit mat: Materializer, ctxt: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[IngressDerivationChain])
 
@@ -93,20 +93,19 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       val ingressDefinitions = combineBackendsAndRoutes(backends, finalRoutes, meta)
 
       gateway.serviceProvider match {
-        case StackSetProvidedServices(_, _) if versionedHostsEnabled => appendServiceSpecificHosts(ingressDefinitions)
+        case StackSetProvidedServices(_, _) =>
+          versionedHostsBaseDomain.map(baseDomain => appendVersionedHosts(ingressDefinitions, baseDomain)).getOrElse(ingressDefinitions)
         case _ => ingressDefinitions
       }
     }
   }
 
-  def appendServiceSpecificHosts(ingresses: List[IngressDefinition]): List[IngressDefinition] = {
+  def appendVersionedHosts(ingresses: List[IngressDefinition], versionedHostsBaseDomain: String): List[IngressDefinition] = {
     val serviceSpecificIngresses = for {
       ingress <- ingresses
       hostMapping <- ingress.hostMappings
-      splitHost = hostMapping.host.split('.')
-      if splitHost.length == 4 && splitHost(2) == "zalan" && splitHost(3) == "do"
       service <- hostMapping.services
-      versionedHost = s"${service.name}.${splitHost.drop(1).mkString(".")}"
+      versionedHost = s"${service.name}.$versionedHostsBaseDomain"
     } yield {
       val name = s"${ingress.metadata.name}-${service.name}"
       val annotations  = ingress.metadata.routeDefinition.additionalAnnotations.filterKeys(_ != "zalando.org/backend-weights")
@@ -116,7 +115,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       ingress.copy(metadata = metadata, hostMappings = Set(IngressBackend(versionedHost, Set(service))))
     }
 
-    ingresses ++ serviceSpecificIngresses
+    ingresses ++ serviceSpecificIngresses.toSet
   }
 
   def withCors(gateway: GatewaySpec,

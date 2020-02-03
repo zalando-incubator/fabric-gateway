@@ -29,7 +29,7 @@ class ApiValidationSpec
 
   val kubernetesClient       = k8sInit
   val stackSetOperations     = new StackSetOperations(kubernetesClient)
-  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, false)
+  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
 
   var wireMockServer: WireMockServer = _
 
@@ -189,9 +189,9 @@ class ApiValidationSpec
     }
   }
 
-  it should "add version-specific hosts to ingresses for a stackset managed resource when configured" in {
+  it should "add extra gateways with versioned hosts for a stackset-managed gateway when configured" in {
     synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
-      createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, true))) ~> check {
+      createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, Some("smart-product-platform-test.zalan.do")))) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
 
       val mainIngressii = ingressii.filter(_.rules.map(_.host).contains("my-app.smart-product-platform-test.zalan.do"))

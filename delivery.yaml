@@ -51,6 +51,7 @@ pipeline:
           CLUSTER: *testCluster
           IMAGE: &operatorImageName registry.opensource.zalan.do/fabric/gateway-k8s-operator-review
           VERSION: #{CDP_BUILD_VERSION}
+          VERSIONED_HOSTS_BASE_DOMAIN: "playground.zalan.do"
 
   - id: E2E-TestApp-Deployment
     desc: Deploy the test application

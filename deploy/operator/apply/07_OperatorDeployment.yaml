@@ -26,6 +26,8 @@ spec:
             value: "TRUE"
           - name: VERSIONED_HOSTS_ENABLED
             value: "TRUE"
+          - name: VERSIONED_HOSTS_BASE_DOMAIN
+            value: "{{{ VERSIONED_HOSTS_BASE_DOMAIN }}}"
           ports:
             - containerPort: 8080
             - containerPort: 8443
