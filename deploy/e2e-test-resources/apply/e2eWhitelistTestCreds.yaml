@@ -1,7 +1,7 @@
 apiVersion: "zalando.org/v1"
 kind: PlatformCredentialsSet
 metadata:
-  name: gateway-operator-credentials-wl
+  name: test-gateway-operator-credentials-wl
 spec:
   application: fabric-event-scheduler
   token_version: v2

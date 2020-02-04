@@ -1,5 +1,5 @@
 apiVersion: zalando.org/v1
-kind: FabricGateway
+kind: TestFabricGateway
 metadata:
   name: invalid-resource
 spec:

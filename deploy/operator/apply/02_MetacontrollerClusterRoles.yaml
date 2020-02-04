@@ -1,13 +1,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: gateway-operator
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}-metacontroller"
 rules:
   - apiGroups:
       - zalando.org
     resources:
-      - fabricgateways
-      - fabricgateways/status
+      - "{{{ CRD_PLURAL }}}"
+      - "{{{ CRD_PLURAL }}}/status"
     verbs:
       - create
       - delete
@@ -35,12 +35,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: gateway-operator
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}-metacontroller"
 subjects:
   - kind: ServiceAccount
     name: fabric
     namespace: fabric
 roleRef:
   kind: ClusterRole
-  name: gateway-operator
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}-metacontroller"
   apiGroup: rbac.authorization.k8s.io

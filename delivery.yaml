@@ -51,6 +51,11 @@ pipeline:
           CLUSTER: *testCluster
           IMAGE: &operatorImageName registry.opensource.zalan.do/fabric/gateway-k8s-operator-review
           VERSION: #{CDP_BUILD_VERSION}
+          COMPOSITE_CONTROLLER_NAME: test-gateway-operator
+          CRD_KIND: TestFabricGateway
+          CRD_SINGULAR: testfabricgateway
+          CRD_PLURAL: testfabricgateways
+          CRD_SHORT_NAME: tfg
           VERSIONED_HOSTS_BASE_DOMAIN: "playground.zalan.do"
 
   - id: E2E-TestApp-Deployment
@@ -95,21 +100,21 @@ pipeline:
                   memory: "2Gi"
               env:
                 - name: AUT_HOST
-                  value: gateway-operator.playground.zalan.do
+                  value: test-gateway-operator.playground.zalan.do
                 - name: OAUTH2_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: gateway-operator-credentials
+                      name: test-gateway-operator-credentials
                       key: test-app-token-secret
                 - name: WHITELIST_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: gateway-operator-credentials-wl
+                      name: test-gateway-operator-credentials-wl
                       key: test-app-token-secret
                 - name: RESOURCE_WHITELIST_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: gateway-operator-credentials-resource-wl
+                      name: test-gateway-operator-credentials-resource-wl
                       key: test-app-token-secret
               command: ["sh", "-c"]
               args:

@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gateway-operator
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
   annotations:
     downscaler/exclude: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      application: gateway-operator
+      application: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
   template:
     metadata:
       labels:
-        application: gateway-operator
+        application: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
     spec:
       containers:
-        - name: gateway-operator
+        - name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
           image: "{{{IMAGE}}}:{{{VERSION}}}"
           env:
           - name: LOG_LEVEL

@@ -1,9 +1,9 @@
 apiVersion: zalando.org/v1
-kind: FabricGateway
+kind: TestFabricGateway
 metadata:
   name: invalid-resource
 spec:
   x-fabric-service:
-  - host: test.smart-product-platform-test.zalan.do
+  - host: test.playground.zalan.do
     serviceName: fgtestapp
   paths: {}

@@ -1,12 +1,12 @@
 apiVersion: zalando.org/v1
-kind: FabricGateway
+kind: TestFabricGateway
 metadata:
   name: managed-by-stackset-1
 spec:
   x-external-service-provider:
     stackSetName: ss-stack
     hosts:
-      - test.smart-product-platform-test.zalan.do
+      - test.playground.zalan.do
   paths:
     /api:
       get: {}
