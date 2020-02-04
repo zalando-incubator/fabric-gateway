@@ -13,6 +13,7 @@ Last Test Execution: 04/Feb/2020
 |[Admission Controller 2](#single-service-provider-defined)|Pass|
 |[StackSets 1](#stackset-polling)|Pass|
 |[StackSets 2](#testing-load-balancing)|Pass|
+|[StackSets 3](#testing-versioned-hosts)|Pass|
 
 ## Scenarios
 All resources required for these tests can be found in the [resources](resources) folder...
@@ -69,20 +70,20 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
 
 #### StackSet Polling
  1. Attempt to create a resource with `x-external-service-provider` key defined:    
-   `zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml`
+   `zkubectl apply -f resources/validStacksetManagedResource.yaml`
  1. The operation should complete successfully with the below message:    
    `fabricgateway.zalando.org/managed-by-stackset-1 created`
  1. There should be no ingresses created for the resource yet, describing the resource with below command should have an `INGRESS_COUNT` of 0:    
    `zkubectl get TestFabricGateway managed-by-stackset-1`
  1. Create the associated stackset with the below command.    
    `zkubectl apply -f resources/stackSetup.yaml`
- 1. There should be now be ingresses created for the resource, after about 20 seconds describe the resource with below command and check we have an `INGRESS_COUNT` of 9:    
+ 1. There should be now be ingresses created for the resource, after about 20 seconds describe the resource with below command and check we have an `INGRESS_COUNT` of 6:    
    `zkubectl get TestFabricGateway managed-by-stackset-1`
  1. Ensure that the `zalando.org/backend-weights: '{"ss-stack-v1":100}'` annotation is on the created ingress by executing the below:    
    `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
  1. Tear Down    
    ```
-  zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
+  zkubectl delete -f resources/validStacksetManagedResource.yaml    
   zkubectl delete -f resources/stackSetup.yaml
    ```
 
@@ -90,7 +91,7 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
   1. Attempt to create a resource managed by stacksets:    
    ```
    zkubectl apply -f resources/stackSetup.yaml    
-   zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml    
+   zkubectl apply -f resources/validStacksetManagedResource.yaml    
    zkubectl apply -f resources/stackUpdate.yaml    
    ```    
   1. Ensure that the current `INGRESS_COUNT` is 9 after about 20 seconds  
@@ -103,12 +104,61 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
     `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
   1. Fire some curl requests like below and check that the response is roughly even between "Stack V1" and "Stack V2":
     `curl -i -H "Authorization: Bearer $(ztoken)" https://test.playground.zalan.do/api`
-  1. Fire some curl requests to the v1 host and ensure they all come back as "Stack V1":
+  1. Fire some curl requests like below and check that the responses for v1 are always "Stack V1":
     `curl -i -H "Authorization: Bearer $(ztoken)" https://ss-stack-v1.playground.zalan.do/api`
-  1. Fire some curl requests to the v2 host and ensure they all come back as "Stack V2":
+  1. Fire some curl requests like below and check that the responses for v2 are always "Stack V2":
     `curl -i -H "Authorization: Bearer $(ztoken)" https://ss-stack-v2.playground.zalan.do/api`
   1. Tear Down
    ```
-   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml
+   zkubectl delete -f resources/validStacksetManagedResource.yaml
    zkubectl delete -f resources/stackUpdate.yaml
    ```
+
+#### Testing Versioned Hosts
+
+  1. Attempt to create a resource managed by stacksets:    
+   ```
+   zkubectl apply -f resources/stackSetup.yaml    
+   zkubectl apply -f resources/validStacksetManagedResourceWithCorsAndRatelimiting.yaml    
+   zkubectl apply -f resources/stackUpdate.yaml    
+   ```
+  1. Ensure that the current `INGRESS_COUNT` is 12 after about 20 seconds  
+    `zkubectl get TestFabricGateway managed-by-stackset-1`
+  1. Ensure that both stacks appear in the weights annotation: `zalando.org/backend-weights: '{"ss-stack-v1":100, "ss-stack-v2":0}'`:    
+     `zkubectl get ingress managed-by-stackset-1-get-api-rl-all -o yaml`
+  1. Move some traffic over to the new stack using the below command
+    `zkubectl traffic ss-stack ss-stack-v2 50`
+  1. Ensure the following requests return 200 and contain the header `access-control-allow-origin: https://example.com`:
+    ```
+    curl -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://test.playground.zalan.do/api'
+    curl -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://ss-stack-v1.playground.zalan.do/api'
+    curl -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://ss-stack-v2.playground.zalan.do/api'
+    ```
+  1. Ensure the following requests return 200 and do not contain the header `access-control-allow-origin: https://example.com`:
+    ```
+    curl -i -H "Authorization: Bearer $(ztoken)" 'https://test.playground.zalan.do/api'
+    curl -i -H "Authorization: Bearer $(ztoken)" 'https://ss-stack-v1.playground.zalan.do/api'
+    curl -i -H "Authorization: Bearer $(ztoken)" 'https://ss-stack-v2.playground.zalan.do/api'
+    ```
+  1. Ensure the following requests give a 204 and includes the headers `access-control-allow-headers`, `access-control-allow-methods` and `access-control-allow-origin`:
+    ```
+      curl -X OPTIONS -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://test.playground.zalan.do/api'
+      curl -X OPTIONS -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://ss-stack-v1.playground.zalan.do/api'
+      curl -X OPTIONS -i -H "Authorization: Bearer $(ztoken)" -H "Origin: https://example.com" 'https://ss-stack-v1.playground.zalan.do/api'
+    ```
+  1. To verify rate limiting support on versioned hosts, run the following and ensure the final request gives a 429:
+    ```
+      token="$(ztoken)"
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v1.playground.zalan.do/api'
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v2.playground.zalan.do/api'
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v2.playground.zalan.do/api'
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v2.playground.zalan.do/api'
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v2.playground.zalan.do/api'
+      curl -i -H "Authorization: Bearer ${token}" 'https://ss-stack-v2.playground.zalan.do/api'
+    ```
+  1. Tear Down
+     ```
+     zkubectl delete -f resources/validStacksetManagedResourceWithCorsAndRatelimiting.yaml
+     zkubectl delete -f resources/stackUpdate.yaml
+     ```
+     
