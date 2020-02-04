@@ -2,7 +2,7 @@
 In accordance with the principles of continuous delivery, we strive to cover off the majority of tests for the Gateway product with an automated test suite. These tests are executed on CDP for each push to a branch which has an open PR for it. These tests cover three different areas, unit testing, integration testing and system tests. Due to how we integrate with metacontroller in the architecture of the Gateway operator, these system tests are quite important. Unfortunately due to the nature of how we use CDP to provision resources on K8s, we cannot test the failure scenarios in an automated sense. What follows is an outline of the manual tests that should be performed to validate Gateway changes that may have an effect on the integration contract between Gateway Operator and Metacontroller.
 
 ## Results
-Last Test Execution: 08/Jan/2020
+Last Test Execution: 04/Feb/2020
 
 |Test|Result|
 | --- | --- |
@@ -76,7 +76,7 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
    `zkubectl get TestFabricGateway managed-by-stackset-1`
  1. Create the associated stackset with the below command.    
    `zkubectl apply -f resources/stackSetup.yaml`
- 1. There should be now be ingresses created for the resource, describe the resource with below command and check we have an `INGRESS_COUNT` of 3:    
+ 1. There should be now be ingresses created for the resource, after about 20 seconds describe the resource with below command and check we have an `INGRESS_COUNT` of 9:    
    `zkubectl get TestFabricGateway managed-by-stackset-1`
  1. Ensure that the `zalando.org/backend-weights: '{"ss-stack-v1":100}'` annotation is on the created ingress by executing the below:    
    `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
@@ -93,18 +93,22 @@ The Gateway Operator uses an admission controller webhook to reject FabricGatewa
    zkubectl apply -f resources/validResourceWithServicesManagedByStackSet.yaml    
    zkubectl apply -f resources/stackUpdate.yaml    
    ```    
-  1. Ensure that the current `INGRESS_COUNT` is 3    
+  1. Ensure that the current `INGRESS_COUNT` is 9 after about 20 seconds  
     `zkubectl get TestFabricGateway managed-by-stackset-1`
   1. Ensure that both stacks appear in the weights annotation: `zalando.org/backend-weights: '{"ss-stack-v1":100, "ss-stack-v2":0}'`:    
      `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
-  1. Move some traffic over to the new stack using the below command    
+  1. Move some traffic over to the new stack using the below command
     `zkubectl traffic ss-stack ss-stack-v2 50`
   1. Make sure the weights annotation has updated on the ingress: `zalando.org/backend-weights: '{"ss-stack-v1":50, "ss-stack-v2":50}'`:    
     `zkubectl get ingress managed-by-stackset-1-get-api-all -o yaml`
-  1. Fire some curl request like below and check that the response is roughly even between "Stack V1" and "Stack V2"`:    
-    `curl -i -H "Authorization: Bearer $(ztoken)" https://test.playground.zalan.do/api`    
-  1. Tear Down    
+  1. Fire some curl requests like below and check that the response is roughly even between "Stack V1" and "Stack V2":
+    `curl -i -H "Authorization: Bearer $(ztoken)" https://test.playground.zalan.do/api`
+  1. Fire some curl requests to the v1 host and ensure they all come back as "Stack V1":
+    `curl -i -H "Authorization: Bearer $(ztoken)" https://ss-stack-v1.playground.zalan.do/api`
+  1. Fire some curl requests to the v2 host and ensure they all come back as "Stack V2":
+    `curl -i -H "Authorization: Bearer $(ztoken)" https://ss-stack-v2.playground.zalan.do/api`
+  1. Tear Down
    ```
-   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml    
+   zkubectl delete -f resources/validResourceWithServicesManagedByStackSet.yaml
    zkubectl delete -f resources/stackUpdate.yaml
    ```
