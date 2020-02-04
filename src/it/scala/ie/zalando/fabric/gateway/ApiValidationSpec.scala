@@ -10,6 +10,7 @@ import ie.zalando.fabric.gateway.TestUtils.TestData._
 import ie.zalando.fabric.gateway.TestUtils._
 import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations}
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
+import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import skuber.k8sInit
@@ -28,7 +29,7 @@ class ApiValidationSpec
 
   val kubernetesClient       = k8sInit
   val stackSetOperations     = new StackSetOperations(kubernetesClient)
-  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations)
+  val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
 
   var wireMockServer: WireMockServer = _
 
@@ -175,7 +176,7 @@ class ApiValidationSpec
   }
 
   // Tests were timing out with the mock...
-  implicit val routeTestTimeout = RouteTestTimeout(5.seconds)
+  implicit val routeTestTimeout: RouteTestTimeout = RouteTestTimeout(5.seconds)
 
   it should "accept a stackset managed resource and create the ingress based on the response from the K8s API" in {
     synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
@@ -183,8 +184,41 @@ class ApiValidationSpec
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 13
       ingressii.map(_.rules.head.paths.map(_.serviceName)).foreach { backends =>
-        backends should contain allOf ("my-test-stackset-svc1", "my-test-stackset-svc2")
+        backends should contain only ("my-test-stackset-svc1", "my-test-stackset-svc2")
       }
+    }
+  }
+
+  it should "add extra gateways with versioned hosts for a stackset-managed gateway when configured" in {
+    synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
+      createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, Some("smart-product-platform-test.zalan.do")))) ~> check {
+      val ingressii = responseAs[TestSynchResponse].ingressii
+
+      val mainIngressii = ingressii.filter(_.rules.map(_.host).contains("my-app.smart-product-platform-test.zalan.do"))
+      val versionedHost1 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc1.smart-product-platform-test.zalan.do"))
+      val versionedHost2 = ingressii.filter(_.rules.map(_.host).contains("my-test-stackset-svc2.smart-product-platform-test.zalan.do"))
+
+      mainIngressii should have length 13
+      versionedHost1 should have length 13
+      versionedHost2 should have length 13
+
+      mainIngressii.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
+        backends should contain only("my-test-stackset-svc1", "my-test-stackset-svc2")
+      }
+      mainIngressii.map(_.allAnnos).foreach { annos =>
+        annos should contain ("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80,\"my-test-stackset-svc2\":20}"))
+      }
+      versionedHost1.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
+        backends should contain only "my-test-stackset-svc1"
+      }
+      versionedHost2.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
+        backends should contain only "my-test-stackset-svc2"
+      }
+      (versionedHost1++versionedHost2).map(_.allAnnos).foreach { annos =>
+        annos.keys should not contain "zalando.org/backend-weights"
+      }
+      // all ingress names should be unique
+      ingressii.map(_.name).toSet.size shouldBe ingressii.size
     }
   }
 

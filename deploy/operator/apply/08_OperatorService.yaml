@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gateway-operator
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
 spec:
   selector:
-    application: gateway-operator
+    application: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
   ports:
   - name: http
     port: 80

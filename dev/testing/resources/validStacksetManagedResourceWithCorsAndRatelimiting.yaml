@@ -1,0 +1,22 @@
+apiVersion: zalando.org/v1
+kind: TestFabricGateway
+metadata:
+  name: managed-by-stackset-1
+spec:
+  x-fabric-cors-support:
+    allowedOrigins:
+      - example.com
+      - example-other.com
+    allowedHeaders:
+      - Content-Type
+      - Authorization
+      - X-Flow-Id
+  x-external-service-provider:
+    stackSetName: ss-stack
+    hosts:
+      - test.playground.zalan.do
+  paths:
+    /api:
+      get:
+        x-fabric-ratelimits:
+          default-rate: 5

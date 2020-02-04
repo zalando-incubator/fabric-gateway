@@ -3,7 +3,7 @@ import sbt.librarymanagement.Configuration
 lazy val akkaHttpVersion    = "10.1.8"
 lazy val akkaVersion        = "2.5.22"
 lazy val monocleVersion     = "1.5.0"
-lazy val scalaTestVersion   = "3.0.5"
+lazy val scalaTestVersion   = "3.0.8"
 lazy val mockitoVersion     = "1.5.17"
 lazy val logbackJsonVersion = "0.1.5"
 

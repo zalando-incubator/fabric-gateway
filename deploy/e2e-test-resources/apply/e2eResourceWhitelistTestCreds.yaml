@@ -1,7 +1,7 @@
 apiVersion: "zalando.org/v1"
 kind: PlatformCredentialsSet
 metadata:
-  name: gateway-operator-credentials-resource-wl
+  name: test-gateway-operator-credentials-resource-wl
 spec:
   application: metacontroller
   token_version: v2

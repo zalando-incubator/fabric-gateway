@@ -1,12 +1,12 @@
 apiVersion: zalando.org/v1
-kind: FabricGateway
+kind: TestFabricGateway
 metadata:
-  name: gateway-operator-stack-managed
+  name: test-gateway-operator-stack-managed
 spec:
   x-external-service-provider:
     stackSetName: gw-test-stack
     hosts:
-      - ss-gateway-operator.{{ CLUSTER }}.zalan.do
+      - ss-test-gateway-operator.{{ CLUSTER }}.zalan.do
   x-fabric-admins:
   - bmooney
   - fmoloney

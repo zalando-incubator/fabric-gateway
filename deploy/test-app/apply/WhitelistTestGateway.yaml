@@ -1,10 +1,10 @@
 apiVersion: zalando.org/v1
-kind: FabricGateway
+kind: TestFabricGateway
 metadata:
-  name: gateway-operator-whitelisting
+  name: test-gateway-operator-whitelisting
 spec:
   x-fabric-service:
-  - host: wl-gateway-operator.{{ CLUSTER }}.zalan.do
+  - host: wl-test-gateway-operator.{{ CLUSTER }}.zalan.do
     serviceName: gateway-test-app
   x-fabric-whitelist:
   - stups_fabric-event-scheduler
