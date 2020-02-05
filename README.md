@@ -84,6 +84,7 @@ We use feature flags to optionally enable/disable functionality for the Gateway 
 * WEBHOOK_TLS_JKS_PASSWORD: If you are using your own Keystore as per the above env var, then you need to provide a Base64 encoded password to access the keystore via this env var.
 
 * VERSIONED_HOSTS_ENABLED: When this is true, our stackset feature will generate a version-specific host with all auth rules intact for accessing a specific version of a service. 
+* VERSIONED_HOSTS_BASE_DOMAIN: This must be set when `VERSIONED_HOSTS_ENABLED` is set. This will be used as the base domain for the versioned hosts. For example if this is `my-domain.com` and a stackset has service `my-service`, then the version-specific host is `my-service.my-domain.com`.
 
 ### Operational
 
