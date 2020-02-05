@@ -225,6 +225,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     routes.size should not be 0
     routes.forall(_.metadata.routeDefinition.filters.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
+    routes.forall(_.metadata.routeDefinition.filters.contains(AdminAuditing)) shouldBe true
   }
 
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
@@ -264,7 +265,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
       sr.filters should equal(
-        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
+        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AdminAuditing, RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
     }
 
     routes

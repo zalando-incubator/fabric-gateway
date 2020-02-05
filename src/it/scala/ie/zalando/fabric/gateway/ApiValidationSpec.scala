@@ -99,12 +99,11 @@ class ApiValidationSpec
   it should "ensure that all admin routes have extra auditing enabled" in {
     synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
-      ingressii
-        .filter(_.name.contains("jblogs"))
-        .map(_.filters.get)
-        .foreach { filterChain =>
-          filterChain should include("""enableAccessLog() -> unverifiedAuditLog("https://identity.zalando.com/managed-id")""")
-        }
+      val adminRoutes = ingressii.filter(_.name.contains("admins")).map(_.filters.get)
+      adminRoutes should not be empty
+      adminRoutes.foreach { filterChain =>
+        filterChain should include("""enableAccessLog(2, 4, 5) -> unverifiedAuditLog("https://identity.zalando.com/managed-id")""")
+      }
     }
   }
 
