@@ -6,7 +6,7 @@ Fabric Gateway is a Kubernetes control plane for [Skipper](https://github.com/za
 
 ## Configuration
 
-Fabric Gateway is configured via a Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (CRD) of kind `FabricGateway`. To enable for an application create the `FabricGateway` resource in your cluster. 
+Fabric Gateway is configured via a Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (CRD) of kind `FabricGateway`. To enable for an application create the `FabricGateway` resource in your cluster.
 
 ```yaml
 apiVersion: zalando.org/v1
@@ -56,11 +56,12 @@ spec:
 
 Gateway can be configured to work in Dynamic Mode with an external [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) provider such as [StackSets](https://github.com/zalando-incubator/stackset-controller), or in Simple Mode with a static service defined. See Dynamic Mode and Simple Mode sub-sections below.
 
-**N.B.** If using `FabricGateway` to manage auth for your service, remove any existing ingress resources for your service. You should not have both as an existing ingress could allow unauthenticated traffic to your backend service. 
+**N.B.** If using `FabricGateway` to manage auth for your service, remove any existing ingress resources for your service. You should not have both as an existing ingress could allow unauthenticated traffic to your backend service.
 
 ### Dynamic Mode - Externally Managed Services (eg StackSets)
 
 In Dynamic Mode Fabric Gateway will work with an external operator that manages the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). This is enabled by setting the `x-external-service-provider` key as per the below example.
+
 ```yaml
 apiVersion: zalando.org/v1
 kind: FabricGateway
@@ -75,7 +76,17 @@ spec:
     /resources:
       get: {}
 ```
+
 In the above example, we are not defining any services (and it is illegal to define services via the `x-fabric-service` key if you have the `x-external-service-provider` set) in the Gateway resource. Instead, we are saying that these services will be provided by a [StackSet](https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets) operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.
+
+#### Versioned Hosts
+
+When using the stackset integration, the gateway will also configure a host for accessing each stack individually, ignoring traffic-switching. For example, if you have stacks `my-stack-v1` and `my-stack-v2` and the gateway operator has set `VERSIONED_HOSTS_BASE_DOMAIN` to `abc.com`, you will be able to access the stacks at `https://my-stack-v1.abc.com` and `https://my-stack-v2.abc.com` respectively.
+
+For these hosts:
+
+- All authorization, cors and other configured rules will still apply.
+- Rate-limiting is done by path and shared between hosts. This means you can use up the rate-limit by using any combination of versioned hosts and the main traffic-switched host. In the above example, hitting `https://my-stack-v1.abc.com/api`, then `https://my-stack-v2.abc.com/api`, then `https://my-stack.abc.com/api` counts as 3 towards your rate-limit for the `/api` path.
 
 ### Simple Mode - Static Service
 
@@ -119,7 +130,7 @@ spec:
 
 ## Gateway Features
 
-Fabric Gateway provides the following features. 
+Fabric Gateway provides the following features.
 
 - Authentication
 - Authorization
@@ -310,6 +321,7 @@ spec:
         x-fabric-privileges:
           - "spp-application.write"
 ```
+
 ## Other
 
 ### Path Matching
