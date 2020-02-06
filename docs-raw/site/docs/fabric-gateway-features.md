@@ -81,12 +81,12 @@ In the above example, we are not defining any services (and it is illegal to def
 
 #### Versioned Hosts
 
-When using the stackset integration, the gateway will also configure a host for accessing each stack individually, ignoring traffic-switching. For example, if you have stacks `my-stack-v1` and `my-stack-v2` and the gateway operator has set `VERSIONED_HOSTS_BASE_DOMAIN` to `abc.com`, you will be able to access the stacks at `https://my-stack-v1.abc.com` and `https://my-stack-v2.abc.com` respectively.
+When using the stackset integration, the gateway will also configure a host for accessing each stack individually, ignoring traffic-switching. For example, if you have stacks `my-stack-v1` and `my-stack-v2` and the gateway operator has set `VERSIONED_HOSTS_BASE_DOMAIN` to `cluster.zalan.do`, you will be able to access the stacks at `https://my-stack-v1.cluster.zalan.do` and `https://my-stack-v2.cluster.zalan.do` respectively.
 
 For these hosts:
 
 - All authorization, cors and other configured rules will still apply.
-- Rate-limiting is done by path and shared between hosts. This means you can use up the rate-limit by using any combination of versioned hosts and the main traffic-switched host. In the above example, hitting `https://my-stack-v1.abc.com/api`, then `https://my-stack-v2.abc.com/api`, then `https://my-stack.abc.com/api` counts as 3 towards your rate-limit for the `/api` path.
+- Rate-limiting is done by path and shared between hosts. This means you can use up the rate-limit by using any combination of versioned hosts and the main traffic-switched host. In the above example, hitting `https://my-stack-v1.cluster.zalan.do/api`, then `https://my-stack-v2.cluster.zalan.do/api`, then `https://my-stack.cluster.zalan.do/api` counts as 3 towards your rate-limit for the `/api` path.
 
 ### Simple Mode - Static Service
 
