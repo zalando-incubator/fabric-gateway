@@ -225,7 +225,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     routes.size should not be 0
     routes.forall(_.metadata.routeDefinition.filters.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
-    routes.forall(_.metadata.routeDefinition.filters.contains(AccessLogAuditing("blah"))) shouldBe true
+    routes.forall(_.metadata.routeDefinition.filters.contains(AccessLogAuditing("https://identity.zalando.com/managed-id"))) shouldBe true
   }
 
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
