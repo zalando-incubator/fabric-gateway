@@ -55,12 +55,21 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         Nil,
         Some(
           SkipperCustomRoute(NEL.one(PathSubTreeMatch("/")),
-                             NEL.of(RequiredPrivileges(NEL.one("uid")), Status(404), DefaultRejectMsg, Shunt)))
+                             NEL.of(
+                               RequiredPrivileges(NEL.one("uid")),
+                               AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey),
+                               Status(404),
+                               DefaultRejectMsg, Shunt
+                             )
+          ))
       ) :: SkipperRouteDefinition(
         meta.name.concat(DnsString.DefaultHttpRejectRouteSuffix),
         Nil,
         Nil,
-        Some(SkipperCustomRoute(NEL.of(PathSubTreeMatch("/"), HttpTraffic), NEL.of(Status(400), HttpRejectMsg, Shunt)))
+        Some(SkipperCustomRoute(
+          NEL.of(PathSubTreeMatch("/"), HttpTraffic),
+          NEL.of(AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), Status(400), HttpRejectMsg, Shunt))
+        )
       ) :: Nil
 
     val routeDerivationOutput: Future[List[SkipperRouteDefinition]] = Source
