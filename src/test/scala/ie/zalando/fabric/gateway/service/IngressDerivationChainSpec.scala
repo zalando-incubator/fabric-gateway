@@ -225,7 +225,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     routes.size should not be 0
     routes.forall(_.metadata.routeDefinition.filters.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
-    routes.forall(_.metadata.routeDefinition.filters.contains(AdminAuditing)) shouldBe true
+    routes.forall(_.metadata.routeDefinition.filters.contains(AccessLogAuditing("blah"))) shouldBe true
   }
 
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
@@ -265,7 +265,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
       sr.filters should equal(
-        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AdminAuditing, RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
+        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AccessLogAuditing(), RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
     }
 
     routes
@@ -712,6 +712,21 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     nonCustomRoutes.foreach { nonCustomRoute =>
       val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.filter(_.isInstanceOf[CorsOrigin])
       corsFilter shouldBe empty
+    }
+  }
+
+  "Access Logging" should "add the unverifiedAuditLog filter to all service routes with the sub key" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+
+    val filteredRoutes = ingresses
+      .filterNot(isAdminRoute)
+      .filterNot(isCatchAllRoute)
+      .filterNot(isHttpRejectRoute)
+      .map(_.metadata.routeDefinition.filters)
+
+    filteredRoutes should not be empty
+    filteredRoutes.foreach { filters: List[SkipperFilter] =>
+      filters should contain(AccessLogAuditing("sub"))
     }
   }
 

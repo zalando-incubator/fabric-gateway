@@ -181,8 +181,12 @@ object SynchDomain {
       """inlineContent("{\"title\":\"Gateway Rejected\",\"status\":403,\"detail\":\"Illegal attempt to access whitelisted route\"}")"""
   }
 
-  case object AdminAuditing extends SkipperFilter {
-    val skipperStringValue: String = """unverifiedAuditLog("https://identity.zalando.com/managed-id")"""
+  object AccessLogAuditing {
+    val UserRealmTokenIdentifierKey = "https://identity.zalando.com/managed-id"
+    val ServiceRealmTokenIdentifierKey = "sub"
+  }
+  case class AccessLogAuditing(key: String = AccessLogAuditing.UserRealmTokenIdentifierKey) extends SkipperFilter {
+    val skipperStringValue: String = s"""unverifiedAuditLog("$key")"""
   }
 
   sealed trait RateLimitPeriod {
