@@ -55,12 +55,21 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         Nil,
         Some(
           SkipperCustomRoute(NEL.one(PathSubTreeMatch("/")),
-                             NEL.of(RequiredPrivileges(NEL.one("uid")), Status(404), DefaultRejectMsg, Shunt)))
+                             NEL.of(
+                               RequiredPrivileges(NEL.one("uid")),
+                               AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey),
+                               Status(404),
+                               DefaultRejectMsg, Shunt
+                             )
+          ))
       ) :: SkipperRouteDefinition(
         meta.name.concat(DnsString.DefaultHttpRejectRouteSuffix),
         Nil,
         Nil,
-        Some(SkipperCustomRoute(NEL.of(PathSubTreeMatch("/"), HttpTraffic), NEL.of(Status(400), HttpRejectMsg, Shunt)))
+        Some(SkipperCustomRoute(
+          NEL.of(PathSubTreeMatch("/"), HttpTraffic),
+          NEL.of(AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), Status(400), HttpRejectMsg, Shunt))
+        )
       ) :: Nil
 
     val routeDerivationOutput: Future[List[SkipperRouteDefinition]] = Source
@@ -241,11 +250,16 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       }
       .toList
 
-    val svcRoutes = if (routeConfig.serviceRestrictions.isRouteRestricted) {
+    val svcRoutes = (if (routeConfig.serviceRestrictions.isRouteRestricted) {
       genRestrictedServiceRoutes(route, routeConfig, gatewayContext)
     } else {
       genUnrestrictedServiceRoutes(route, routeConfig, gatewayContext)
+    }).map { srd =>
+      srd.copy(
+        filters = AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey) :: srd.filters
+      )
     }
+
     val genericRateLimit = routeConfig.rateLimitDetails.get(GenericServiceMatch)
     val employeeAccess = NEL.fromList(routeConfig.userRestrictions.restrictedTo.toList).flatMap { uids =>
       genericRateLimit
@@ -260,6 +274,10 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
             None
           ))
         }
+    }.map { srd =>
+      srd.copy(
+        filters = AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) :: srd.filters
+      )
     }
 
     skipperRoutes ::: (adminRoutes ::: (svcRoutes ++ employeeAccess)).map { route =>
@@ -294,7 +312,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
 
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
     val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: Nil
-    val filters    = EnableAccessLog(List(2, 4, 5)) :: AdminAuditing :: RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
+    val filters    = EnableAccessLog(List(2, 4, 5)) :: AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) ::
+      RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
 
     SkipperRouteDefinition(gatewayContext.meta.name.concat(DnsString.userAdminPath(route.verb, route.path)),
                            predicates,

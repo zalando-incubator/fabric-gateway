@@ -225,7 +225,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     routes.size should not be 0
     routes.forall(_.metadata.routeDefinition.filters.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
-    routes.forall(_.metadata.routeDefinition.filters.contains(AdminAuditing)) shouldBe true
+    routes.forall(_.metadata.routeDefinition.filters.contains(AccessLogAuditing("https://identity.zalando.com/managed-id"))) shouldBe true
   }
 
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
@@ -243,7 +243,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     defaultRoute.filters shouldBe empty
     val Some(route) = defaultRoute.customRoute
     route.predicates.toList should contain(PathSubTreeMatch("/"))
-    route.filters.toList should contain allOf (Status(404), DefaultRejectMsg, Shunt)
+    route.filters.toList should contain allOf (Status(404), AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), DefaultRejectMsg, Shunt)
   }
 
   it should "generate a valid skipper admin route per verb" in {
@@ -265,7 +265,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
       sr.filters should equal(
-        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AdminAuditing, RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
+        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AccessLogAuditing(), RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
     }
 
     routes
@@ -712,6 +712,39 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     nonCustomRoutes.foreach { nonCustomRoute =>
       val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.filter(_.isInstanceOf[CorsOrigin])
       corsFilter shouldBe empty
+    }
+  }
+
+  "Access Logging" should "add the unverifiedAuditLog filter to all service routes with the sub key" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+
+    val filteredRoutes = ingresses
+      .filterNot(isAdminRoute)
+      .filterNot(isCatchAllRoute)
+      .filterNot(isHttpRejectRoute)
+      .map(_.metadata.routeDefinition.filters)
+
+    filteredRoutes should not be empty
+    filteredRoutes.foreach { filters: List[SkipperFilter] =>
+      filters should contain(AccessLogAuditing("sub"))
+    }
+  }
+
+  it should "add the unverifiedAuditLog filter to the static shunt routes" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+
+    val filteredRoutes = ingresses
+      .filter { route =>
+        isCatchAllRoute(route) || isHttpRejectRoute(route)
+      }
+      .flatMap(_.metadata.routeDefinition.customRoute)
+      .map { cr =>
+        cr.filters
+      }
+
+    filteredRoutes should not be empty
+    filteredRoutes.foreach { filters: NEL[SkipperFilter] =>
+      filters.toList should contain(AccessLogAuditing("sub"))
     }
   }
 
