@@ -5,7 +5,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: fabric-gateway-k8s-api-access
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
 subjects:
   - kind: ServiceAccount
     name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
