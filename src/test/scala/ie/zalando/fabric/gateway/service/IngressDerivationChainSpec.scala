@@ -243,7 +243,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     defaultRoute.filters shouldBe empty
     val Some(route) = defaultRoute.customRoute
     route.predicates.toList should contain(PathSubTreeMatch("/"))
-    route.filters.toList should contain allOf (Status(404), DefaultRejectMsg, Shunt)
+    route.filters.toList should contain allOf (Status(404), AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), DefaultRejectMsg, Shunt)
   }
 
   it should "generate a valid skipper admin route per verb" in {
@@ -727,6 +727,24 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     filteredRoutes should not be empty
     filteredRoutes.foreach { filters: List[SkipperFilter] =>
       filters should contain(AccessLogAuditing("sub"))
+    }
+  }
+
+  it should "add the unverifiedAuditLog filter to the static shunt routes" in {
+    val ingresses = testableWhitelistRoutesDerivation(sampleGateway)
+
+    val filteredRoutes = ingresses
+      .filter { route =>
+        isCatchAllRoute(route) || isHttpRejectRoute(route)
+      }
+      .flatMap(_.metadata.routeDefinition.customRoute)
+      .map { cr =>
+        cr.filters
+      }
+
+    filteredRoutes should not be empty
+    filteredRoutes.foreach { filters: NEL[SkipperFilter] =>
+      filters.toList should contain(AccessLogAuditing("sub"))
     }
   }
 
