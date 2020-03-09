@@ -133,7 +133,7 @@ spec:
 Fabric Gateway provides the following features.
 
 - Authentication
-- Authorization
+- [Authorization](#authorization)
 - Admin Access
 - Service Whitelisting
 - Employee Whitelisting
@@ -149,7 +149,19 @@ When using the gateway to authenticate requests to your service, there will be a
 ### Authorization
 
 To confirm that each authenticated token is from a valid service or employee, the gateway will implicitly add a scope
-check for the `uid` scope.
+check for the `uid` scope. It is possible to add further scope restrictions to an endpoint by adding the scope name to
+the `x-fabric-privileges` key. For example if you have a privilege section for an endpoint defined as per below, then 
+the token will need the implicit `uid` scope as well as **both** of the defined `events.write` and `service.write` scopes before
+it will be allowed to access the endpoint.
+
+```yaml
+...
+    /events:
+      post:
+        x-fabric-privileges:
+          - "events.write"
+          - "service.write"
+```
 
 ### Admin Access
 
