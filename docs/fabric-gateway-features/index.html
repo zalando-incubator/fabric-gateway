@@ -754,8 +754,10 @@ Below is an example of a service with a named port:</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">Cross-Origin Resource Sharing</a></li>
 </ul>
 <h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h3>
-<p>When using the gateway to authenticate requests to your service, there will be a header added to the request,
-<code>X-TokenInfo-Forward</code>. This will contain the <code>uid</code>, <code>scope</code> and <code>realm</code> retrieved from from the <a href="https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints">Token Info endpoint</a>.</p>
+<p>Fabric Gateway can be used in place of internal logic for authenticating access from other services using the
+Zalando IAM service. As we only accept <code>service</code> and <code>employee</code> tokens, the gateway is not a candidate for customer
+auth workflows. There will be a header added to the request, <code>X-TokenInfo-Forward</code>. 
+This will contain the <code>uid</code>, <code>scope</code> and <code>realm</code> retrieved from from the <a href="https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints">Token Info endpoint</a>.</p>
 <h3 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h3>
 <p>To confirm that each authenticated token is from a valid service or employee, the gateway will implicitly add a scope
 check for the <code>uid</code> scope. It is possible to add further scope restrictions to an endpoint by adding the scope name to
