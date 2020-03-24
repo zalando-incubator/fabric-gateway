@@ -1,0 +1,15 @@
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: brian-test-ss-integration
+spec:
+  x-external-service-provider:
+    stackSetName: ss-int-stack
+    hosts:
+      - brian-ss-int-test.smart-product-platform-test.zalan.do
+  x-fabric-admins:
+    - bmooney
+    - fmoloney
+  paths:
+    /resources:
+      get: {}
