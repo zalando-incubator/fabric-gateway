@@ -25,17 +25,9 @@ markdown_extensions:
 - pymdownx.superfences
 - pymdownx.details
 - pymdownx.mark
-- pymdownx.superfences:
-    custom_fences:
-    - name: mermaid
-      class: mermaid
-      format: !!python/name:pymdownx.superfences.fence_div_format
 - pymdownx.tilde
 
 extra_css:
-- https://unpkg.com/mermaid@8.4.8/dist/mermaid.css
 - https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css
-extra_javascript:
-- https://unpkg.com/mermaid@8.4.8/dist/mermaid.min.js
 
 strict: true
