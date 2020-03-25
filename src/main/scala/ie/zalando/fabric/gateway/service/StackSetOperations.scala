@@ -42,7 +42,7 @@ class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: Executi
       (JsPath \ "weight").write[Int]
     ) (unlift(StackDefinedService.unapply))
 
-  implicit val stackSvcFmt: Format[StackDefinedService] = Format(stackSvcReads, stackSvcWrites)
+  implicit val stackSvcFmt: Format[StackDefinedService] = Json.format[StackDefinedService]
   implicit val stackIngressFmt: Format[StackSetIngress] = Json.format[StackSetIngress]
   implicit val specFmt: Format[StackSetSpec]            = Json.format[StackSetSpec]
   implicit val statusFmt: Format[StackSetStatus]        = Json.format[StackSetStatus]
