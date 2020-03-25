@@ -82,7 +82,7 @@
       },
       {
         "serviceName": "my-test-stackset-svc2",
-        "servicePort": 8080,
+        "servicePort": "http",
         "weight": 20
       }
     ]

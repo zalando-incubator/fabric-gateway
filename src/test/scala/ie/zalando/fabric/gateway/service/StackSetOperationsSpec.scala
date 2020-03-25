@@ -19,7 +19,7 @@ class StackSetOperationsSpec extends FlatSpec with Matchers {
     val k8sClient = k8sInit
     val ssOps     = new StackSetOperations(k8sClient)
 
-    val op = Await.result(ssOps.getStatus(StackSetIdentifer("fmoloney-traffic", "default")), 20.seconds)
+    val op = Await.result(ssOps.getStatus(StackSetIdentifier("fmoloney-traffic", "default")), 20.seconds)
 
     op match {
       case Some(status) => assert(status.traffic.isEmpty)

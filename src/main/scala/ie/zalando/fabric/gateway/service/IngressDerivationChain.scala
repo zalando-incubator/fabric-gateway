@@ -445,7 +445,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     case SchemaDefinedServices(svcMappings) => Future.successful(svcMappings)
     case StackSetProvidedServices(hosts, stackName) if hosts.nonEmpty =>
       stackSetOperations
-        .getStatus(StackSetIdentifer(stackName, namespace))
+        .getStatus(StackSetIdentifier(stackName, namespace))
         .map {
           case Some(status) =>
             status.traffic match {
@@ -455,7 +455,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                     host,
                     services
                       .map(stackSvcDesc =>
-                        ServiceDescription(stackSvcDesc.serviceName, NumericServicePort(stackSvcDesc.servicePort), Some(stackSvcDesc.weight)))
+                        ServiceDescription(stackSvcDesc.serviceName, stackSvcDesc.servicePort, Some(stackSvcDesc.weight)))
                       .toSet)
                 }
               case _ =>
