@@ -2,7 +2,6 @@ package ie.zalando.fabric.gateway.service
 
 import ie.zalando.fabric.gateway.models.SynchDomain.{K8sServicePortIdentifier, NamedServicePort, NumericServicePort}
 import org.slf4j.{Logger, LoggerFactory}
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import skuber._
 import skuber.api.client.KubernetesClient
@@ -26,21 +25,11 @@ class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: Executi
     case JsString(s) => JsSuccess(NamedServicePort(s))
     case other => Reads.IntReads.reads(other).map(NumericServicePort)
   }
+  
   implicit val servicePortWrites: Writes[K8sServicePortIdentifier] = {
     case NamedServicePort(name) => JsString(name)
     case NumericServicePort(port) => JsNumber(port)
   }
-  implicit val stackSvcReads: Reads[StackDefinedService] = (
-    (JsPath \ "serviceName").read[String] and
-      (JsPath \ "servicePort").read[K8sServicePortIdentifier] and
-      (JsPath \ "weight").read[Int]
-    ) (StackDefinedService.apply _)
-  
-  implicit val stackSvcWrites: Writes[StackDefinedService] = (
-    (JsPath \ "serviceName").write[String] and
-      (JsPath \ "servicePort").write[K8sServicePortIdentifier] and
-      (JsPath \ "weight").write[Int]
-    ) (unlift(StackDefinedService.unapply))
 
   implicit val stackSvcFmt: Format[StackDefinedService] = Json.format[StackDefinedService]
   implicit val stackIngressFmt: Format[StackSetIngress] = Json.format[StackSetIngress]
