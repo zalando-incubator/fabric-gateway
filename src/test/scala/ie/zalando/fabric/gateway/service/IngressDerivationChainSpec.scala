@@ -463,6 +463,18 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       } shouldBe false
   }
 
+  it should "have audit logging enabled for the 403 routes" in {
+    val routes = testableWhitelistRoutesDerivation(sampleResourceWhitelistingGateway)
+      .filter(isCatchAllRoute)
+      .collect {
+        case IngressDefinition(_, IngressMetaData(SkipperRouteDefinition(_, _, _, Some(customRoute), _), _, _)) => customRoute
+      }
+    routes.size shouldBe 1
+    routes.forall { route =>
+      route.filters.toList.contains(AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey))
+    } shouldBe true
+  }
+
   "Resource Whitelisting" should "restrict access only to listed services if resource specific whitelisting has been applied to a route" in {
     val updated = sampleResourceWhitelistingGateway.copy(globalWhitelistConfig = WhitelistConfig(Set(), Disabled))
 

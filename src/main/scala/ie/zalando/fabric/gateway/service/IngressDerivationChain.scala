@@ -255,9 +255,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     } else {
       genUnrestrictedServiceRoutes(route, routeConfig, gatewayContext)
     }).map { srd =>
-      srd.copy(
-        filters = AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey) :: srd.filters
-      )
+      if (srd.customRoute.isEmpty) {
+        srd.copy(
+          filters = AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey) :: srd.filters
+        )
+      } else srd
     }
 
     val genericRateLimit = routeConfig.rateLimitDetails.get(GenericServiceMatch)
@@ -275,9 +277,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           ))
         }
     }.map { srd =>
-      srd.copy(
-        filters = AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) :: srd.filters
-      )
+      if (srd.customRoute.isEmpty) {
+        srd.copy(
+          filters = AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) :: srd.filters
+        )
+      } else srd
     }
 
     skipperRoutes ::: (adminRoutes ::: (svcRoutes ++ employeeAccess)).map { route =>
@@ -363,7 +367,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       Nil,
       Some(
         SkipperCustomRoute(NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic),
-                           NEL.of(Status(403), UnauthorizedRejectMsg, Shunt)))
+                           NEL.of(Status(403), AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), UnauthorizedRejectMsg, Shunt)))
     ) :: remainingServiceRoutes ::: rateLimitedWhitelistedRoutes
   }
 
