@@ -213,8 +213,8 @@ object SynchDomain {
       "^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".r
     private val NonAlphaNumeric = "[^A-Za-z0-9]"
 
-    val DefaultRouteSuffix           = DnsString("-default-404-route")
-    val DefaultHttpRejectRouteSuffix = DnsString("-reject-http-route")
+    val DefaultRouteSuffix: DnsString = DnsString("-default-404-route")
+    val DefaultHttpRejectRouteSuffix: DnsString = DnsString("-reject-http-route")
 
     def apply(value: String) = new DnsString(value.toLowerCase)
 
@@ -225,10 +225,10 @@ object SynchDomain {
       if (isValidDnsName(input)) Some(DnsString(input))
       else None
 
-    def corsPath(verb: HttpVerb, path: PathMatch) =
+    def corsPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-cors")
 
-    def userAdminPath(verb: HttpVerb, path: PathMatch) =
+    def userAdminPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-admins")
 
     def rateLimitedServicePath(verb: HttpVerb, path: PathMatch, svc: String): DnsString =
@@ -240,10 +240,10 @@ object SynchDomain {
     def unlimitedUserPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-users-all")
 
-    def rateLimitedPath(verb: HttpVerb, path: PathMatch) =
+    def rateLimitedPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-rl-all")
 
-    def unlimitedPath(verb: HttpVerb, path: PathMatch) =
+    def unlimitedPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-all")
 
     def unlimitedServicePath(verb: HttpVerb, path: PathMatch, svc: String): DnsString =
@@ -287,13 +287,13 @@ object SynchDomain {
   case class NamedServicePort(name: String) extends K8sServicePortIdentifier
   case class NumericServicePort(port: Int) extends K8sServicePortIdentifier
 
-  val DefaultIngressServiceProtocol = NamedServicePort("http")
+  val DefaultIngressServiceProtocol: NamedServicePort = NamedServicePort("http")
 
   case class FabricServiceDefinition(host: String, service: String, port: K8sServicePortIdentifier)
 
   case class ServiceDescription(name: String,
                                 portIdentifier: K8sServicePortIdentifier = DefaultIngressServiceProtocol,
-                                trafficWeight: Option[Int] = None)
+                                trafficWeight: Option[Double] = None)
   case class IngressBackend(host: String, services: Set[ServiceDescription])
 
   case class IngressDefinition(hostMappings: Set[IngressBackend], metadata: IngressMetaData)

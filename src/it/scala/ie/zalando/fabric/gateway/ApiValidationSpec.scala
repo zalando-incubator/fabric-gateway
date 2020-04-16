@@ -13,6 +13,7 @@ import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import skuber.api.client.KubernetesClient
 import skuber.k8sInit
 
 import scala.concurrent.duration._
@@ -27,13 +28,13 @@ class ApiValidationSpec
     with TestJsonModels
     with BeforeAndAfterEach {
 
-  val kubernetesClient       = k8sInit
+  val kubernetesClient: KubernetesClient = k8sInit
   val stackSetOperations     = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
 
   var wireMockServer: WireMockServer = _
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     wireMockServer = new WireMockServer(
       WireMockConfiguration
         .wireMockConfig()
@@ -43,7 +44,7 @@ class ApiValidationSpec
     wireMockServer.start()
   }
 
-  override def afterEach() = wireMockServer.stop()
+  override def afterEach(): Unit = wireMockServer.stop()
 
   "Gateway Controller API" should "expose a health endpoints" in {
     Get("/health") ~> operationalRoutes ~> check {
@@ -205,7 +206,7 @@ class ApiValidationSpec
         backends should contain only("my-test-stackset-svc1", "my-test-stackset-svc2")
       }
       mainIngressii.map(_.allAnnos).foreach { annos =>
-        annos should contain ("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80,\"my-test-stackset-svc2\":20}"))
+        annos should contain ("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80.1,\"my-test-stackset-svc2\":19.9}"))
       }
       versionedHost1.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only "my-test-stackset-svc1"

@@ -78,12 +78,12 @@
       {
         "serviceName": "my-test-stackset-svc1",
         "servicePort": 8080,
-        "weight": 80
+        "weight": 80.1
       },
       {
         "serviceName": "my-test-stackset-svc2",
         "servicePort": "http",
-        "weight": 20
+        "weight": 19.9
       }
     ]
   }

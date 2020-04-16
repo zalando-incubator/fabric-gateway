@@ -481,7 +481,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     val creatableRoutes = if (backends.isEmpty) Nil else routes
 
     creatableRoutes.map { skipperRoute =>
-      val serviceWeights: Set[(String, Int)] = backends
+      val serviceWeights: Set[(String, Double)] = backends
         .flatMap(
           _.services
             .map(svc => (svc.name, svc.trafficWeight))
@@ -513,7 +513,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     }
   }
 
-  def createBackendWeightsAnnotation(serviceWeights: Set[(String, Int)]): Map[String, String] = {
+  def createBackendWeightsAnnotation(serviceWeights: Set[(String, Double)]): Map[String, String] = {
     if (serviceWeights.isEmpty) Map.empty[String, String]
     else
       Map(
