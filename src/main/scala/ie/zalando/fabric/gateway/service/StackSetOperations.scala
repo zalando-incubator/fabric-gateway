@@ -12,7 +12,7 @@ import scala.util.{Failure, Success}
 case class StackSetIdentifier(name: String, namespace: String)
 case class StackSetIngress(backendPort: Int)
 case class StackSetSpec(externalIngress: Option[StackSetIngress])
-case class StackDefinedService(serviceName: String, servicePort: K8sServicePortIdentifier, weight: Double)
+case class StackDefinedService(serviceName: String, servicePort: K8sServicePortIdentifier, weight: Int)
 case class StackSetStatus(readyStacks: Int, stacks: Int, stacksWithTraffic: Int, traffic: Option[Seq[StackDefinedService]])
 
 class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: ExecutionContext) {
