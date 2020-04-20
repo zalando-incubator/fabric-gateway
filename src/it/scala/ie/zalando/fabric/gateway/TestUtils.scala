@@ -75,5 +75,8 @@ object TestUtils {
       def payload: String =
         Source.fromResource("synch/sampleSynchRequestWithCors.json").mkString
     }
+    case object BogusStackSetTriggeringRequest extends ResourcePayload {
+      def payload: String = Source.fromResource("synch/synchRequestWhichTriggersInvalidStackSetResponse.json").mkString
+    }
   }
 }

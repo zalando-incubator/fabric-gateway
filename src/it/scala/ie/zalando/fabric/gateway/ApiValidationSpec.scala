@@ -189,6 +189,12 @@ class ApiValidationSpec
     }
   }
 
+  it should "fail if an unexpected response comes back from the K8s client" in {
+    synchRequest(BogusStackSetTriggeringRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      response.status shouldBe StatusCodes.InternalServerError
+    }
+  }
+
   it should "add extra gateways with versioned hosts for a stackset-managed gateway when configured" in {
     synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
       createRoutesFromDerivations(new IngressDerivationChain(stackSetOperations, Some("smart-product-platform-test.zalan.do")))) ~> check {
