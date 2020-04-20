@@ -5,6 +5,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json._
 import skuber._
 import skuber.api.client.KubernetesClient
+import skuber.api.client.K8SException
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -49,8 +50,14 @@ class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: Executi
       .transform {
         case Success(maybeStatus) => Success(maybeStatus)
         case Failure(e) =>
-          log.warn(s"Call to K8s api failed to retrieve stack for $stackSet", e)
-          Success(None)
+          e match {
+            case notFound: K8SException if notFound.status.code.contains(404) =>
+              log.info(s"Stackset does not exist, so generating no routes: $stackSet")
+              Success(None)
+            case _ =>
+              log.warn(s"Call to K8s api failed to retrieve stack for $stackSet", e)
+              Failure(new RuntimeException("Call to K8s api failed to retrieve stack for", e))
+          }
       }
   }
 }

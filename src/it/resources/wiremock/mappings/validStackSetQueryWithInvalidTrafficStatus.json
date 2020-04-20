@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/apis/zalando.org/v1/namespaces/default/stacksets/my-unparseable-stackset"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "stack-set-with-bad-status.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
