@@ -51,6 +51,10 @@
       "annotations": {
         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zalando.org/v1\",\"kind\":\"FabricGateway\",\"metadata\":{\"annotations\":{},\"name\":\"my-app-gateway\",\"namespace\":\"default\"},\"spec\":{\"paths\":{\"/api/resource\":{\"post\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimits\":{\"default-rate\":10,\"period\":\"minute\",\"target\":{\"spp_service_name\":50}}}},\"/api/resource/*\":{\"get\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.read\"]}},\"patch\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimit\":{\"default-rate\":10}},\"put\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.write\"]},\"x-fabric-ratelimit\":{\"default-rate\":10}}},\"/events\":{\"post\":{\"security\":{\"x-fabric-privileges\":[\"uid\",\"spp-application.read\"]}}}},\"service\":{\"host\":\"my-app.smart-product-platform-test.zalan.do\",\"serviceName\":\"my-app-service-name\"},\"whitelist\":[\"jblogs\"]}}\n"
       },
+      "labels": {
+        "application": "my-app-id",
+        "component": "my-component-label"
+      },
       "clusterName": "",
       "creationTimestamp": "2018-09-07T07:57:57Z",
       "generation": 1,

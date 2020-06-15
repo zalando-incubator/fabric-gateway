@@ -507,7 +507,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         IngressMetaData(
           annotatedRoute,
           annotatedRoute.name.value,
-          meta.namespace
+          meta.namespace,
+          meta.labels
         )
       )
     }

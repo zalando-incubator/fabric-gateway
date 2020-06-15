@@ -16,7 +16,8 @@ object TestJsonModels {
                              route: Option[String],
                              predicates: Option[String],
                              filters: Option[String],
-                             allAnnos: Map[String, Json])
+                             allAnnos: Map[String, Json],
+                             labels: Option[Map[String, String]])
   case class TestSynchResponse(ingressii: List[TestableIngress])
 
   case class TestValidationResponseStatus(reason: String)
@@ -52,7 +53,8 @@ trait TestJsonModels extends JsonModels with FailFastCirceSupport {
                           .as[Option[String]]
       maybeFilters <- c.downField("metadata").downField("annotations").downField("zalando.org/skipper-filter").as[Option[String]]
       allAnnos     <- c.downField("metadata").downField("annotations").as[Map[String, Json]]
-    } yield TestableIngress(name, namespace, rules, maybeCustomRoute, maybePredicates, maybeFilters, allAnnos)
+      labels <- c.downField("metadata").downField("labels").as[Option[Map[String, String]]]
+    } yield TestableIngress(name, namespace, rules, maybeCustomRoute, maybePredicates, maybeFilters, allAnnos, labels)
 
   implicit val decodeSynchResponse: Decoder[TestSynchResponse] = (c: HCursor) =>
     for {
