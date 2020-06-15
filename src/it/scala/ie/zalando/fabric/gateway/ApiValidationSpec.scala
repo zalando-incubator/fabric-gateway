@@ -19,7 +19,7 @@ import skuber.k8sInit
 import scala.concurrent.duration._
 
 class ApiValidationSpec
-    extends FlatSpec
+  extends FlatSpec
     with MockitoSugar
     with Matchers
     with ScalatestRouteTest
@@ -29,7 +29,7 @@ class ApiValidationSpec
     with BeforeAndAfterEach {
 
   val kubernetesClient: KubernetesClient = k8sInit
-  val stackSetOperations     = new StackSetOperations(kubernetesClient)
+  val stackSetOperations = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic = new IngressDerivationChain(stackSetOperations, None)
 
   var wireMockServer: WireMockServer = _
@@ -87,6 +87,15 @@ class ApiValidationSpec
     synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii.forall(_.namespace == "some-namespace") shouldBe true
+    }
+  }
+
+  it should "return ingresses in the same labels as the fabric gateway definition" in {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      val ingressii = responseAs[TestSynchResponse].ingressii
+      ingressii.forall { ingress =>
+        ingress.labels.get("application").contains("my-app-id") && ingress.labels.get("component").contains("my-component-label")
+      } shouldBe true
     }
   }
 
@@ -184,7 +193,7 @@ class ApiValidationSpec
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 13
       ingressii.map(_.rules.head.paths.map(_.serviceName)).foreach { backends =>
-        backends should contain only ("my-test-stackset-svc1", "my-test-stackset-svc2")
+        backends should contain only("my-test-stackset-svc1", "my-test-stackset-svc2")
       }
     }
   }
@@ -212,7 +221,7 @@ class ApiValidationSpec
         backends should contain only("my-test-stackset-svc1", "my-test-stackset-svc2")
       }
       mainIngressii.map(_.allAnnos).foreach { annos =>
-        annos should contain ("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80.1,\"my-test-stackset-svc2\":19.9}"))
+        annos should contain("zalando.org/backend-weights" -> Json.fromString("{\"my-test-stackset-svc1\":80.1,\"my-test-stackset-svc2\":19.9}"))
       }
       versionedHost1.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only "my-test-stackset-svc1"
@@ -220,7 +229,7 @@ class ApiValidationSpec
       versionedHost2.flatMap(_.rules.map(_.paths.map(_.serviceName))).foreach { backends =>
         backends should contain only "my-test-stackset-svc2"
       }
-      (versionedHost1++versionedHost2).map(_.allAnnos).foreach { annos =>
+      (versionedHost1 ++ versionedHost2).map(_.allAnnos).foreach { annos =>
         annos.keys should not contain "zalando.org/backend-weights"
       }
       // all ingress names should be unique

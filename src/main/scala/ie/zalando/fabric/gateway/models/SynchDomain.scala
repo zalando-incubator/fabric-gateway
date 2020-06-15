@@ -281,7 +281,10 @@ object SynchDomain {
                                     customRoute: Option[SkipperCustomRoute],
                                     additionalAnnotations: Map[String, String] = Map.empty)
 
-  case class IngressMetaData(routeDefinition: SkipperRouteDefinition, name: String, namespace: String)
+  case class IngressMetaData(routeDefinition: SkipperRouteDefinition, 
+                             name: String, 
+                             namespace: String, 
+                             labels: Option[Map[String, String]] = None)
 
   sealed trait K8sServicePortIdentifier
   case class NamedServicePort(name: String) extends K8sServicePortIdentifier
@@ -344,7 +347,7 @@ object SynchDomain {
                          corsConfig: Option[CorsConfig],
                          paths: GatewayPaths)
 
-  case class GatewayMeta(name: DnsString, namespace: String)
+  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]] = None)
 
   case class GatewayStatus(numOwnedIngress: Int, ownedIngress: Set[String])
 

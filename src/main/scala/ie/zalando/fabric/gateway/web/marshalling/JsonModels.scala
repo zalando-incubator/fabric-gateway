@@ -197,6 +197,7 @@ trait JsonModels {
     for {
       name      <- c.downField("name").as[String]
       namespace <- c.downField("namespace").as[String]
+      labels    <- c.downField("labels").as[Option[Map[String, String]]]
     } yield {
       val dnsCompliantGatewayName = DnsString
         .fromString(name)
@@ -205,7 +206,7 @@ trait JsonModels {
           logger.warn(s"Gateway name [$name] is not DNS compliant. Using $gwName instead")
           gwName
         })
-      GatewayMeta(dnsCompliantGatewayName, namespace)
+      GatewayMeta(dnsCompliantGatewayName, namespace, labels)
   }
 
   implicit val decodeSynchParent: Decoder[ControlledGatewayResource] = (c: HCursor) =>
@@ -256,7 +257,8 @@ trait JsonModels {
       .deepMerge(route.additionalAnnotations.asJson)
 
   implicit val encodeIngressMetaData: Encoder[IngressMetaData] =
-    Encoder.forProduct3("annotations", "namespace", "name")(meta => (meta.routeDefinition, meta.namespace, meta.name))
+    Encoder.forProduct4("annotations", "namespace", "name", "labels")(meta => 
+      (meta.routeDefinition, meta.namespace, meta.name, meta.labels))
 
   implicit val encodeGatewayOwnershipState: Encoder[GatewayStatus] =
     Encoder.forProduct2("num_owned_ingress", "owned_ingress_names")(state => (state.numOwnedIngress, state.ownedIngress))
