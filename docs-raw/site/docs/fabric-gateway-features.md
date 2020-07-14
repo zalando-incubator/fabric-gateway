@@ -33,7 +33,7 @@ spec:
           default-rate: 10
           period: minute
           target:
-            spp_service_name: 50
+            stups_spp_service_name: 50
     /api/resource/*:
       get:
         x-fabric-privileges:
@@ -190,6 +190,12 @@ server: Skipper
 x-content-type-options: nosniff
 x-rate-limit: 120
 ```
+
+**N.B.**    
+If you want to apply a service specific rate-limit, then the service name must be prepended with
+`stups_`. This can be seen in the `x-fabric-ratelimits.target` section of the main Configuration 
+example above.
+
 
 ### Encryption In Transit
 
