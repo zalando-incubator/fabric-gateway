@@ -643,7 +643,7 @@
           <span class="nt">default-rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
           <span class="nt">period</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">minute</span>
           <span class="nt">target</span><span class="p">:</span>
-            <span class="nt">spp_service_name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">50</span>
+            <span class="nt">stups_spp_service_name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">50</span>
     <span class="nt">/api/resource/*</span><span class="p">:</span>
       <span class="nt">get</span><span class="p">:</span>
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
@@ -777,6 +777,10 @@ x-content-type-options: nosniff
 x-rate-limit: <span class="m">120</span>
 </code></pre></div>
 
+<p><strong>N.B.</strong>  <br />
+If you want to apply a service specific rate-limit, then the service name must be prepended with
+<code>stups_</code>. This can be seen in the <code>x-fabric-ratelimits.target</code> section of the main Configuration 
+example above.</p>
 <h3 id="encryption-in-transit">Encryption In Transit<a class="headerlink" href="#encryption-in-transit" title="Permanent link">&para;</a></h3>
 <p>The gateway will ensure that no requests are hitting your service
 unless they are encrypted using <code>https</code>. To achieve this, we have a skipper
