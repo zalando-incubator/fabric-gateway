@@ -31,6 +31,7 @@ spec:
           - "spp-application.write"
         x-fabric-ratelimits:
           default-rate: 10
+          # Valid values are 'hour' and 'minute', defaults to 'minute' if omitted.
           period: minute
           target:
             stups_spp_service_name: 50
@@ -174,9 +175,10 @@ Team members can be added to your `x-fabric-admins` list. The uids in this list 
 If a client of the gateway is getting rate limited, they will get a `429`
 HTTP response code. There will also be some headers included to indicate
 when they will be able to make requests again. Below is a sample rate limited
-response from the gateway. The `Retry-After` header, shows the number of seconds
-before you may attempt a new request. The `X-Rate-Limit` header shows the number
-of requests per hour, which the client is allowed to make.
+response from the gateway.  
+The `Retry-After` header, shows the number of seconds before you may attempt a new request.
+The informational `X-Rate-Limit` header always shows the number of requests per hour which 
+the client is allowed to make, regardless of which `period` is used when configuring the rate-limit.
 
 ```sh
 curl -i -H "Authorization: Bearer $FDA" https://fgtestapp.smart-product-platform-test.zalan.do/limited/me
@@ -191,7 +193,7 @@ x-content-type-options: nosniff
 x-rate-limit: 120
 ```
 
-**N.B.**    
+**N.B.**
 If you want to apply a service specific rate-limit, then the service name must be prepended with
 `stups_`. This can be seen in the `x-fabric-ratelimits.target` section of the main Configuration 
 example above.

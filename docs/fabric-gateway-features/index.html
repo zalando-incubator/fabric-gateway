@@ -641,6 +641,7 @@
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
         <span class="nt">x-fabric-ratelimits</span><span class="p">:</span>
           <span class="nt">default-rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+          <span class="c1"># Valid values are &#39;hour&#39; and &#39;minute&#39;, defaults to &#39;minute&#39; if omitted.</span>
           <span class="nt">period</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">minute</span>
           <span class="nt">target</span><span class="p">:</span>
             <span class="nt">stups_spp_service_name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">50</span>
@@ -762,9 +763,10 @@ it will be allowed to access the endpoint.</p>
 <p>If a client of the gateway is getting rate limited, they will get a <code>429</code>
 HTTP response code. There will also be some headers included to indicate
 when they will be able to make requests again. Below is a sample rate limited
-response from the gateway. The <code>Retry-After</code> header, shows the number of seconds
-before you may attempt a new request. The <code>X-Rate-Limit</code> header shows the number
-of requests per hour, which the client is allowed to make.</p>
+response from the gateway.<br />
+The <code>Retry-After</code> header, shows the number of seconds before you may attempt a new request.
+The informational <code>X-Rate-Limit</code> header always shows the number of requests per hour which 
+the client is allowed to make, regardless of which <code>period</code> is used when configuring the rate-limit.</p>
 <div class="codehilite"><pre><span></span><code>curl -i -H <span class="s2">&quot;Authorization: Bearer </span><span class="nv">$FDA</span><span class="s2">&quot;</span> https://fgtestapp.smart-product-platform-test.zalan.do/limited/me
 
 HTTP/2 <span class="m">429</span>
@@ -777,7 +779,7 @@ x-content-type-options: nosniff
 x-rate-limit: <span class="m">120</span>
 </code></pre></div>
 
-<p><strong>N.B.</strong>  <br />
+<p><strong>N.B.</strong>
 If you want to apply a service specific rate-limit, then the service name must be prepended with
 <code>stups_</code>. This can be seen in the <code>x-fabric-ratelimits.target</code> section of the main Configuration 
 example above.</p>
