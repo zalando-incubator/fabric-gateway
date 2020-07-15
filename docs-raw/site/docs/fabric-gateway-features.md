@@ -59,6 +59,10 @@ Gateway can be configured to work in Dynamic Mode with an external [Kubernetes s
 
 **N.B.** If using `FabricGateway` to manage auth for your service, remove any existing ingress resources for your service. You should not have both as an existing ingress could allow unauthenticated traffic to your backend service.
 
+### Downtime for updates
+
+Every effort has been made to ensure that making changes to a gateway resource will not result in downtime for your application. For any named ingress resource managed by the Gateway, changes will be made `InPlace`, which means that the route will be patched with the changes so can continue to serve traffic while being updated. However, due to the potential for Ingress resource name conflicts, routes _may_ change names when a new feature is being enabled (i.e. adding rate limits for the first time, or enabling service whitelisting for the first time). The addition of these new feature will cause an Ingress resource to be removed and a new resource to be created. Depending on how many changes are happening this could lead to a route being unavilable for a number of minutes. Typically what will happen here is that any incoming client requests will hit the default route which returns a HTTP 404 response to them to say that the route they are trying to hit is not available. Current advice is to apply these cahnges in small batches to limit the amount fo time the routes is unavailable and also to apply these changes when a small downtime window is acceptable. 
+
 ### Dynamic Mode - Externally Managed Services (eg StackSets)
 
 In Dynamic Mode Fabric Gateway will work with an external operator that manages the creation of [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/). This is enabled by setting the `x-external-service-provider` key as per the below example.
