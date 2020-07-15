@@ -61,11 +61,11 @@ Gateway can be configured to work in Dynamic Mode with an external [Kubernetes s
 
 ### Downtime for updates
 
-Every effort has been made to ensure that making changes to a gateway resource will not result in downtime for your application. For any named ingress resource managed by the Gateway, changes will be made `InPlace`, which means that the route will be patched with the changes so can continue to serve traffic while being updated. However, due to the potential for Ingress resource name conflicts, routes _may_ change names when a new feature is being enabled (i.e. adding rate limits for the first time, or enabling service whitelisting for the first time). The addition of these new feature will cause an Ingress resource to be removed and a new resource to be created. Depending on how many changes are happening this could lead to a route being unavilable for a number of minutes. Typically what will happen here is that any incoming client requests will hit the default route which returns a HTTP 404 response to them to say that the route they are trying to hit is not available. 
+Every effort has been made to ensure that making changes to a gateway resource will not result in downtime for your application. For any named ingress resource managed by the Gateway, changes will be made `InPlace`, which means that the route will be patched with the changes so can continue to serve traffic while being updated. However, due to the potential for Ingress resource name conflicts, routes _may_ change names when a new feature is being enabled (i.e. adding rate limits for the first time, or enabling service whitelisting for the first time). The addition of these new feature will cause an Ingress resource to be removed and a new resource to be created. Depending on how many changes are happening this could lead to a route being unavilable for a minute or more. Typically what will happen here is that any incoming client requests will hit the default route which returns a HTTP 404 response to them to say that the route they are trying to hit is not available. 
 
 #### Mitigation
 
-  1. Current advice is to apply these changes in small batches to limit the amount of time that a route is unavailable.
+  1. Apply these changes in small batches to limit the amount of time that a route is unavailable.
   1. Apply these changes when a small downtime window is acceptable. 
   1. If integrated with stacksets, there is a cardinality of ingresses per stack, so limiting the number of stacks can limit the amount of ingress changes required.
 
