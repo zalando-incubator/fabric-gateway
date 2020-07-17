@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import ie.zalando.fabric.gateway.TestJsonModels.{TestSynchResponse, TestValidationResponse}
 import ie.zalando.fabric.gateway.TestUtils.TestData._
 import ie.zalando.fabric.gateway.TestUtils._
-import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations}
+import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations, ZeroDowntimeIngressTransitions}
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
@@ -31,6 +31,7 @@ class ApiValidationSpec
   val kubernetesClient: KubernetesClient = k8sInit
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic             = new IngressDerivationChain(stackSetOperations, None)
+  val ingressTransitions                 = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
 
   var wireMockServer: WireMockServer = _
 
@@ -53,45 +54,44 @@ class ApiValidationSpec
   }
 
   it should "return a bad request if you do not post a payload in the synch request" in {
-    Post("/synch") ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    Post("/synch") ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.BadRequest
     }
   }
 
   it should "return a bad request if you post an invalid payload in the synch request" in {
-    synchRequest(InvalidRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(InvalidRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.BadRequest
     }
   }
 
   it should "return OK for a valid payload" in {
-    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.OK
     }
   }
 
   it should "return OK for a valid payload with named path parameters" in {
-    synchRequest(ValidSynchRequestWithNamedPathParameters.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequestWithNamedPathParameters.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.OK
     }
   }
 
   it should "return OK for a valid payload with whitelisting" in {
-    synchRequest(ValidWhitelistSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidWhitelistSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.OK
     }
   }
 
   it should "return ingresses in the same namespace as the fabric gateway definition" in {
-    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii.forall(_.namespace == "some-namespace") shouldBe true
     }
   }
 
   it should "return ingresses in the same labels as the fabric gateway definition" in {
-    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii.forall { ingress =>
         ingress.labels.get("application").contains("my-app-id") && ingress.labels.get("component").contains("my-component-label")
@@ -100,14 +100,14 @@ class ApiValidationSpec
   }
 
   it should "sanitize incoming gateway names to ensure that ingress DNS entries can be created" in {
-    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii.forall(_.name.startsWith("my-app-gateway")) shouldBe true
     }
   }
 
   it should "ensure that all admin routes have extra auditing enabled" in {
-    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii   = responseAs[TestSynchResponse].ingressii
       val adminRoutes = ingressii.filter(_.name.contains("admins")).map(_.filters.get)
       adminRoutes should not be empty
@@ -119,7 +119,7 @@ class ApiValidationSpec
   }
 
   it should "add routes for whitelisted users to access a resource without scope checks" in {
-    synchRequest(ValidWhitelistSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidWhitelistSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       val userWhitelistIngress = ingressii
         .find(_.name == "my-app-gateway-post-api-resource-rl-users-all")
@@ -133,20 +133,20 @@ class ApiValidationSpec
   }
 
   it should "be able to properly deserialize the request payload" in {
-    validationRequest(ValidValidationRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    validationRequest(ValidValidationRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.OK
     }
   }
 
   it should "send an allow response for a valid payload" in {
-    validationRequest(ValidValidationRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    validationRequest(ValidValidationRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe true
     }
   }
 
   it should "send a disallow response for an invalid payload" in {
-    validationRequest(ValidationRequestForNoPaths.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    validationRequest(ValidationRequestForNoPaths.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe false
       resp.uid shouldBe "failing-uid-1"
@@ -155,7 +155,7 @@ class ApiValidationSpec
   }
 
   it should "handle the weird empty create state gracefully" in {
-    validationRequest(ValidationRequestForInvalidInput.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    validationRequest(ValidationRequestForInvalidInput.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe false
       resp.uid shouldBe "formatting-errors"
@@ -165,7 +165,7 @@ class ApiValidationSpec
 
   it should "successfully validate a stackset integrated resource which has no services defined" in {
     validationRequest(ValidationRequestForValidStacksetIntegration.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe true
     }
@@ -173,7 +173,7 @@ class ApiValidationSpec
 
   it should "reject a stackset integrated resource which also has a service defined" in {
     validationRequest(ValidationRequestForInvalidServiceDefinition.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
       val resp = responseAs[TestValidationResponse]
       resp.allowed shouldBe false
       resp.uid shouldBe "failing-uid-service-and-ssint-defined"
@@ -190,7 +190,7 @@ class ApiValidationSpec
 
   it should "accept a stackset managed resource and create the ingress based on the response from the K8s API" in {
     synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 13
       ingressii.map(_.rules.head.paths.map(_.serviceName)).foreach { backends =>
@@ -200,14 +200,15 @@ class ApiValidationSpec
   }
 
   it should "fail if an unexpected response comes back from the K8s client" in {
-    synchRequest(BogusStackSetTriggeringRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(BogusStackSetTriggeringRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       response.status shouldBe StatusCodes.InternalServerError
     }
   }
 
   it should "add extra gateways with versioned hosts for a stackset-managed gateway when configured" in {
-    synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(createRoutesFromDerivations(
-      new IngressDerivationChain(stackSetOperations, Some("smart-product-platform-test.zalan.do")))) ~> check {
+    synchRequest(ValidSynchRequestWithStackSetManagedServices.payload) ~> Route.seal(
+      createRoutesFromDerivations(new ZeroDowntimeIngressTransitions(
+        new IngressDerivationChain(stackSetOperations, Some("smart-product-platform-test.zalan.do"))))) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
 
       val mainIngressii = ingressii.filter(_.rules.map(_.host).contains("my-app.smart-product-platform-test.zalan.do"))
@@ -243,7 +244,7 @@ class ApiValidationSpec
 
   it should "accept a stackset managed resource but create no ingress because the stackset can't be found from the K8s API" in {
     synchRequest(ValidSynchRequestWithNonExistingStackSetManagingServices.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 0
     }
@@ -251,14 +252,14 @@ class ApiValidationSpec
 
   it should "accept a stackset managed resource but create no ingress because the stackset exists but doesn't have the traffic key in the status" in {
     synchRequest(ValidSynchRequestWithStackSetManagingServicesButNotTrafficStatus.payload) ~> Route.seal(
-      createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 0
     }
   }
 
   it should "Create routes for handling OPTIONS requests when CORS is enabled" in {
-    synchRequest(ValidSynchRequestWithCorsEnabled.payload) ~> Route.seal(createRoutesFromDerivations(ingressDerivationLogic)) ~> check {
+    synchRequest(ValidSynchRequestWithCorsEnabled.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       val corsRoutes = ingressii
         .filter(_.name.contains("cors"))
