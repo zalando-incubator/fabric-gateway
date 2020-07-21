@@ -43,9 +43,6 @@ object TestUtils {
     case object InvalidRequest extends ResourcePayload {
       def payload: String = Source.fromResource("synch/invalid.json").mkString
     }
-    case object Spp3240Payload extends ResourcePayload {
-      def payload: String = Source.fromResource("synch/spp3240OwnershipConfirmationDeserializationBug.json").mkString
-    }
     case object ValidValidationRequest extends ResourcePayload {
       def payload: String = Source.fromResource("validate/samplePayload.json").mkString
     }
