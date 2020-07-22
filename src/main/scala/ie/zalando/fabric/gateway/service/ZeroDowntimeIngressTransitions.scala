@@ -11,14 +11,14 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
     ingressDerivationChain
       .deriveRoutesFor(spec, metadata)
       .map { desiredRoutes =>
-        val deleted = relativeComplement(desiredRoutes, existingRoutes)
-        val created = relativeComplement(existingRoutes, desiredRoutes)
+        val deleted = diff(existingRoutes, desiredRoutes)
+        val created = diff(desiredRoutes, existingRoutes)
         if (created.isEmpty) desiredRoutes else desiredRoutes ++ deleted
       }
   }
 
-  private def relativeComplement(a: Seq[IngressDefinition], b: Seq[IngressDefinition]) =
-    b.filterNot { i =>
-      a.map(_.metadata.name).contains(i.metadata.name)
+  private def diff(a: Seq[IngressDefinition], b: Seq[IngressDefinition]) =
+    a.filterNot { i =>
+      b.map(_.metadata.name).contains(i.metadata.name)
     }
 }
