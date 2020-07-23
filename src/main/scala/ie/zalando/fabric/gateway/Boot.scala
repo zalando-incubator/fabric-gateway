@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.stream.ActorMaterializer
 import ie.zalando.fabric.gateway.features.{TlsEndpointSupport, VersionedHostsEnabled}
-import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations}
+import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperations, ZeroDowntimeIngressTransitions}
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, HttpsContext, OperationalRoutes}
 import skuber.k8sInit
 
@@ -19,17 +19,21 @@ object Boot extends App with GatewayWebhookRoutes with OperationalRoutes with Ht
   implicit val dispatcher: ExecutionContext    = system.dispatcher
 
   val versionedHostsBaseDomain = VersionedHostsEnabled.runIfEnabled { () =>
-    sys.env.get(VersionedHostsEnabled.baseDomainEnvName).map(_.toLowerCase.trim)
+    sys.env
+      .get(VersionedHostsEnabled.baseDomainEnvName)
+      .map(_.toLowerCase.trim)
       .getOrElse {
-        throw new IllegalStateException(s"ENV Var '${VersionedHostsEnabled.baseDomainEnvName}' needs to be set if '${VersionedHostsEnabled.envName}' is enabled")
+        throw new IllegalStateException(
+          s"ENV Var '${VersionedHostsEnabled.baseDomainEnvName}' needs to be set if '${VersionedHostsEnabled.envName}' is enabled")
       }
   }
 
-  val k8s            = k8sInit
-  val ssOps          = new StackSetOperations(k8s)
-  val ingDerivations = new IngressDerivationChain(ssOps, versionedHostsBaseDomain)
+  val k8s                         = k8sInit
+  val ssOps                       = new StackSetOperations(k8s)
+  val ingDerivations              = new IngressDerivationChain(ssOps, versionedHostsBaseDomain)
+  val zeroDowntimeIngressSwitcher = new ZeroDowntimeIngressTransitions(ingDerivations)
 
-  lazy val routes: Route = createRoutesFromDerivations(ingDerivations) ~ operationalRoutes
+  lazy val routes: Route = createRoutesFromDerivations(zeroDowntimeIngressSwitcher) ~ operationalRoutes
 
   Http().bindAndHandle(routes, "0.0.0.0", 8080)
 

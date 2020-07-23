@@ -2,6 +2,7 @@ import sbt.librarymanagement.Configuration
 
 lazy val akkaHttpVersion    = "10.1.8"
 lazy val akkaVersion        = "2.5.22"
+lazy val circeVersion       = "0.11.1"
 lazy val monocleVersion     = "1.5.0"
 lazy val scalaTestVersion   = "3.0.8"
 lazy val mockitoVersion     = "1.5.17"
@@ -97,6 +98,8 @@ lazy val root = (project in file("."))
       "com.typesafe.akka"          %% "akka-http"             % akkaHttpVersion,
       "com.typesafe.akka"          %% "akka-stream"           % akkaVersion,
       "com.typesafe.akka"          %% "akka-slf4j"            % akkaVersion,
+      "io.circe"                   %% "circe-core"            % circeVersion,
+      "io.circe"                   %% "circe-jawn"            % circeVersion,
       "de.heikoseeberger"          %% "akka-http-circe"       % "1.25.2",
       "ch.qos.logback"             % "logback-classic"        % "1.2.3",
       "com.fasterxml.jackson.core" % "jackson-databind"       % "2.9.8",
@@ -111,8 +114,10 @@ lazy val root = (project in file("."))
       "com.github.pureconfig"      %% "pureconfig"            % "0.12.2",
 
       // Test Deps
-      "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-      "org.mockito"   %% "mockito-scala-scalatest" % mockitoVersion % Test,
+      "org.scalatest" %% "scalatest"                % scalaTestVersion % Test,
+      "org.mockito"   %% "mockito-scala-scalatest"  % mockitoVersion   % Test,
+      "io.circe"      %% "circe-parser"             % circeVersion     % Test,
+
 
       // Integration Test Deps
       "org.scalatest"          %% "scalatest"               % scalaTestVersion % IntegrationTest,

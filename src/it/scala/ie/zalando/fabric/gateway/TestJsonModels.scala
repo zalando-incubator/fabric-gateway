@@ -38,7 +38,7 @@ trait TestJsonModels extends JsonModels with FailFastCirceSupport {
       paths <- c.downField("http").downField("paths").as[Seq[TestableIngressBackend]]
     } yield IngressRule(host, paths)
 
-  implicit val decodeIngressDefinition: Decoder[TestableIngress] = (c: HCursor) =>
+  implicit val decodeTestableIngressDefinition: Decoder[TestableIngress] = (c: HCursor) =>
     for {
       name      <- c.downField("metadata").downField("name").as[String]
       namespace <- c.downField("metadata").downField("namespace").as[String]
@@ -53,7 +53,7 @@ trait TestJsonModels extends JsonModels with FailFastCirceSupport {
                           .as[Option[String]]
       maybeFilters <- c.downField("metadata").downField("annotations").downField("zalando.org/skipper-filter").as[Option[String]]
       allAnnos     <- c.downField("metadata").downField("annotations").as[Map[String, Json]]
-      labels <- c.downField("metadata").downField("labels").as[Option[Map[String, String]]]
+      labels       <- c.downField("metadata").downField("labels").as[Option[Map[String, String]]]
     } yield TestableIngress(name, namespace, rules, maybeCustomRoute, maybePredicates, maybeFilters, allAnnos, labels)
 
   implicit val decodeSynchResponse: Decoder[TestSynchResponse] = (c: HCursor) =>

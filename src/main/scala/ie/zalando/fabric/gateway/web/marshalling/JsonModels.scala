@@ -57,11 +57,25 @@ trait JsonModels {
       allowedHeaders <- c.downField("allowedHeaders").as[Set[String]]
     } yield CorsConfig(allowedOrigins, allowedHeaders)
 
-  implicit val decodeAsDummyIngressDefinition: Decoder[IngressDefinition] = (_: HCursor) =>
-    Right(
-      IngressDefinition(
-        Set(),
-        IngressMetaData(SkipperRouteDefinition(DnsString.fromString("dummy").get, Nil, Nil, None), "dummy", "default")))
+  implicit val decodeIngressDefinition: Decoder[IngressDefinition] = (c: HCursor) =>
+    for {
+      hostMappings <- c.downField("spec").downField("rules").as[Set[IngressBackend]]
+      metadata     <- c.downField("metadata").as[IngressMetaData]
+    } yield IngressDefinition(hostMappings, metadata)
+
+  implicit val decodeIngressMetaData: Decoder[IngressMetaData] = (c: HCursor) =>
+    for {
+      annotations <- c.downField("annotations").as[Map[String, String]]
+      name        <- c.downField("name").as[String]
+      namespace   <- c.downField("namespace").as[String]
+      labels      <- c.downField("labels").as[Option[Map[String, String]]]
+    } yield
+      IngressMetaData(
+        SkipperRouteDefinition(DnsString(name), List.empty, List.empty, None, annotations),
+        name,
+        namespace,
+        labels
+    )
 
   implicit val decodeRateLimitDetails: Decoder[RateLimitDetails] = (c: HCursor) =>
     for {
@@ -171,14 +185,14 @@ trait JsonModels {
     c.value match {
       case s if s.isString => c.as[String].map(NamedServicePort.apply)
       case i if i.isNumber => c.as[Int].map(NumericServicePort.apply)
-      case _ => Left(DecodingFailure(s"${c.value} was not successfully converted to a K8sServicePortIdentifier", Nil))
+      case _               => Left(DecodingFailure(s"${c.value} was not successfully converted to a K8sServicePortIdentifier", Nil))
     }
   }
 
   implicit val decodeServiceDescription: Decoder[ServiceDescription] = (c: HCursor) =>
     for {
-      name <- c.downField("serviceName").as[String]
-      port <- c.downField("servicePort").as[K8sServicePortIdentifier]
+      name <- c.downField("backend").downField("serviceName").as[String]
+      port <- c.downField("backend").downField("servicePort").as[K8sServicePortIdentifier]
     } yield ServiceDescription(name, port)
 
   implicit val decodeIngressBackend: Decoder[IngressBackend] = (c: HCursor) =>
@@ -257,7 +271,7 @@ trait JsonModels {
       .deepMerge(route.additionalAnnotations.asJson)
 
   implicit val encodeIngressMetaData: Encoder[IngressMetaData] =
-    Encoder.forProduct4("annotations", "namespace", "name", "labels")(meta => 
+    Encoder.forProduct4("annotations", "namespace", "name", "labels")(meta =>
       (meta.routeDefinition, meta.namespace, meta.name, meta.labels))
 
   implicit val encodeGatewayOwnershipState: Encoder[GatewayStatus] =

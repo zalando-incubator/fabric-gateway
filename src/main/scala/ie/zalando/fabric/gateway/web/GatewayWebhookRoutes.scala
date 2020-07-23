@@ -6,7 +6,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import ie.zalando.fabric.gateway.models.HttpModels._
-import ie.zalando.fabric.gateway.service.{IngressDerivationChain, ResourcePersistenceValidations}
+import ie.zalando.fabric.gateway.models.SynchDomain.GatewayStatus
+import ie.zalando.fabric.gateway.service.{ResourcePersistenceValidations, ZeroDowntimeIngressTransitions}
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import ie.zalando.fabric.gateway.web.marshalling.VerboseLoggingUnmarshalling._
 import ie.zalando.fabric.gateway.web.tracing.TracingDirectives.trace
@@ -19,7 +20,7 @@ trait GatewayWebhookRoutes extends JsonModels {
 
   lazy val log = Logging(system, classOf[GatewayWebhookRoutes])
 
-  def createRoutesFromDerivations(ingressDerivationLogic: IngressDerivationChain): Route =
+  def createRoutesFromDerivations(ingressTransitions: ZeroDowntimeIngressTransitions): Route =
     pathPrefix("synch") {
       pathEnd {
         post {
@@ -27,16 +28,19 @@ trait GatewayWebhookRoutes extends JsonModels {
             entity(as[SynchRequest]) { synchRequest =>
               extractExecutionContext { ec =>
                 implicit val execCtxt: ExecutionContext = ec
-
                 complete {
-                  ingressDerivationLogic
-                    .deriveRoutesFor(synchRequest.controlledResource.spec, synchRequest.controlledResource.metadata)
-                    .map { routes =>
-                      val resp = SynchResponse(ingressDerivationLogic.deriveStateFrom(synchRequest.currentState), routes)
-                      log.debug(s"Synch Request response: $resp")
-                      span.setTag("response_payload", resp.toString)
-
-                      resp
+                  ingressTransitions
+                    .defineSafeRouteTransition(synchRequest.controlledResource.spec,
+                                               synchRequest.controlledResource.metadata,
+                                               synchRequest.currentState.values.toSeq)
+                    .map { ingressDefinitions =>
+                      val response = SynchResponse(
+                        GatewayStatus(synchRequest.currentState.size, synchRequest.currentState.keySet),
+                        ingressDefinitions
+                      )
+                      log.debug(s"Synch Request response: $response")
+                      span.setTag("response_payload", response.toString)
+                      response
                     }
                 }
               }
