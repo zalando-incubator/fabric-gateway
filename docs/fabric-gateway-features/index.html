@@ -59,6 +59,8 @@
     
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
     
+      <link rel="stylesheet" href="https://unpkg.com/mermaid@7.1.2/dist/mermaid.css">
+    
     
       
     
@@ -981,22 +983,21 @@ In the example below, we can see that the <code>/api/resource</code> <code>get</
 
 <h3 id="route-precedence">Route Precedence<a class="headerlink" href="#route-precedence" title="Permanent link">&para;</a></h3>
 <p>One important concept to understand about the Gateway is that it is merely a control plane for Skipper Ingress.  When you create a gateway K8s resource, the operator creates many Skipper Ingress resources on your behalf with specific <a href="https://opensource.zalando.com/skipper/reference/predicates/">Predicate</a> and <a href="https://opensource.zalando.com/skipper/reference/filters/">Filter</a> combinations to match the traffic as you decribe in your gateway yaml. In Skipper terms, predicates are used to match an incoming request and filters are used to apply transformations on a request and potentially return a static result instead of forwarding to the defined backend. Below is an example request flow for your application:</p>
-<div class="codehilite"><pre><span></span><code><span class="err">sequenceDiagram</span>
-<span class="err">    participant Client</span>
-<span class="err">    participant AWS Load Balancer</span>
-<span class="err">    participant Skipper Proxy</span>
-<span class="err">    participant Backend Svc 1</span>
-<span class="err">    participant Backend Svc 2</span>
-<span class="err">    Client-&gt;&gt;AWS Load Balancer: HTTPS Request</span>
-<span class="err">    Note right of Skipper Proxy: All traffic flow through Skipper where the requests &lt;br/&gt;will be matched by evaluating defined predicates&lt;br/&gt; against the route. Precedence rules dictate&lt;br/&gt; that the route with the most matching predicates&lt;br/&gt; wins. This route then decides what filters to&lt;br/&gt; execute on the request and which backend&lt;br/&gt; to forward the request to.</span>
-<span class="err">    AWS Load Balancer-&gt;&gt;Skipper Proxy: Forward HTTP traffic</span>
-<span class="err">    loop Route Lookup</span>
-<span class="err">        Skipper Proxy-&gt;&gt;Backend Svc 1: Match incoming request to backend using Predicates</span>
-<span class="err">    end</span>
-<span class="err">    Backend Svc 1--&gt;&gt;Skipper Proxy: Svc Response</span>
-<span class="err">    Skipper Proxy--&gt;&gt;AWS Load Balancer: Proxied Response</span>
-<span class="err">    AWS Load Balancer--&gt;&gt;Client: HTTPS Respone</span>
-</code></pre></div>
+<div class="mermaid">sequenceDiagram
+    participant Client
+    participant AWS Load Balancer
+    participant Skipper Proxy
+    participant Backend Svc 1
+    participant Backend Svc 2
+    Client-&gt;&gt;AWS Load Balancer: HTTPS Request
+    Note right of Skipper Proxy: All traffic flow through Skipper where the requests &lt;br/&gt;will be matched by evaluating defined predicates&lt;br/&gt; against the route. Precedence rules dictate&lt;br/&gt; that the route with the most matching predicates&lt;br/&gt; wins. This route then decides what filters to&lt;br/&gt; execute on the request and which backend&lt;br/&gt; to forward the request to.
+    AWS Load Balancer-&gt;&gt;Skipper Proxy: Forward HTTP traffic
+    loop Route Lookup
+        Skipper Proxy-&gt;&gt;Backend Svc 1: Match incoming request to backend using Predicates
+    end
+    Backend Svc 1--&gt;&gt;Skipper Proxy: Svc Response
+    Skipper Proxy--&gt;&gt;AWS Load Balancer: Proxied Response
+    AWS Load Balancer--&gt;&gt;Client: HTTPS Respone</div>
 
 <p>An example of the precedence rules for the routes that may exist for a sample gateway. In this example a request is coming from an employee token which is defined as an <a href="#admin-access">admin</a> of the service:
 Example request:
@@ -1064,8 +1065,8 @@ Example request:
 </tr>
 </tbody>
 </table>
-<p>??? gateway.yaml
-    <div class="codehilite"><pre><span></span><code>    <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
+<p>Below is a sample gateway resource which the above routes were generated from
+<div class="codehilite"><pre><span></span><code>    <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
     <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">FabricGateway</span>
     <span class="nt">metadata</span><span class="p">:</span>
       <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">example</span>
@@ -1151,6 +1152,8 @@ Example request:
       <script src="../assets/javascripts/application.c33a9706.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+        <script src="https://unpkg.com/mermaid@7.1.2/dist/mermaid.min.js"></script>
       
     
   </body>

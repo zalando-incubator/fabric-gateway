@@ -438,32 +438,32 @@ Example request:
 | Service Specific Rate Limit Route | [Path](https://opensource.zalando.com/skipper/reference/predicates/#path) && [Method](https://opensource.zalando.com/skipper/reference/predicates/#method) && [JWTPayloadAnyKV](https://opensource.zalando.com/skipper/reference/predicates/#jwtpayloadanykv) && [Header](https://opensource.zalando.com/skipper/reference/predicates/#header) | 4 | N | N | This route is not matched because the Token Introspection is specifically looking for a service name |
 | User Specific Rate Limit Route | [Path](https://opensource.zalando.com/skipper/reference/predicates/#path) && [Method](https://opensource.zalando.com/skipper/reference/predicates/#method) && [JWTPayloadAnyKV](https://opensource.zalando.com/skipper/reference/predicates/#jwtpayloadanykv) && [Header](https://opensource.zalando.com/skipper/reference/predicates/#header) | 4 | N | N | This route is not matched because the Token Introspection is specifically looking for a user name |
 
-??? gateway.yaml
-    ```yaml
-        apiVersion: zalando.org/v1
-        kind: FabricGateway
-        metadata:
-          name: example
-        spec:
-          x-external-service-provider:
-            stackSetName: some_stackset
-            hosts:
-              - ingress.url
-          x-fabric-admins:
-            - bmooney
-          x-fabric-whitelist:
-            - stups_service_name
-          paths:
-            /restricted:
-              post:
-                x-fabric-privileges:
-                  - some.write.scope
-                x-fabric-employee-access:
-                  user-list:
-                    - jbloggs
-                x-fabric-ratelimits:
-                  default-rate: 10
-                  period: minute
-                  target:
-                    stups_service_name: 50
-    ```
+Below is a sample gateway resource which the above routes were generated from
+```yaml
+    apiVersion: zalando.org/v1
+    kind: FabricGateway
+    metadata:
+      name: example
+    spec:
+      x-external-service-provider:
+        stackSetName: some_stackset
+        hosts:
+          - ingress.url
+      x-fabric-admins:
+        - bmooney
+      x-fabric-whitelist:
+        - stups_service_name
+      paths:
+        /restricted:
+          post:
+            x-fabric-privileges:
+              - some.write.scope
+            x-fabric-employee-access:
+              user-list:
+                - jbloggs
+            x-fabric-ratelimits:
+              default-rate: 10
+              period: minute
+              target:
+                stups_service_name: 50
+```
