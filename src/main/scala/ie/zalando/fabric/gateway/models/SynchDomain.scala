@@ -3,6 +3,7 @@ package ie.zalando.fabric.gateway.models
 import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
+import ie.zalando.fabric.gateway.service.RouteDerivationModels.WeightedGatewayFeature
 
 object SynchDomain {
 
@@ -84,6 +85,10 @@ object SynchDomain {
 
   case object HttpsTraffic extends SkipperPredicate {
     val skipperStringValue: String = s"""Header("X-Forwarded-Proto", "https")"""
+  }
+
+  case class WeightedRoute(featureWeight: WeightedGatewayFeature) extends SkipperPredicate {
+    val skipperStringValue: String = s"""Weight(${featureWeight.weight})"""
   }
 
   case object NonCustomerRealm extends SkipperFilter {

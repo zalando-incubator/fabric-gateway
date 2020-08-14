@@ -5,6 +5,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain._
+import ie.zalando.fabric.gateway.service.RouteDerivationModels.{Admin, GatewayContext, GenericServiceMatch, GlobalRateLimit, NamedService, RateLimitDetails, RejectNonWhitelisted, RequiredScope, Route, RouteConfig, ServiceIdentifier, SvcMatch, SvcRateLimit, SvcWhitelist, UserWhitelist}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.immutable.Iterable
@@ -15,31 +16,6 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     ctxt: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[IngressDerivationChain])
-
-  case class GatewayContext(gateway: GatewaySpec, meta: GatewayMeta)
-  case class Route(path: PathMatch, verb: HttpVerb)
-
-  case class RequiredScope(name: String)
-
-  sealed trait ServiceIdentifier
-  case object GenericServiceMatch       extends ServiceIdentifier
-  case class NamedService(name: String) extends ServiceIdentifier
-
-  case class ServiceRestrictionDetails(isRouteRestricted: Boolean, restrictedTo: Set[String])
-  case class UserRestrictionDetails(restrictedTo: Set[String])
-  case class RateLimitDetails(rate: Int, period: RateLimitPeriod)
-
-  case class RouteConfig(
-      tokenValidations: Set[RequiredScope] = Set.empty,
-      adminAccessForRoute: Set[String] = Set.empty,
-      serviceRestrictions: ServiceRestrictionDetails = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty),
-      userRestrictions: UserRestrictionDetails = UserRestrictionDetails(Set.empty),
-      rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty
-  )
-
-  type FlowContext = (Route, RouteConfig, GatewayContext)
-
-  type GatewayFeatureDerivation = FlowContext => FlowContext
 
   def deriveRoutesFor(gateway: GatewaySpec, meta: GatewayMeta): Future[List[IngressDefinition]] = {
     val routes: Map[Route, RouteConfig] = for {
@@ -80,12 +56,12 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         case (route: Route, config: RouteConfig) =>
           (route, config, GatewayContext(gateway, meta))
       }
-      .map(authentication)
-      .map(authorization)
-      .map(adminAccess)
-      .map(whitelisting)
-      .map(employeeAccess)
-      .map(rateLimiting)
+      .map(FeatureDerivation.authentication)
+      .map(FeatureDerivation.authorization)
+      .map(FeatureDerivation.adminAccess)
+      .map(FeatureDerivation.whitelisting)
+      .map(FeatureDerivation.employeeAccess)
+      .map(FeatureDerivation.rateLimiting)
       .runWith(
         Sink.fold(defaultRoutes) {
           case (accum, (route, routeConfig, gatewayContext)) =>
@@ -155,102 +131,13 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     existingRoutesWithCors ++ preflightCorsRoutes.toList
   }
 
-  val authentication: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      (route, config.copy(tokenValidations = config.tokenValidations + RequiredScope(Skipper.ZalandoTokenId)), context)
-  }
-
-  val authorization: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      val requiredScopes = context.gateway.paths
-        .get(route.path)
-        .flatMap { ctxtPathConf =>
-          ctxtPathConf.operations.get(route.verb).flatMap { gwActions =>
-            Some(
-              gwActions.requiredPrivileges.toList
-                .filterNot(_.toUpperCase == "UID")
-                .map(RequiredScope)
-                .toSet)
-          }
-        }
-        .getOrElse(Set.empty)
-
-      (route, config.copy(tokenValidations = config.tokenValidations ++ requiredScopes), context)
-  }
-
-  val adminAccess: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      (route, config.copy(adminAccessForRoute = context.gateway.admins), context)
-  }
-
-  val whitelisting: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      val globalWhitelistConfig = context.gateway.globalWhitelistConfig
-
-      (for {
-        pathConf <- context.gateway.paths.get(route.path)
-        opConf   <- pathConf.operations.get(route.verb)
-      } yield {
-        (opConf.resourceWhitelistConfig.state, globalWhitelistConfig.state) match {
-          case (Inherited, Inherited | Enabled) =>
-            (route,
-             config.copy(
-               serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = true, globalWhitelistConfig.services)),
-             context)
-          case (Inherited, Disabled) | (Disabled, _) =>
-            (route,
-             config.copy(serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty[String])),
-             context)
-          case (Enabled, _) =>
-            (route,
-             config.copy(serviceRestrictions =
-               ServiceRestrictionDetails(isRouteRestricted = true, opConf.resourceWhitelistConfig.services)),
-             context)
-        }
-      }) getOrElse ((route, config, context))
-  }
-
-  val employeeAccess: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      (for {
-        pathConf             <- context.gateway.paths.get(route.path)
-        opConf               <- pathConf.operations.get(route.verb)
-        employeeAccessConfig = opConf.employeeAccessConfig
-      } yield {
-        (route, config.copy(userRestrictions = UserRestrictionDetails(employeeAccessConfig.employees)), context)
-      }) getOrElse ((route, config, context))
-  }
-
-  val rateLimiting: GatewayFeatureDerivation = {
-    case (route, config, context) =>
-      (for {
-        pathConf      <- context.gateway.paths.get(route.path)
-        opConf        <- pathConf.operations.get(route.verb)
-        rateLimitConf <- opConf.rateLimit
-      } yield {
-        val defaultRateLimits: Map[ServiceIdentifier, RateLimitDetails] =
-          Map(GenericServiceMatch -> RateLimitDetails(rateLimitConf.defaultReqRate, rateLimitConf.period))
-        val allRateLimits = rateLimitConf.uidSpecific.foldLeft(defaultRateLimits) {
-          case (accum, (id, limit)) =>
-            if (config.adminAccessForRoute.contains(id))
-              accum
-            else
-              accum + (NamedService(id) -> RateLimitDetails(limit, rateLimitConf.period))
-        }
-
-        (route, config.copy(rateLimitDetails = allRateLimits), context)
-      }) getOrElse ((route, config, context))
-  }
-
   def joinToSkipperRoutes(skipperRoutes: List[SkipperRouteDefinition],
                           route: Route,
                           routeConfig: RouteConfig,
                           gatewayContext: GatewayContext): List[SkipperRouteDefinition] = {
     val adminRoutes = NEL
       .fromList(routeConfig.adminAccessForRoute.toList)
-      .map { adminsNel =>
-        genSkipperAdminsRoute(route, adminsNel, gatewayContext)
-      }
+      .map { adminsNel => genSkipperAdminsRoute(route, adminsNel, gatewayContext) }
       .toList
 
     val svcRoutes = (if (routeConfig.serviceRestrictions.isRouteRestricted) {
@@ -321,7 +208,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
   }
 
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
-    val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: Nil
+    val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: WeightedRoute(Admin) :: Nil
     val filters = EnableAccessLog(List(2, 4, 5)) :: AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) ::
       RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
 
@@ -359,7 +246,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           case (accum, svc) =>
             SkipperRouteDefinition(
               gatewayContext.meta.name.concat(DnsString.unlimitedServicePath(route.verb, route.path, svc)),
-              route.path :: MethodMatch(route.verb) :: ClientMatch(svc) :: HttpsTraffic :: Nil,
+              route.path :: MethodMatch(route.verb) :: ClientMatch(svc) :: HttpsTraffic :: WeightedRoute(SvcWhitelist) :: Nil,
               requiredPrivileges(conf.tokenValidations).toList ++ (FlowId :: ForwardTokenInfo :: Nil),
               None
             ) :: accum
@@ -373,7 +260,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       Nil,
       Some(
         SkipperCustomRoute(
-          NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic),
+          NEL.of(route.path, MethodMatch(route.verb), HttpsTraffic, WeightedRoute(RejectNonWhitelisted)),
           NEL.of(Status(403), AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey), UnauthorizedRejectMsg, Shunt)
         ))
     ) :: remainingServiceRoutes ::: rateLimitedWhitelistedRoutes
@@ -385,7 +272,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     if (conf.rateLimitDetails.isEmpty) {
       SkipperRouteDefinition(
         gatewayContext.meta.name.concat(DnsString.unlimitedPath(route.verb, route.path)),
-        route.path :: MethodMatch(route.verb) :: HttpsTraffic :: Nil,
+        route.path :: MethodMatch(route.verb) :: HttpsTraffic :: WeightedRoute(SvcMatch) :: Nil,
         requiredPrivileges(conf.tokenValidations).toList ++ (FlowId :: ForwardTokenInfo :: Nil),
         None
       ) :: Nil
@@ -406,7 +293,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       case GenericServiceMatch =>
         SkipperRouteDefinition(
           gatewayContext.meta.name.concat(DnsString.rateLimitedPath(route.verb, route.path)),
-          route.path :: MethodMatch(route.verb) :: HttpsTraffic :: Nil,
+          route.path :: MethodMatch(route.verb) :: HttpsTraffic :: WeightedRoute(GlobalRateLimit) :: Nil,
           requiredPrivileges(conf.tokenValidations).toList ++ (GlobalRouteRateLimit(
             gatewayContext.meta.name.value,
             route.path,
@@ -418,7 +305,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       case NamedService(svcName) =>
         SkipperRouteDefinition(
           gatewayContext.meta.name.concat(DnsString.rateLimitedServicePath(route.verb, route.path, svcName)),
-          route.path :: MethodMatch(route.verb) :: ClientMatch(svcName) :: HttpsTraffic :: Nil,
+          route.path :: MethodMatch(route.verb) :: ClientMatch(svcName) :: HttpsTraffic :: WeightedRoute(SvcRateLimit) :: Nil,
           requiredPrivileges(conf.tokenValidations).toList ++ (ClientSpecificRouteRateLimit(
             gatewayContext.meta.name.value,
             route.path,
@@ -437,7 +324,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                                        gatewayContext: GatewayContext): SkipperRouteDefinition = {
     SkipperRouteDefinition(
       gatewayContext.meta.name.concat(DnsString.rateLimitedUserPath(route.verb, route.path)),
-      route.path :: MethodMatch(route.verb) :: UidMatch(uids) :: HttpsTraffic :: Nil,
+      route.path :: MethodMatch(route.verb) :: UidMatch(uids) :: HttpsTraffic :: WeightedRoute(UserWhitelist) :: Nil,
       UidPrivilege ++ (GlobalUsersRouteRateLimit(gatewayContext.meta.name.value,
                                                  route.path,
                                                  MethodMatch(route.verb),
