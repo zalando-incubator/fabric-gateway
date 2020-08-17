@@ -99,7 +99,12 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     } yield {
       val finalRoutes = gateway.corsConfig.fold(skipperRoutes) { corsConfig =>
         withCors(gateway, meta.name, corsConfig, skipperRoutes)
+      }.map { routeDefn =>
+        if (routeDefn.predicates.nonEmpty) {
+          routeDefn.copy(predicates = WeightedRoute(routeDefn.predicates.size) :: routeDefn.predicates)
+        } else routeDefn
       }
+
       val ingressDefinitions = combineBackendsAndRoutes(backends, finalRoutes, meta)
 
       gateway.serviceProvider match {

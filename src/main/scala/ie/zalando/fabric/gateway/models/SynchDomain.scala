@@ -86,6 +86,10 @@ object SynchDomain {
     val skipperStringValue: String = s"""Header("X-Forwarded-Proto", "https")"""
   }
 
+  case class WeightedRoute(featureWeight: Int) extends SkipperPredicate {
+    val skipperStringValue: String = s"""Weight(${featureWeight})"""
+  }
+
   case object NonCustomerRealm extends SkipperFilter {
     val skipperStringValue: String = s"""oauthTokeninfoAnyKV("realm", "/services", "realm", "/employees")"""
   }

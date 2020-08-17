@@ -260,23 +260,27 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     routes.size shouldBe 3
 
     routes.foreach { sr =>
-      sr.predicates.size should be(4)
+      sr.predicates.size should be(5)
       sr.predicates.exists { _.getClass == classOf[PathMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
+      sr.predicates.exists { _.getClass == classOf[WeightedRoute] } should be(true)
       sr.filters should equal(
         List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AccessLogAuditing(), RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
     }
 
     routes
       .map(_.predicates)
-      .contains(List(PathMatch("/api/resource"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)) shouldBe true
+      .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Get)))
+      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
     routes
       .map(_.predicates)
-      .contains(List(PathMatch("/api/resource"), MethodMatch(Post), UidMatch(NEL.one(AdminUser)), HttpsTraffic)) shouldBe true
+      .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Post)))
+      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource"), MethodMatch(Post), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
     routes
       .map(_.predicates)
-      .contains(List(PathMatch("/api/resource/*"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)) shouldBe true
+      .filter(ls => ls.contains(PathMatch("/api/resource/*")) && ls.contains(MethodMatch(Get)))
+      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource/*"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
   }
 
   "Route Filtering" should "not generate rate limits for admins" in {
