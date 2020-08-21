@@ -47,6 +47,10 @@ object ResourcePersistenceValidations {
     def errorMessage: String = s"The provided cors hostname '$hostname' is invalid"
   }
 
+  case class ResourceNameTooLong(name: String, namespace: String) extends GatewayValidation {
+    def errorMessage: String = s"Concatenated resource name and namespace length is capped at 60 characters: $name and $namespace are ${name.length + namespace.length} chars long"
+  }
+
   type ValidationResult[A] = ValidatedNel[GatewayValidation, A]
 
   def isValid(validationRequest: ValidationRequest): DecisionStatus = {
@@ -54,6 +58,7 @@ object ResourcePersistenceValidations {
       case (path, ops) => ops.map { case (verb, _) => (path, verb) }
     }
     (
+      validateNameLength(validationRequest.name, validationRequest.namespace),
       validatePathsNonEmpty(validationRequest.resource),
       validationRequest.resource.paths.keys.toList.map(validateStarStarPathPosition).sequence,
       validateStackSetIntegration(validationRequest.hasExternallyManagedServices, validationRequest.definedServiceCount),
@@ -64,7 +69,7 @@ object ResourcePersistenceValidations {
       pathVerbPairs.map {
         case (path, verb) => validateCorsOptionsRoutes(validationRequest.corsConfig, path, verb)
       }.sequence
-    ).mapN((_, _, _, _, _) => false) match {
+    ).mapN((_, _, _, _, _, _) => false) match {
       case Valid(notRejected) => DecisionStatus(notRejected)
       case Invalid(reasons) =>
         DecisionStatus(
@@ -110,5 +115,11 @@ object ResourcePersistenceValidations {
     } else {
       s"$path:$verb".valid
     }
+  }
+
+  def validateNameLength(name: String, namespace: String): ValidationResult[String] = {
+    if (name.length + namespace.length > 60)
+      ResourceNameTooLong(name, namespace).invalidNel
+    else s"$namespace:$name".valid
   }
 }

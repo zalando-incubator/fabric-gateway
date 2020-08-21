@@ -90,6 +90,21 @@ class ValidationSpec extends FlatSpec with Matchers {
     }
   }
 
+  "DNS Compliance Validation" should "reject name and namespace combinations which exceed length requirements" in {
+    ResourcePersistenceValidations.validateNameLength("my-gateway", "my-namespace") match {
+      case Valid(concatenatedNameAndSpace) => concatenatedNameAndSpace shouldBe "my-namespace:my-gateway"
+      case Invalid(_) => fail
+    }
+
+
+    ResourcePersistenceValidations.validateNameLength("my-stupidly-long-service-name", "my-equally-long-namespace-naming") match {
+      case Valid(_) => fail
+      case Invalid(nel) =>
+        nel.size shouldBe 1
+        nel.head.errorMessage shouldBe "Concatenated resource name and namespace length is capped at 60 characters: my-stupidly-long-service-name and my-equally-long-namespace-naming are 61 chars long"
+    }
+  }
+
   "Resource Validation" should "should return all errors" in {
     val vr = ValidationRequest(
       uid = "uid",
