@@ -63,7 +63,6 @@ lazy val commonSettings = Seq(
 )
 
 fork in IntegrationTest := true
-envVars in IntegrationTest := Map("SKUBER_URL" -> "http://localhost:8001")
 
 test := Seq(
   (test in Test).value,

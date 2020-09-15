@@ -13,6 +13,7 @@ import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
+import skuber.api.Configuration
 import skuber.api.client.KubernetesClient
 import skuber.k8sInit
 
@@ -29,18 +30,12 @@ class ApiValidationSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll {
 
-  val kubernetesClient: KubernetesClient = k8sInit
+  val kubernetesClient: KubernetesClient = k8sInit(Configuration.useProxyAt("http://localhost:8001"))
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic             = new IngressDerivationChain(stackSetOperations, None)
   val ingressTransitions                 = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
 
   var wireMockServer: WireMockServer = _
-
-  override def beforeAll(): Unit = {
-    if (System.getenv("SKUBER_URL")  == null) {
-      throw new IllegalArgumentException("ApiValidationSpec requires env var 'SKUBER_URL' to be set to 'http://localhost:8001'")
-    }
-  }
 
   override def beforeEach(): Unit = {
     wireMockServer = new WireMockServer(
