@@ -12,7 +12,7 @@ import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperat
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import skuber.api.Configuration
 import skuber.api.client.KubernetesClient
 import skuber.k8sInit
@@ -27,10 +27,9 @@ class ApiValidationSpec
     with OperationalRoutes
     with GatewayWebhookRoutes
     with TestJsonModels
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll {
-
-  val kubernetesClient: KubernetesClient = k8sInit(Configuration.useProxyAt("http://localhost:8001"))
+    with BeforeAndAfterEach {
+  val wiremockPort = 8001
+  val kubernetesClient: KubernetesClient = k8sInit(Configuration.useProxyAt(s"http://localhost:$wiremockPort"))
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic             = new IngressDerivationChain(stackSetOperations, None)
   val ingressTransitions                 = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
@@ -41,7 +40,7 @@ class ApiValidationSpec
     wireMockServer = new WireMockServer(
       WireMockConfiguration
         .wireMockConfig()
-        .port(8001)
+        .port(wiremockPort)
         .withRootDirectory("src/it/resources/wiremock")
     )
     wireMockServer.start()
