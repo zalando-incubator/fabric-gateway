@@ -25,3 +25,6 @@ spec:
                   memory: 100Mi
                 limits:
                   memory: 100Mi
+      stackLifecycle:
+        limit: 5
+        scaledownTTLSeconds: 300

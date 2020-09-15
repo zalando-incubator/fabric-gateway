@@ -12,7 +12,7 @@ import ie.zalando.fabric.gateway.service.{IngressDerivationChain, StackSetOperat
 import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
 import skuber.api.client.KubernetesClient
 import skuber.k8sInit
 
@@ -26,7 +26,8 @@ class ApiValidationSpec
     with OperationalRoutes
     with GatewayWebhookRoutes
     with TestJsonModels
-    with BeforeAndAfterEach {
+    with BeforeAndAfterEach
+    with BeforeAndAfterAll {
 
   val kubernetesClient: KubernetesClient = k8sInit
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
@@ -34,6 +35,12 @@ class ApiValidationSpec
   val ingressTransitions                 = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
 
   var wireMockServer: WireMockServer = _
+
+  override def beforeAll(): Unit = {
+    if (System.getenv("SKUBER_URL")  == null) {
+      throw new IllegalArgumentException("ApiValidationSpec requires env var 'SKUBER_URL' to be set to 'http://localhost:8001'")
+    }
+  }
 
   override def beforeEach(): Unit = {
     wireMockServer = new WireMockServer(
@@ -181,10 +188,6 @@ class ApiValidationSpec
     }
   }
 
-  it should "have an appropriate env var set to point at wiremock" in {
-    System.getenv("SKUBER_URL") should not be null
-  }
-
   // Tests were timing out with the mock...
   implicit val routeTestTimeout: RouteTestTimeout = RouteTestTimeout(5.seconds)
 
@@ -247,6 +250,14 @@ class ApiValidationSpec
       createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 0
+    }
+  }
+
+  it should "accept a stackset managed resource where the stackset uses a named port as the backendPort" in {
+    synchRequest(ValidSynchRequestWithStackSetManagingServicesAndNamedPort.payload) ~> Route.seal(
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
+      val ingressii = responseAs[TestSynchResponse].ingressii
+      ingressii should have length 5
     }
   }
 

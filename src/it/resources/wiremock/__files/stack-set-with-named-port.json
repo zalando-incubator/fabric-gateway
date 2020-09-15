@@ -1,0 +1,84 @@
+{
+  "apiVersion": "zalando.org/v1",
+  "kind": "StackSet",
+  "metadata": {
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zalando.org/v1\",\"kind\":\"StackSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"application\":\"my-test-stackset-with-no-status\"},\"name\":\"my-test-stackset-with-no-status\",\"namespace\":\"default\"},\"spec\":{\"ingress\":{\"backendPort\":\"ingress\",\"hosts\":[\"my-test-stackset-with-no-status.smart-product-platform-test.zalan.do\"]},\"stackLifecycle\":{\"limit\":5,\"scaledownTTLSeconds\":300},\"stackTemplate\":{\"spec\":{\"podTemplate\":{\"spec\":{\"containers\":[{\"env\":[{\"name\":\"COLOR\",\"value\":\"blue\"}],\"image\":\"pierone.stups.zalan.do/teapot/training-example:latest\",\"name\":\"my-test-stackset-with-no-status\",\"ports\":[{\"containerPort\":8080,\"name\":\"ingress\"}],\"readinessProbe\":{\"httpGet\":{\"path\":\"/healthz\",\"port\":8080}},\"resources\":{\"limits\":{\"cpu\":\"10m\",\"memory\":\"10Mi\"},\"requests\":{\"cpu\":\"10m\",\"memory\":\"10Mi\"}}}]}},\"replicas\":1,\"version\":\"master-2\"}}}}\n"
+    },
+    "creationTimestamp": "2019-07-19T13:59:25Z",
+    "generation": 5,
+    "labels": {
+      "application": "my-test-stackset-with-no-status"
+    },
+    "name": "my-test-stackset-with-named-port",
+    "namespace": "default",
+    "resourceVersion": "348406460",
+    "selfLink": "/apis/zalando.org/v1/namespaces/default/stacksets/my-test-stackset-with-no-status",
+    "uid": "6ad211ef-aa2d-11e9-bff4-0aa6f2255a6a"
+  },
+  "spec": {
+    "externalIngress": {
+      "backendPort": "named-port"
+    },
+    "stackLifecycle": {
+      "limit": 5,
+      "scaledownTTLSeconds": 300
+    },
+    "stackTemplate": {
+      "spec": {
+        "podTemplate": {
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "COLOR",
+                    "value": "blue"
+                  }
+                ],
+                "image": "pierone.stups.zalan.do/teapot/training-example:latest",
+                "name": "my-test-stackset-with-named-port",
+                "ports": [
+                  {
+                    "containerPort": 8080,
+                    "name": "ingress"
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/healthz",
+                    "port": 8080
+                  }
+                },
+                "resources": {
+                  "limits": {
+                    "cpu": "10m",
+                    "memory": "30Mi"
+                  },
+                  "requests": {
+                    "cpu": "10m",
+                    "memory": "30Mi"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "replicas": 1,
+        "version": "master-2"
+      }
+    }
+  },
+  "status": {
+    "observedStackVersion": "master-2",
+    "readyStacks": 2,
+    "stacks": 2,
+    "stacksWithTraffic": 2,
+    "traffic": [{
+      "serviceName": "has-named-port",
+      "servicePort": "named-port",
+      "stackName": "has-named-port-version-1",
+      "weight": 100
+    }]
+  }
+}
