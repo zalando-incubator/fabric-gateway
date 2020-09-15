@@ -68,6 +68,10 @@ object TestUtils {
       def payload: String =
         Source.fromResource("synch/sampleSynchRequestWithStacksetManagingServicesButNoTrafficStatus.json").mkString
     }
+    case object ValidSynchRequestWithStackSetManagingServicesAndNamedPort extends ResourcePayload {
+      def payload: String =
+        Source.fromResource("synch/sampleSynchRequestWithStacksetNamedPort.json").mkString
+    }
     case object ValidSynchRequestWithCorsEnabled extends ResourcePayload {
       def payload: String =
         Source.fromResource("synch/sampleSynchRequestWithCors.json").mkString

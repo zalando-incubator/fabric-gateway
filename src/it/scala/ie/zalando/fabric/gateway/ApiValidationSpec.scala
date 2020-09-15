@@ -13,6 +13,7 @@ import ie.zalando.fabric.gateway.web.{GatewayWebhookRoutes, OperationalRoutes}
 import io.circe.Json
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import skuber.api.Configuration
 import skuber.api.client.KubernetesClient
 import skuber.k8sInit
 
@@ -27,8 +28,8 @@ class ApiValidationSpec
     with GatewayWebhookRoutes
     with TestJsonModels
     with BeforeAndAfterEach {
-
-  val kubernetesClient: KubernetesClient = k8sInit
+  val wiremockPort = 8001
+  val kubernetesClient: KubernetesClient = k8sInit(Configuration.useProxyAt(s"http://localhost:$wiremockPort"))
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic             = new IngressDerivationChain(stackSetOperations, None)
   val ingressTransitions                 = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
@@ -39,7 +40,7 @@ class ApiValidationSpec
     wireMockServer = new WireMockServer(
       WireMockConfiguration
         .wireMockConfig()
-        .port(8001)
+        .port(wiremockPort)
         .withRootDirectory("src/it/resources/wiremock")
     )
     wireMockServer.start()
@@ -181,10 +182,6 @@ class ApiValidationSpec
     }
   }
 
-  it should "have an appropriate env var set to point at wiremock" in {
-    System.getenv("SKUBER_URL") should not be null
-  }
-
   // Tests were timing out with the mock...
   implicit val routeTestTimeout: RouteTestTimeout = RouteTestTimeout(5.seconds)
 
@@ -247,6 +244,14 @@ class ApiValidationSpec
       createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       ingressii should have length 0
+    }
+  }
+
+  it should "accept a stackset managed resource where the stackset uses a named port as the backendPort" in {
+    synchRequest(ValidSynchRequestWithStackSetManagingServicesAndNamedPort.payload) ~> Route.seal(
+      createRoutesFromDerivations(ingressTransitions)) ~> check {
+      val ingressii = responseAs[TestSynchResponse].ingressii
+      ingressii should have length 5
     }
   }
 

@@ -5,6 +5,9 @@ metadata:
     application: gw-test-stack
   name: gw-test-stack
 spec:
+  stackLifecycle:
+    limit: 2
+    scaledownTTLSeconds: 300
   externalIngress:
     backendPort: 5678
   stackTemplate:

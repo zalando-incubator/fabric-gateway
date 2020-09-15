@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 case class StackSetIdentifier(name: String, namespace: String)
-case class StackSetIngress(backendPort: Int)
+case class StackSetIngress(backendPort: K8sServicePortIdentifier)
 case class StackSetSpec(externalIngress: Option[StackSetIngress])
 case class StackDefinedService(serviceName: String, servicePort: K8sServicePortIdentifier, weight: Double)
 case class StackSetStatus(readyStacks: Int, stacks: Int, stacksWithTraffic: Int, traffic: Option[Seq[StackDefinedService]])
