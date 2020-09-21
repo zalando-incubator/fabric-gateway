@@ -29,6 +29,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val ResourceWhitelistedUser   = "resourceWhitelistedUser"
   val InheritedWhitelistDetails = WhitelistConfig(Set(), Inherited)
   val UserWhitelist             = EmployeeAccessConfig(AllowList(Set.empty))
+  val AllowAllEmployees         = EmployeeAccessConfig(AllowAll)
   val EnabledCors = Some(
     CorsConfig(Set(Uri.from(host = "example.com"), Uri.from(host = "example-other.com")),
                Set("Content-Type", "Authorization", "X-Flow-id")))
@@ -181,6 +182,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             Some(RateLimitDetails(10, PerMinute, Map.empty[String, Int])),
             WhitelistConfig(Set(), Disabled),
             EmployeeAccessConfig(AllowList(Set(WhitelistedUser)))
+          ),
+          Put -> ActionAuthorizations(
+            NEL.of("uid", "service.read"),
+            Some(RateLimitDetails(10, PerMinute, Map.empty[String, Int])),
+            WhitelistConfig(Set(ResourceWhitelistedUser), Enabled),
+            AllowAllEmployees
           )
         ))
     )
@@ -684,6 +691,13 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     rateLimitedUserWhitelistedRoute.metadata.routeDefinition.predicates should contain(UidMatch(NEL.of(WhitelistedUser)))
     rateLimitedUserWhitelistedRoute.metadata.routeDefinition.filters should contain(
       GlobalUsersRouteRateLimit("whitelisted-gateway", PathMatch("/api/resource/*"), MethodMatch(Get), 10, PerMinute))
+
+    val allUserRateLimitedRoute = ingresses.find { route =>
+      route.metadata.name == "whitelisted-gateway-put-api-resource-id-rl-users-all"
+    }.get
+    allUserRateLimitedRoute.metadata.routeDefinition.predicates should contain(EmployeeToken)
+    allUserRateLimitedRoute.metadata.routeDefinition.filters should contain(
+      GlobalUsersRouteRateLimit("whitelisted-gateway", PathMatch("/api/resource/*"), MethodMatch(Put), 10, PerMinute))
   }
 
   it should "not add user whitelist routes when there is no user whitelist" in {
