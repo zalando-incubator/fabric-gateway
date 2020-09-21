@@ -179,8 +179,8 @@ spec:
                             example: stups_some-service-name
                     x-fabric-employee-access:
                       type: object
-                      required:
-                        - user-list
+                      description: |
+                        Only one of the `user-list` or `allow-all`
                       properties:
                         user-list:
                           type: array
@@ -188,3 +188,12 @@ spec:
                             type: string
                             description: |-
                               UID of a user who should bypass scope checks, since user tokens can't have scopes.
+                        type:
+                          type: string
+                          enum:
+                            - ALLOW_LIST
+                            - ALLOW_ALL
+                          description: |-
+                            If `ALLOW_LIST` is selected, then the `user-list` property must be provided also. If `ALLOW_ALL`
+                            is selected, then the `user-list` property must not be present. If this property is not present,
+                            then the value is assumed to be `ALLOW_LIST`
