@@ -3,7 +3,7 @@ package ie.zalando.fabric.gateway.service
 import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
-import cats.data.{NonEmptySet, NonEmptyList => NEL}
+import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import org.slf4j.{Logger, LoggerFactory}
 

@@ -28,7 +28,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val WhitelistedUser           = "whitelistedUser"
   val ResourceWhitelistedUser   = "resourceWhitelistedUser"
   val InheritedWhitelistDetails = WhitelistConfig(Set(), Inherited)
-  val UserWhitelist             = EmployeeAccessConfig(Set.empty)
+  val UserWhitelist             = EmployeeAccessConfig(AllowList(Set.empty))
   val EnabledCors = Some(
     CorsConfig(Set(Uri.from(host = "example.com"), Uri.from(host = "example-other.com")),
                Set("Content-Type", "Authorization", "X-Flow-id")))
@@ -165,7 +165,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             NEL.of("uid", "service.read"),
             None,
             InheritedWhitelistDetails,
-            EmployeeAccessConfig(Set(WhitelistedUser))
+            EmployeeAccessConfig(AllowList(Set(WhitelistedUser)))
           ),
           Post -> ActionAuthorizations(
             NEL.of("uid", "service.write"),
@@ -180,7 +180,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             NEL.of("uid", "service.read"),
             Some(RateLimitDetails(10, PerMinute, Map.empty[String, Int])),
             WhitelistConfig(Set(), Disabled),
-            EmployeeAccessConfig(Set(WhitelistedUser))
+            EmployeeAccessConfig(AllowList(Set(WhitelistedUser)))
           )
         ))
     )
