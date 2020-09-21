@@ -270,7 +270,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       } else srd
     }
 
-    val employeeAccess = genEmployeeAccessRoutes(routeConfig)
+    val employeeAccess = genEmployeeAccessRoute(route, routeConfig, gatewayContext)
 
     skipperRoutes ::: (adminRoutes ::: (svcRoutes ++ employeeAccess)).map { route =>
       if (route.filters.nonEmpty) {
