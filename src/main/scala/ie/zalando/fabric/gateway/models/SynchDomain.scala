@@ -4,8 +4,6 @@ import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
 
-import scala.collection.SortedSet
-
 object SynchDomain {
 
   object ComposablePathRegex {
