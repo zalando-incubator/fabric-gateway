@@ -8,6 +8,7 @@
 .lib/
 dist/*
 target/
+dev/
 lib_managed/
 src_managed/
 project/boot/
