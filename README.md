@@ -27,6 +27,11 @@ The `docs` folder contains the [documentation site](https://zalando-incubator.gi
 ./make-site.sh
 ```
 
+Make sure that you have the correct version of mkdocs material installed to avoid large deltas:
+```sh
+pip install mkdocs-material==5.5.0
+```
+
 ### Architecture
 
 Currently this gateway operator integrates with [Skipper](https://opensource.zalando.com/skipper/) as an ingress provider. The Gateway operator gives you the ability to consistently configure a suite of functionality applied to a list of routes without having to tie yourself to any specific ingress implementation. An overview of how this operator works once deployed can be seen below:
