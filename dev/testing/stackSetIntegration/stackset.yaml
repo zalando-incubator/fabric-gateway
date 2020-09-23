@@ -1,0 +1,29 @@
+apiVersion: zalando.org/v1
+kind: StackSet
+metadata:
+  labels:
+    application: ss-int-stack
+  name: ss-int-stack
+spec:
+  externalIngress:
+    backendPort: 8080
+  stackTemplate:
+    spec:
+      replicas: 1
+      version: v1
+      stackLifecycle:
+        scaleDownTTL: 180
+        limit: 1
+      podTemplate:
+        spec:
+          containers:
+            - name: gateway-test-app
+              image: jmalloc/echo-server:latest
+              ports:
+                - containerPort: 8080
+              resources:
+                requests:
+                  cpu: 1
+                  memory: 512Mi
+                limits:
+                  memory: 512Mi
