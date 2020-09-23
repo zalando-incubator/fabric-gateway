@@ -119,8 +119,14 @@ trait JsonModels {
 
   implicit val decodeUserWhitelist: Decoder[EmployeeAccessConfig] = (c: HCursor) =>
     for {
-      whitelistedServices <- c.downField("user-list").as[Set[String]]
-    } yield EmployeeAccessConfig(whitelistedServices)
+      allowType <- c.downField("type").as[Option[String]]
+      allowedUsers <- c.downField("user-list").as[Option[Set[String]]]
+    } yield EmployeeAccessConfig(
+      allowType.getOrElse("ALLOW_LIST") match {
+        case "ALLOW_ALL" => AllowAll
+        case _ => AllowList(allowedUsers.getOrElse(Set.empty))
+      }
+    )
 
   implicit val decodePathGatewayConfig: Decoder[ActionAuthorizations] = (c: HCursor) =>
     for {
@@ -133,7 +139,7 @@ trait JsonModels {
         requiredPrivileges.getOrElse(NEL.one(Skipper.ZalandoTokenId)),
         rateLimit,
         serviceWhitelist.getOrElse(WhitelistConfig(Set(), Inherited)),
-        employeeAccess.getOrElse(EmployeeAccessConfig(Set()))
+        employeeAccess.getOrElse(EmployeeAccessConfig(AllowList(Set.empty[String])))
     )
 
   def deriveServiceProvider(fabricDefinedServices: Option[Set[FabricServiceDefinition]],

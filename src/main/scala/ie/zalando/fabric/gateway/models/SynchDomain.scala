@@ -78,6 +78,10 @@ object SynchDomain {
     val skipperStringValue: String = s"""JWTPayloadAllKV("sub", "$svcName")"""
   }
 
+  case object EmployeeToken extends SkipperPredicate {
+    val skipperStringValue: String = s"""JWTPayloadAllKV("https://identity.zalando.com/realm", "users")"""
+  }
+
   case object HttpTraffic extends SkipperPredicate {
     val skipperStringValue: String = s"""Header("X-Forwarded-Proto", "http")"""
   }
@@ -205,6 +209,10 @@ object SynchDomain {
     val skipperRepresentation = "h"
   }
 
+  sealed trait EmployeeAccessType
+  case class AllowList(users: Set[String]) extends EmployeeAccessType
+  case object AllowAll extends EmployeeAccessType
+
   // Fabric Gateway Domain Models
   type NamedIngressDefinitions = Map[String, IngressDefinition]
   type GatewayPathRestrictions = Map[HttpVerb, ActionAuthorizations]
@@ -313,7 +321,7 @@ object SynchDomain {
   case object Inherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
-  case class EmployeeAccessConfig(employees: Set[String])
+  case class EmployeeAccessConfig(allowType: EmployeeAccessType)
 
   case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
 

@@ -25,7 +25,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
 
   private val AdminUser                        = "adminUser"
   private val InheritedWhitelistDetails        = WhitelistConfig(Set(), Inherited)
-  private val UserWhitelist                    = EmployeeAccessConfig(Set.empty)
+  private val UserWhitelist                    = EmployeeAccessConfig(AllowList(Set.empty))
   private val DisabledCors: Option[CorsConfig] = None
   private val withoutRateLimiting = ActionAuthorizations(
     NEL.of("uid", "service.read"),
