@@ -841,7 +841,7 @@ and rate limits, will still apply to the whitelisted service.</p>
 <h3 id="employee-whitelisting">Employee Whitelisting<a class="headerlink" href="#employee-whitelisting" title="Permanent link">&para;</a></h3>
 <p>Employee tokens do not use scopes, so in order to allow certain employees access to an endpoint we must whitelist their uid. Note that this is different to <a href="#admin-access">Admin Access</a> since admins are not subject to rate limits.<br />
 In the example below, we can see that the <code>/api/resource</code> <code>get</code> endpoint can be accessed by services with the <code>spp-application.write</code> scope or the employee whose uid is <code>useruid</code>. The service and the employee will be subject to a ratelimit of 5 requests per minute.
-It is also possible to whitelist all employee tokens for an endpoint. In the example of the <code>/api/secondary-resource</code>, we can see that the employee access type is set to <code>ALLOW_ALL</code>. This means that all employee tokens will be allowed access to this endpoint in spite of any scope restrictions which are present. Each employee will still be subject to the 5 requests per second rate limit. <em>N.B.</em> It&rsquo;s important to note that you cannot define a <code>user-list</code> if you have the access type set to <code>ALLOW_ALL</code>.</p>
+It is also possible to whitelist all employee tokens for an endpoint. In the example of the <code>/api/secondary-resource</code>, we can see that the employee access type is set to <code>allow_all</code>. This means that all employee tokens will be allowed access to this endpoint in spite of any scope restrictions which are present. Each employee will still be subject to the 5 requests per second rate limit. <em>N.B.</em> It&rsquo;s important to note that you cannot define a <code>user-list</code> if you have the access type set to <code>allow_all</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">FabricGateway</span>
 <span class="nt">metadata</span><span class="p">:</span>
@@ -857,7 +857,7 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
         <span class="nt">x-fabric-employee-access</span><span class="p">:</span>
-          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ALLOW_LIST</span>
+          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">allow_list</span>
           <span class="nt">user-list</span><span class="p">:</span>
             <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">useruid</span>
         <span class="nt">x-fabric-ratelimits</span><span class="p">:</span>
@@ -867,7 +867,7 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
         <span class="nt">x-fabric-employee-access</span><span class="p">:</span>
-          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ALLOW_ALL</span>
+          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">allow_all</span>
         <span class="nt">x-fabric-ratelimits</span><span class="p">:</span>
           <span class="nt">default-rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
 </code></pre></div>

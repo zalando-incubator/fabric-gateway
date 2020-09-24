@@ -288,7 +288,7 @@ spec:
 
 Employee tokens do not use scopes, so in order to allow certain employees access to an endpoint we must whitelist their uid. Note that this is different to [Admin Access](#admin-access) since admins are not subject to rate limits.  
 In the example below, we can see that the `/api/resource` `get` endpoint can be accessed by services with the `spp-application.write` scope or the employee whose uid is `useruid`. The service and the employee will be subject to a ratelimit of 5 requests per minute.
-It is also possible to whitelist all employee tokens for an endpoint. In the example of the `/api/secondary-resource`, we can see that the employee access type is set to `ALLOW_ALL`. This means that all employee tokens will be allowed access to this endpoint in spite of any scope restrictions which are present. Each employee will still be subject to the 5 requests per second rate limit. *N.B.* It's important to note that you cannot define a `user-list` if you have the access type set to `ALLOW_ALL`.
+It is also possible to whitelist all employee tokens for an endpoint. In the example of the `/api/secondary-resource`, we can see that the employee access type is set to `allow_all`. This means that all employee tokens will be allowed access to this endpoint in spite of any scope restrictions which are present. Each employee will still be subject to the 5 requests per second rate limit. *N.B.* It's important to note that you cannot define a `user-list` if you have the access type set to `allow_all`.
 
 ```yaml
 apiVersion: zalando.org/v1
@@ -306,7 +306,7 @@ spec:
         x-fabric-privileges:
           - "spp-application.write"
         x-fabric-employee-access:
-          type: ALLOW_LIST
+          type: allow_list
           user-list:
             - useruid
         x-fabric-ratelimits:
@@ -316,7 +316,7 @@ spec:
         x-fabric-privileges:
           - "spp-application.write"
         x-fabric-employee-access:
-          type: ALLOW_ALL
+          type: allow_all
         x-fabric-ratelimits:
           default-rate: 5
 ```

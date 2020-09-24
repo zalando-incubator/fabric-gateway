@@ -122,8 +122,8 @@ trait JsonModels {
       allowType <- c.downField("type").as[Option[String]]
       allowedUsers <- c.downField("user-list").as[Option[Set[String]]]
     } yield EmployeeAccessConfig(
-      allowType.getOrElse("ALLOW_LIST") match {
-        case "ALLOW_ALL" => AllowAll
+      allowType.map(_.toLowerCase).getOrElse("allow_list") match {
+        case "allow_all" => AllowAll
         case _ => AllowList(allowedUsers.getOrElse(Set.empty))
       }
     )
