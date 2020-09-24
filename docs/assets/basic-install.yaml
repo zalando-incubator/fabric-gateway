@@ -191,12 +191,12 @@ spec:
                         type:
                           type: string
                           enum:
-                            - ALLOW_LIST
-                            - ALLOW_ALL
+                            - allow_list
+                            - allow_all
                           description: |-
-                            If `ALLOW_LIST` is selected, then the `user-list` property must be provided also. If `ALLOW_ALL`
+                            If `allow_list` is selected, then the `user-list` property must be provided also. If `allow_all`
                             is selected, then the `user-list` property must not be present. If this property is not present,
-                            then the value is assumed to be `ALLOW_LIST`
+                            then the value is assumed to be `allow_list`
 
 ---
 
