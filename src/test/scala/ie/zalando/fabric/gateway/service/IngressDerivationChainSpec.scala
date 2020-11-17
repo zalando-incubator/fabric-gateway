@@ -194,16 +194,17 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   )
 
   val testableRouteDerivationWithCatchAll: List[IngressDefinition] =
-    Await.result(ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-                                                        GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+    Await.result(ingressDerivationLogic.deriveRoutesFor(
+                   sampleGateway,
+                   GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty)),
                  10.seconds)
+  val testableRouteDerivation: List[IngressDefinition] = testableRouteDerivationWithCatchAll.drop(2)
 
   def testableWhitelistRoutesDerivation(gw: GatewaySpec): List[IngressDefinition] =
-    Await.result(
-      ingressDerivationLogic.deriveRoutesFor(gw, GatewayMeta(DnsString.fromString("whitelisted-gateway").get, "my-namespace")),
-      10.seconds)
+    testableRoutesDerivation(gw, GatewayMeta(DnsString.fromString("whitelisted-gateway").get, "my-namespace", None, Map.empty))
 
-  val testableRouteDerivation: List[IngressDefinition] = testableRouteDerivationWithCatchAll.drop(2)
+  def testableRoutesDerivation(gw: GatewaySpec, gm: GatewayMeta): List[IngressDefinition] =
+    Await.result(ingressDerivationLogic.deriveRoutesFor(gw, gm), 10.seconds)
 
   "Namespacing" should "include the correct namespace in each ingress" in {
     testableRouteDerivation.foreach(_.metadata.namespace shouldBe "my-namespace")
@@ -212,8 +213,9 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   "Admin Routes" should "not be generated if there are no admin users" in {
     val routes = Await
       .result(
-        ingressDerivationLogic.deriveRoutesFor(sampleGateway.copy(admins = Set.empty[String]),
-                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+        ingressDerivationLogic.deriveRoutesFor(
+          sampleGateway.copy(admins = Set.empty[String]),
+          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty)),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -224,8 +226,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   it should "enable the access log" in {
     val routes = Await
       .result(
-        ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+        ingressDerivationLogic
+          .deriveRoutesFor(sampleGateway, GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty)),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -238,8 +240,9 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
     val defaultRoute = Await
       .result(
-        ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+        ingressDerivationLogic.deriveRoutesFor(
+          sampleGateway,
+          GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty)),
         10.seconds
       )
       .head
@@ -256,8 +259,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   it should "generate a valid skipper admin route per verb" in {
     val routes = Await
       .result(
-        ingressDerivationLogic.deriveRoutesFor(sampleGateway,
-                                               GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace")),
+        ingressDerivationLogic
+          .deriveRoutesFor(sampleGateway, GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty)),
         10.seconds
       )
       .filter(isAdminRoute)
@@ -273,21 +276,38 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[WeightedRoute] } should be(true)
       sr.filters should equal(
-        List(NonCustomerRealm, EnableAccessLog(List(2, 4, 5)), AccessLogAuditing(), RequiredPrivileges(NEL.of("uid")), FlowId, ForwardTokenInfo))
+        List(NonCustomerRealm,
+             EnableAccessLog(List(2, 4, 5)),
+             AccessLogAuditing(),
+             RequiredPrivileges(NEL.of("uid")),
+             FlowId,
+             ForwardTokenInfo))
     }
 
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Get)))
-      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
+      .head shouldEqual List(WeightedRoute(4),
+                             PathMatch("/api/resource"),
+                             MethodMatch(Get),
+                             UidMatch(NEL.one(AdminUser)),
+                             HttpsTraffic)
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Post)))
-      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource"), MethodMatch(Post), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
+      .head shouldEqual List(WeightedRoute(4),
+                             PathMatch("/api/resource"),
+                             MethodMatch(Post),
+                             UidMatch(NEL.one(AdminUser)),
+                             HttpsTraffic)
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource/*")) && ls.contains(MethodMatch(Get)))
-      .head shouldEqual List(WeightedRoute(4), PathMatch("/api/resource/*"), MethodMatch(Get), UidMatch(NEL.one(AdminUser)), HttpsTraffic)
+      .head shouldEqual List(WeightedRoute(4),
+                             PathMatch("/api/resource/*"),
+                             MethodMatch(Get),
+                             UidMatch(NEL.one(AdminUser)),
+                             HttpsTraffic)
   }
 
   "Route Filtering" should "not generate rate limits for admins" in {
@@ -321,7 +341,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     forAll(filters) { (admins: Set[String], rateLimitedServices: Set[String]) =>
       val routes = Await.result(
-        ingressDerivationLogic.deriveRoutesFor(gwSpec.copy(admins = admins), GatewayMeta(DnsString.apply("my-test-gw"), "ns")),
+        ingressDerivationLogic.deriveRoutesFor(gwSpec.copy(admins = admins),
+                                               GatewayMeta(DnsString.apply("my-test-gw"), "ns", None, Map.empty)),
         10.seconds
       )
 
@@ -359,7 +380,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     )
 
     val routes = Await.result(
-      ingressDerivationLogic.deriveRoutesFor(gwSpec, GatewayMeta(DnsString.apply("my-test-gw"), "ns")),
+      ingressDerivationLogic.deriveRoutesFor(gwSpec, GatewayMeta(DnsString.apply("my-test-gw"), "ns", None, Map.empty)),
       10.seconds
     )
 
@@ -480,7 +501,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
         ingressDef.metadata.name.contains("non-whitelisted")
       }
       .collect {
-        case IngressDefinition(_, IngressMetaData(SkipperRouteDefinition(_, _, _, Some(customRoute), _), _, _, None)) => customRoute
+        case IngressDefinition(_, IngressMetaData(SkipperRouteDefinition(_, _, _, Some(customRoute), _), _, _, None)) =>
+          customRoute
       }
     routes.size shouldBe 2
     routes.forall { route =>
@@ -646,7 +668,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   "Secure Traffic Feature" should "all non-default routes have a Https traffic check" in {
     val routes = Await.result(
-      ingressDerivationLogic.deriveRoutesFor(sampleGateway, GatewayMeta(DnsString("https-check-gw"), "ns")),
+      ingressDerivationLogic.deriveRoutesFor(sampleGateway, GatewayMeta(DnsString("https-check-gw"), "ns", None, Map.empty)),
       10.seconds
     )
 
@@ -661,7 +683,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   "Service Realm Check Feature" should "add a service realm filter to all non default routes" in {
     val routes = Await.result(
-      ingressDerivationLogic.deriveRoutesFor(sampleGateway, GatewayMeta(DnsString("realm-check-test-1"), "ns")),
+      ingressDerivationLogic.deriveRoutesFor(sampleGateway, GatewayMeta(DnsString("realm-check-test-1"), "ns", None, Map.empty)),
       10.seconds
     )
 
@@ -777,6 +799,18 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     filteredRoutes should not be empty
     filteredRoutes.foreach { filters: NEL[SkipperFilter] =>
       filters.toList should contain(AccessLogAuditing("sub"))
+    }
+  }
+
+  "Annotation Handling" should "allow a subset of annotations through to the generated ingress (defined in test application.conf app.allowed-annotations)" in {
+    val ingresses = testableRoutesDerivation(
+      sampleGateway,
+      GatewayMeta(DnsString.fromString("test-gateway").get, "default", None, Map("ALLOWED" -> "1", "other" -> "2", "NotAllowed" -> "3")))
+
+    ingresses.foreach { ingress =>
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should contain("ALLOWED")
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain("other")
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain("NotAllowed")
     }
   }
 

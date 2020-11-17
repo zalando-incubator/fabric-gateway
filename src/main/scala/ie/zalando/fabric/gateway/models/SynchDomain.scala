@@ -359,7 +359,7 @@ object SynchDomain {
                          corsConfig: Option[CorsConfig],
                          paths: GatewayPaths)
 
-  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]] = None)
+  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]], annotations: Map[String, String])
 
   case class GatewayStatus(numOwnedIngress: Int, ownedIngress: Set[String])
 

@@ -57,6 +57,7 @@ pipeline:
           CRD_PLURAL: testfabricgateways
           CRD_SHORT_NAME: tfg
           VERSIONED_HOSTS_BASE_DOMAIN: "playground.zalan.do"
+          ANNOTATION_ALLOWLIST: "zalando.org/aws-load-balancer-http2,zalando.org/skipper-loadbalancer"
 
   - id: E2E-TestApp-Deployment
     desc: Deploy the test application

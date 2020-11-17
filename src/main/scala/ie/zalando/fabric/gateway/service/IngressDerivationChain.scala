@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
+import ie.zalando.fabric.gateway.config.AppConfig
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -541,7 +542,13 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         val tlsAnnotatedRoute =
           weightAnnotatedRoute.copy(additionalAnnotations = weightAnnotatedRoute.additionalAnnotations ++ useTlsV1_1Annotation)
 
-        tlsAnnotatedRoute
+        // Add allowed passthrough annotations
+        val routeWithPassthroughAnnos = tlsAnnotatedRoute.copy(
+          additionalAnnotations = tlsAnnotatedRoute.additionalAnnotations ++ filterAllowedAnnotations(
+            meta,
+            AppConfig.appConfig.allowedAnnotations))
+
+        routeWithPassthroughAnnos
       }
 
       IngressDefinition(
@@ -566,6 +573,13 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
               s""""$svcName":$weight"""
           }
           .mkString("{", ",", "}"))
+  }
+
+  def filterAllowedAnnotations(meta: GatewayMeta, allowedAnnotationKeys: Set[String]): Map[String, String] = {
+    val allowedAnnotations = meta.annotations.filterKeys(allowedAnnotationKeys.contains)
+    log.debug(s"Annotations filter from ${meta.annotations} and passed through as $allowedAnnotations")
+
+    allowedAnnotations
   }
 
   val useTlsV1_1Annotation: Map[String, String] = Map(
