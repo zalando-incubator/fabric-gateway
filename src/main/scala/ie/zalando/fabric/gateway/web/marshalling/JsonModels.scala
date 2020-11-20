@@ -111,7 +111,7 @@ trait JsonModels {
           .map {
             case "ENABLED"   => Enabled
             case "DISABLED"  => Disabled
-            case "INHERITED" => Inherited
+            case "INHERITED" => GlobalWhitelistConfigInherited
             case _           => Enabled
           }
           .getOrElse(Enabled)
@@ -119,14 +119,21 @@ trait JsonModels {
 
   implicit val decodeUserWhitelist: Decoder[EmployeeAccessConfig] = (c: HCursor) =>
     for {
-      allowType <- c.downField("type").as[Option[String]]
+      allowType    <- c.downField("type").as[Option[String]]
       allowedUsers <- c.downField("user-list").as[Option[Set[String]]]
-    } yield EmployeeAccessConfig(
-      allowType.map(_.toLowerCase).getOrElse("allow_list") match {
-        case "allow_all" => AllowAll
-        case _ => AllowList(allowedUsers.getOrElse(Set.empty))
-      }
-    )
+    } yield {
+      EmployeeAccessConfig(allowType.map(_.toLowerCase).getOrElse {
+        allowedUsers match {
+          case Some(users) if users.nonEmpty => "allow_list" // maintain backward compatability
+          case _                             => "scoped_access"
+        }
+      } match {
+        case "allow_all"  => AllowAll
+        case "deny_all"   => DenyAll
+        case "allow_list" => AllowList(allowedUsers.getOrElse(Set.empty))
+        case _            => ScopedAccess
+      })
+    }
 
   implicit val decodePathGatewayConfig: Decoder[ActionAuthorizations] = (c: HCursor) =>
     for {
@@ -138,8 +145,8 @@ trait JsonModels {
       ActionAuthorizations(
         requiredPrivileges.getOrElse(NEL.one(Skipper.ZalandoTokenId)),
         rateLimit,
-        serviceWhitelist.getOrElse(WhitelistConfig(Set(), Inherited)),
-        employeeAccess.getOrElse(EmployeeAccessConfig(AllowList(Set.empty[String])))
+        serviceWhitelist.getOrElse(WhitelistConfig(Set(), GlobalWhitelistConfigInherited)),
+        employeeAccess.getOrElse(EmployeeAccessConfig(GlobalEmployeeConfigInherited))
     )
 
   def deriveServiceProvider(fabricDefinedServices: Option[Set[FabricServiceDefinition]],
@@ -170,6 +177,7 @@ trait JsonModels {
       admins                   <- c.downField("x-fabric-admins").as[Option[Set[String]]]
       whitelist                <- c.downField("x-fabric-whitelist").as[Option[Set[String]]]
       cors                     <- c.downField("x-fabric-cors-support").as[Option[CorsConfig]]
+      employeeAccess           <- c.downField("x-fabric-employee-access").as[Option[EmployeeAccessConfig]]
       paths                    <- c.downField("paths").as[Map[PathMatch, GatewayPathRestrictions]]
       serviceProvider          <- deriveServiceProvider(services, stackSetIntegrationState)
     } yield
@@ -178,6 +186,7 @@ trait JsonModels {
         admins.toSeq.flatten.toSet,
         whitelist.map(s => WhitelistConfig(s, Enabled)).getOrElse(WhitelistConfig(Set(), Disabled)),
         cors,
+        employeeAccess.getOrElse(EmployeeAccessConfig(ScopedAccess)),
         paths.mapValues(PathConfig)
     )
 

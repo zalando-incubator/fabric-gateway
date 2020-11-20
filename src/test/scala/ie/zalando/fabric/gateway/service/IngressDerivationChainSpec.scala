@@ -27,7 +27,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val AdminUser                 = "adminUser"
   val WhitelistedUser           = "whitelistedUser"
   val ResourceWhitelistedUser   = "resourceWhitelistedUser"
-  val InheritedWhitelistDetails = WhitelistConfig(Set(), Inherited)
+  val InheritedWhitelistDetails = WhitelistConfig(Set(), GlobalWhitelistConfigInherited)
   val UserWhitelist             = EmployeeAccessConfig(AllowList(Set.empty))
   val AllowAllEmployees         = EmployeeAccessConfig(AllowAll)
   val EnabledCors = Some(
@@ -40,6 +40,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     Set(AdminUser),
     WhitelistConfig(Set(), Disabled),
     DisabledCors,
+    EmployeeAccessConfig(ScopedAccess),
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -79,6 +80,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
+    EmployeeAccessConfig(ScopedAccess),
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -119,6 +121,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
+    EmployeeAccessConfig(ScopedAccess),
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -159,6 +162,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     Set(AdminUser),
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
+    EmployeeAccessConfig(ScopedAccess),
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -329,6 +333,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       Set.empty[String],
       WhitelistConfig(Set.empty[String], Disabled),
       DisabledCors,
+      EmployeeAccessConfig(ScopedAccess),
       gatewayPaths
     )
 
@@ -376,6 +381,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       Set.empty[String],
       WhitelistConfig(Set("a"), Enabled),
       DisabledCors,
+      EmployeeAccessConfig(ScopedAccess),
       gatewayPaths
     )
 
