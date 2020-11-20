@@ -218,6 +218,7 @@ trait JsonModels {
       name      <- c.downField("name").as[String]
       namespace <- c.downField("namespace").as[String]
       labels    <- c.downField("labels").as[Option[Map[String, String]]]
+      annos     <- c.downField("annotations").as[Map[String, String]]
     } yield {
       val dnsCompliantGatewayName = DnsString
         .fromString(name)
@@ -226,7 +227,7 @@ trait JsonModels {
           logger.warn(s"Gateway name [$name] is not DNS compliant. Using $gwName instead")
           gwName
         })
-      GatewayMeta(dnsCompliantGatewayName, namespace, labels)
+      GatewayMeta(dnsCompliantGatewayName, namespace, labels, annos)
   }
 
   implicit val decodeSynchParent: Decoder[ControlledGatewayResource] = (c: HCursor) =>

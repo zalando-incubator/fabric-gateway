@@ -60,7 +60,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
   def getRoutes(gw: GatewaySpec, existingRoutes: Seq[IngressDefinition]): List[IngressDefinition] =
     Await.result(
       ingressTransitions.defineSafeRouteTransition(gw,
-                                                   GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace"),
+                                                   GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty),
                                                    existingRoutes),
       10.seconds
     )
