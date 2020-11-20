@@ -318,7 +318,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
             Nil,
             Some(
               SkipperCustomRoute(
-                NEL.of(route.path, MethodMatch(route.verb), EmployeeToken, HttpsTraffic),
+                NEL.of(WeightedRoute(4), route.path, MethodMatch(route.verb), EmployeeToken, HttpsTraffic),
                 NEL.of(Status(403), AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey), EmployeeTokensRejectedMsg, Shunt)
               ))
         ))
