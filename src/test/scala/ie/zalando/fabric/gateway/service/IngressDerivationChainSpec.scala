@@ -274,7 +274,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     routes.size shouldBe 3
 
     routes.foreach { sr =>
-      sr.predicates.size should be(5)
+      sr.predicates.size should be(6)
+      sr.predicates.contains(EmployeeToken) should be(true)
       sr.predicates.exists { _.getClass == classOf[PathMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
       sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
@@ -291,25 +292,28 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Get)))
-      .head shouldEqual List(WeightedRoute(4),
+      .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource"),
                              MethodMatch(Get),
+                             EmployeeToken,
                              UidMatch(NEL.one(AdminUser)),
                              HttpsTraffic)
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Post)))
-      .head shouldEqual List(WeightedRoute(4),
+      .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource"),
                              MethodMatch(Post),
+                             EmployeeToken,
                              UidMatch(NEL.one(AdminUser)),
                              HttpsTraffic)
     routes
       .map(_.predicates)
       .filter(ls => ls.contains(PathMatch("/api/resource/*")) && ls.contains(MethodMatch(Get)))
-      .head shouldEqual List(WeightedRoute(4),
+      .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource/*"),
                              MethodMatch(Get),
+                             EmployeeToken,
                              UidMatch(NEL.one(AdminUser)),
                              HttpsTraffic)
   }

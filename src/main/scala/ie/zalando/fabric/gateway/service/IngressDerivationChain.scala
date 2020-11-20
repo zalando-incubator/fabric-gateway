@@ -356,7 +356,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
   }
 
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
-    val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: Nil
+    val predicates = route.path :: MethodMatch(route.verb) :: EmployeeToken :: UidMatch(admins) :: HttpsTraffic :: Nil
     val filters = EnableAccessLog(List(2, 4, 5)) :: AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) ::
       RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
 
