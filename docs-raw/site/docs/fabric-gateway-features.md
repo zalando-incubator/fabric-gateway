@@ -411,3 +411,7 @@ spec:
         x-fabric-privileges:
           - "spp-application.read"  
 ```
+
+### Multi Method Support
+
+To be filled in...
