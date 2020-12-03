@@ -34,7 +34,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       tokenValidations: Set[RequiredScope] = Set.empty,
       adminAccessForRoute: Set[String] = Set.empty,
       serviceRestrictions: ServiceRestrictionDetails = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty),
-      userRestrictions: UserRestrictionDetails = UserRestrictionDetails(AllowList(Set.empty[String])),
+      userRestrictions: UserRestrictionDetails = UserRestrictionDetails(ScopedAccess),
       rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty
   )
 
@@ -198,12 +198,12 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         opConf   <- pathConf.operations.get(route.verb)
       } yield {
         (opConf.resourceWhitelistConfig.state, globalWhitelistConfig.state) match {
-          case (Inherited, Inherited | Enabled) =>
+          case (GlobalWhitelistConfigInherited, GlobalWhitelistConfigInherited | Enabled) =>
             (route,
              config.copy(
                serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = true, globalWhitelistConfig.services)),
              context)
-          case (Inherited, Disabled) | (Disabled, _) =>
+          case (GlobalWhitelistConfigInherited, Disabled) | (Disabled, _) =>
             (route,
              config.copy(serviceRestrictions = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty[String])),
              context)
@@ -219,10 +219,13 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
   val employeeAccess: GatewayFeatureDerivation = {
     case (route, config, context) =>
       (for {
-        pathConf             <- context.gateway.paths.get(route.path)
-        opConf               <- pathConf.operations.get(route.verb)
-        employeeAccessConfig = opConf.employeeAccessConfig
+        pathConf               <- context.gateway.paths.get(route.path)
+        opConf                 <- pathConf.operations.get(route.verb)
       } yield {
+        val employeeAccessConfig = opConf.employeeAccessConfig.allowType match {
+          case GlobalEmployeeConfigInherited => context.gateway.globalEmployeeAccessConfig
+          case _                             => opConf.employeeAccessConfig
+        }
         (route, config.copy(userRestrictions = UserRestrictionDetails(employeeAccessConfig.allowType)), context)
       }) getOrElse ((route, config, context))
   }
@@ -307,6 +310,18 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                 UidPrivilege ++ (FlowId :: ForwardTokenInfo :: Nil),
                 None
           )))
+      case DenyAll =>
+        Some(
+          SkipperRouteDefinition(
+            gatewayContext.meta.name.concat(DnsString.denyEmployeePath(route.verb, route.path)),
+            Nil,
+            Nil,
+            Some(
+              SkipperCustomRoute(
+                NEL.of(WeightedRoute(4), route.path, MethodMatch(route.verb), EmployeeToken, HttpsTraffic),
+                NEL.of(Status(403), AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey), EmployeeTokensRejectedMsg, Shunt)
+              ))
+        ))
       case _ => None
     }).map { srd =>
       if (srd.customRoute.isEmpty) {
@@ -341,7 +356,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
   }
 
   def genSkipperAdminsRoute(route: Route, admins: NEL[String], gatewayContext: GatewayContext): SkipperRouteDefinition = {
-    val predicates = route.path :: MethodMatch(route.verb) :: UidMatch(admins) :: HttpsTraffic :: Nil
+    val predicates = route.path :: MethodMatch(route.verb) :: EmployeeToken :: UidMatch(admins) :: HttpsTraffic :: Nil
     val filters = EnableAccessLog(List(2, 4, 5)) :: AccessLogAuditing(AccessLogAuditing.UserRealmTokenIdentifierKey) ::
       RequiredPrivileges(NEL.of(Skipper.ZalandoTokenId)) :: FlowId :: ForwardTokenInfo :: Nil
 
