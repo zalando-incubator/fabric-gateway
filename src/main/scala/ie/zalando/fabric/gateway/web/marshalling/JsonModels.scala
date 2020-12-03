@@ -57,6 +57,12 @@ trait JsonModels {
       allowedHeaders <- c.downField("allowedHeaders").as[Set[String]]
     } yield CorsConfig(allowedOrigins, allowedHeaders)
 
+  implicit val decodeCompressionConfig: Decoder[CompressionConfig] = (c: HCursor) =>
+    for {
+      compressionFactor <- c.downField("compressionFactor").as[Int]
+      encoding          <- c.downField("encoding").as[String]
+    } yield CompressionConfig(compressionFactor, encoding)
+
   implicit val decodeIngressDefinition: Decoder[IngressDefinition] = (c: HCursor) =>
     for {
       hostMappings <- c.downField("spec").downField("rules").as[Set[IngressBackend]]
@@ -178,6 +184,7 @@ trait JsonModels {
       whitelist                <- c.downField("x-fabric-whitelist").as[Option[Set[String]]]
       cors                     <- c.downField("x-fabric-cors-support").as[Option[CorsConfig]]
       employeeAccess           <- c.downField("x-fabric-employee-access").as[Option[EmployeeAccessConfig]]
+      compressionConfig        <- c.downField("x-fabric-compression-support").as[Option[CompressionConfig]]
       paths                    <- c.downField("paths").as[Map[PathMatch, GatewayPathRestrictions]]
       serviceProvider          <- deriveServiceProvider(services, stackSetIntegrationState)
     } yield
@@ -187,6 +194,7 @@ trait JsonModels {
         whitelist.map(s => WhitelistConfig(s, Enabled)).getOrElse(WhitelistConfig(Set(), Disabled)),
         cors,
         employeeAccess.getOrElse(EmployeeAccessConfig(ScopedAccess)),
+        compressionConfig,
         paths.mapValues(PathConfig)
     )
 

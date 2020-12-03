@@ -139,6 +139,30 @@ spec:
                     employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
                     If `scoped_access` is selected, then the access pattern will be the same as if there was no
                     `x-fabric-employee-access` object present.
+            x-fabric-compression-support:
+              type: object
+              description: |
+                Enable compression on response payloads. The actual compression work will be delegated to a Skipper filter
+                (See https://opensource.zalando.com/skipper/reference/filters/#compress). If this object is not present,
+                then no compression of the response payload will happen in Skipper. If present the response payload will
+                be conditionally compressed based off of the requirements outlined in the Skipper filter `compress`
+                documentation.
+              required:
+                - compressionFactor
+                - encoding
+              properties:
+                compressionFactor:
+                  type: integer
+                  description: |
+                    Set the compression level where 0 means no-compression, 1 means best-speed and 9 means
+                    best-compression
+                  minimum: 0
+                  maximum: 9
+                encoding:
+                  type: string
+                  description: |
+                    Specify the encoding to compress. This must match the Content-Type of the response payload for
+                    compression to happen
             paths:
               type: object
               minProperties: 1
