@@ -113,6 +113,32 @@ spec:
                     description: |
                       A header which an XHR request should be allowed to use.
                     example: Authorization
+            x-fabric-employee-access:
+              type: object
+              description: |
+                The `user-list` should only be populated if `type` is set to `allow_list`. If `type` is not
+                present, it will be defaulted to `scoped_access`
+              properties:
+                user-list:
+                  type: array
+                  items:
+                    type: string
+                    description: |-
+                      UID of a user who should bypass scope checks, since user tokens can't have scopes.
+                type:
+                  type: string
+                  enum:
+                    - allow_list
+                    - allow_all
+                    - deny_all
+                    - scoped_access
+                  description: |-
+                    If `allow_list` is selected, then the `user-list` property must be populated, otherwise it
+                    is ignored. If allow_all is selected, any token which is Employee realm will be able to
+                    access the endpoint in spite of any scope restrictions. If `deny_all` is selected, then any
+                    employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
+                    If `scoped_access` is selected, then the access pattern will be the same as if there was no
+                    `x-fabric-employee-access` object present.
             paths:
               type: object
               minProperties: 1
@@ -180,7 +206,8 @@ spec:
                     x-fabric-employee-access:
                       type: object
                       description: |
-                        Only one of the `user-list` or `allow-all`
+                        The `user-list` should only be populated if `type` is set to `allow_list`. If `type` is not
+                        present, it will be defaulted to `scoped_access`
                       properties:
                         user-list:
                           type: array
@@ -193,7 +220,14 @@ spec:
                           enum:
                             - allow_list
                             - allow_all
+                            - deny_all
+                            - inherited
                           description: |-
-                            If `allow_list` is selected, then the `user-list` property must be provided also. If `allow_all`
-                            is selected, then the `user-list` property must not be present. If this property is not present,
-                            then the value is assumed to be `allow_list`
+                            If `allow_list` is selected, then the `user-list` property must be populated, otherwise it
+                            is ignored. If allow_all is selected, any token which is Employee realm will be able to
+                            access the endpoint in spite of any scope restrictions. If `deny_all` is selected, then any
+                            employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
+                            Default value for type is `inherited`. You should not set `inherited` in your resource as
+                            this means that you are accepting the globaly defined employee access config. If you wish to
+                            use the globally defined config, then do not add the `x-fabric-employee-access` at the path
+                            level.
