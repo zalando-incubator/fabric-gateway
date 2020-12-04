@@ -42,6 +42,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     WhitelistConfig(Set(), Disabled),
     DisabledCors,
     EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -82,6 +83,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
     EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -123,6 +125,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
     EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -164,6 +167,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
     EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -204,6 +208,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     WhitelistConfig(Set(WhitelistedUser), Enabled),
     DisabledCors,
     EmployeeAccessConfig(DenyAll),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -379,6 +384,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       WhitelistConfig(Set.empty[String], Disabled),
       DisabledCors,
       EmployeeAccessConfig(ScopedAccess),
+      None,
       gatewayPaths
     )
 
@@ -427,6 +433,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       WhitelistConfig(Set("a"), Enabled),
       DisabledCors,
       EmployeeAccessConfig(ScopedAccess),
+      None,
       gatewayPaths
     )
 
@@ -892,6 +899,60 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     }
 
     overriddenRoute.get.metadata.routeDefinition.predicates should contain(UidMatch(NEL.of("whitelistedUser")))
+  }
+
+  "Compression support" should "not add the compression filter if the global config is not present" in {
+    val ingresses = testableRoutesDerivation(
+      sampleGateway, GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+    )
+
+    ingresses.flatMap(_.metadata.routeDefinition.filters).map(_.getClass) should not contain(classOf[Compress])
+  }
+
+  it should "not cause routes to be renamed" in {
+    val nonCompressedIngresses = testableRoutesDerivation(
+      sampleGateway, GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+    )
+    val compressedIngresses = testableRoutesDerivation(
+      sampleGateway.copy(compressionSupport = Some(CompressionConfig(1, "content/type"))),
+      GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+    )
+
+    val namedNonCompressedIngresses = nonCompressedIngresses.map(_.metadata.name)
+    val namedCompressedIngresses = compressedIngresses.map(_.metadata.name)
+
+    namedNonCompressedIngresses should equal(namedCompressedIngresses)
+  }
+
+  it should "configure the compression filter only for service routes" in {
+    val compressedIngresses = testableRoutesDerivation(
+      sampleGateway.copy(compressionSupport = Some(CompressionConfig(1, "content/type"))),
+      GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+    )
+
+    val adminRoutes = compressedIngresses.filter(isAdminRoute)
+    val svcRoutes = compressedIngresses.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.customRoute.isEmpty)
+
+    adminRoutes.forall(!_.metadata.routeDefinition.filters.map(_.getClass).contains(classOf[Compress])) shouldBe true
+    svcRoutes.forall(_.metadata.routeDefinition.filters.map(_.getClass).contains(classOf[Compress])) shouldBe true
+  }
+
+  it should "configure the compression filter with the correct parameters" in {
+    val compressedIngresses = testableRoutesDerivation(
+      sampleGateway.copy(compressionSupport = Some(CompressionConfig(6, "text/plain"))),
+      GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+    )
+    val svcRoutes = compressedIngresses.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.customRoute.isEmpty)
+
+    val compressFilters = svcRoutes.flatMap(_.metadata.routeDefinition.filters.collect {
+      case c: Compress => c
+    })
+
+    compressFilters.size should be(4)
+    compressFilters.foreach { cf =>
+      cf.factor should be(6)
+      cf.encoding should be("text/plain")
+    }
   }
 
   def isAdminRoute(route: IngressDefinition): Boolean = {

@@ -375,6 +375,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#compression" class="md-nav__link">
+    Compression
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -544,6 +551,13 @@
           <li class="md-nav__item">
   <a href="#cors-support" class="md-nav__link">
     CORS Support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compression" class="md-nav__link">
+    Compression
   </a>
   
 </li>
@@ -893,6 +907,27 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
       <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Authorization</span>
       <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Content-Type</span>
       <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">X-Flow-Id</span>
+  <span class="nt">paths</span><span class="p">:</span>
+    <span class="nt">/api/resource</span><span class="p">:</span>
+      <span class="nt">get</span><span class="p">:</span>
+        <span class="nt">x-fabric-privileges</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
+</code></pre></div>
+
+<h3 id="compression">Compression<a class="headerlink" href="#compression" title="Permanent link">&para;</a></h3>
+<p>It is possible to enable compression of responses on Skipper. This is managed at a global level by the gateway by using the <code>x-fabric-compression-support</code> key. This enables you to set a compression factor for a specific content/type. This is explained in more detail in the <a href="https://opensource.zalando.com/skipper/reference/filters/#compress">Skipper docs</a>. It&rsquo;s important to note that whether or not the compression is applied is still dependant on the client providing the appropriate <code>Accept-Encoding</code> header, and will only be applied to service routes (i.e. not to admin routes).</p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">FabricGateway</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">x-fabric-service</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">host</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app.cluster.zalan.do</span>
+      <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app-service-name</span>
+      <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http</span>
+  <span class="nt">x-fabric-compression-support</span><span class="p">:</span>
+    <span class="nt">compressionFactor</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+    <span class="nt">encoding</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">application/json</span>
   <span class="nt">paths</span><span class="p">:</span>
     <span class="nt">/api/resource</span><span class="p">:</span>
       <span class="nt">get</span><span class="p">:</span>

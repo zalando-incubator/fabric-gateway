@@ -42,6 +42,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
     WhitelistConfig(Set(), Disabled),
     DisabledCors,
     EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(

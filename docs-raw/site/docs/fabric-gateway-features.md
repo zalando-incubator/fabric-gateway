@@ -354,6 +354,29 @@ spec:
           - "spp-application.write"
 ```
 
+### Compression
+It is possible to enable compression of responses on Skipper. This is managed at a global level by the gateway by using the `x-fabric-compression-support` key. This enables you to set a compression factor for a specific content/type. This is explained in more detail in the [Skipper docs](https://opensource.zalando.com/skipper/reference/filters/#compress). It's important to note that whether or not the compression is applied is still dependant on the client providing the appropriate `Accept-Encoding` header, and will only be applied to service routes (i.e. not to admin routes).
+
+```yaml
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: my-app-gateway
+spec:
+  x-fabric-service:
+    - host: my-app.cluster.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  x-fabric-compression-support:
+    compressionFactor: 3
+    encoding: application/json
+  paths:
+    /api/resource:
+      get:
+        x-fabric-privileges:
+          - "spp-application.write"
+```
+
 ## Other
 
 ### Path Matching

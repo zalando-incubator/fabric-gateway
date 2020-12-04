@@ -272,6 +272,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           filters = AccessLogAuditing(AccessLogAuditing.ServiceRealmTokenIdentifierKey) :: srd.filters
         )
       } else srd
+    }.map { srd =>
+      gatewayContext.gateway.compressionSupport match {
+        case Some(config) => srd.copy(filters = Compress(config.compressionFactor, config.encoding) :: srd.filters)
+        case _            => srd
+      }
     }
 
     val employeeAccess = genEmployeeAccessRoute(route, routeConfig, gatewayContext)
