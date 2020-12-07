@@ -153,10 +153,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                             verbs + Options)
 
     val existingRoutesWithCors: List[SkipperRouteDefinition] = existingRoutes.map { route =>
-      if (route.customRoute.isEmpty) {
-        route.copy(filters = route.filters :+ CorsOrigin(corsConfig.allowedOrigins))
-      } else {
-        route
+      route.customRoute match {
+        case Some(r) =>
+          route.copy(customRoute = Some(r.copy(filters = r.filters :+ CorsOrigin(corsConfig.allowedOrigins))))
+        case None =>
+          route.copy(filters = route.filters :+ CorsOrigin(corsConfig.allowedOrigins))
       }
     }
 
@@ -300,7 +301,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         if (nonAdminRoute.customRoute.isEmpty) {
           val predicates = NEL.fromListUnsafe(nonAdminRoute.predicates)
           val filters = NEL.ofInitLast(nonAdminRoute.filters ++ List(Status(staticRouteConfig.statusCode), InlineContent(staticRouteConfig.body, Some(staticRouteConfig.contentType))), Shunt)
-          nonAdminRoute.copy(predicates = List.empty, filters = List.empty, customRoute = Some(SkipperCustomRoute(predicates, filters)))
+          nonAdminRoute.copy(predicates = List.empty, filters = List.empty, customRoute = Some(SkipperCustomRoute(predicates, NonCustomerRealm :: filters)))
         } else {
           nonAdminRoute
         }

@@ -74,7 +74,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             UserWhitelist
           )
         )),
-        PathMatch("/api/static") -> PathConfig(
+        PathMatch("/api/resource/static") -> PathConfig(
         Map(
           Get -> ActionAuthorizations(
             NEL.of("uid", "service.read"),
@@ -271,11 +271,11 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Static routes" should "transform non-admin routes into shunted custom routes" in {
-    val customRoutesForStatic = testableRouteDerivation.flatMap(_.metadata.routeDefinition.customRoute).filter(_.predicates.exists(_.skipperStringValue().contains("api/static")))
-    val routesForStatic = testableRouteDerivation.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/static")))
+    val customRoutesForStatic = testableRouteDerivation.flatMap(_.metadata.routeDefinition.customRoute).filter(_.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
+    val routesForStatic = testableRouteDerivation.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
     routesForStatic shouldBe empty
     customRoutesForStatic should not be empty
-    customRoutesForStatic.head.predicates.toList should contain(PathMatch("/api/static"))
+    customRoutesForStatic.head.predicates.toList should contain(PathMatch("/api/resource/static"))
     customRoutesForStatic.head.filters.toList should contain allOf(Status(503), InlineContent("Service under maintenance", Some("application/json")), Shunt)
   }
 
@@ -336,7 +336,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .map(_.metadata.routeDefinition)
 
     routes.count(sr => sr.customRoute.nonEmpty) should be(0)
-    routes.size shouldBe 3
+    routes.size shouldBe 4
 
     routes.foreach { sr =>
       sr.predicates.size should be(6)
@@ -472,7 +472,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Route derivation" should "generate a list of Skipper Routes" in {
-    testableRouteDerivation.size shouldBe 7
+    testableRouteDerivation.size shouldBe 9
   }
 
   it should "generate a distinct name for each route" in {
@@ -481,7 +481,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   it should "generate a whitelisted route per user for each action" in {
-    testableRouteDerivation.count(isAdminRoute) shouldBe 3
+    testableRouteDerivation.count(isAdminRoute) shouldBe 4
   }
 
   it should "exclude blacklisted users from the whitelist" in {
@@ -495,22 +495,20 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val baseRoutes = testableRouteDerivation
       .filterNot(isAdminRoute)
       .filterNot(isCorsRoute)
-
-    baseRoutes
+    val predicates = baseRoutes
       .map(_.metadata)
-      .flatMap(_.routeDefinition.predicates)
-      .count {
-        case p: PathMatch if p.path.startsWith("/api/resource") => true
-        case _                                                  => false
-      } shouldBe baseRoutes.size
+      .flatMap(m => m.routeDefinition.customRoute.map(cr => cr.predicates.toList).getOrElse(m.routeDefinition.predicates))
 
-    baseRoutes
-      .map(_.metadata)
-      .count(_.routeDefinition.predicates.exists(_ == MethodMatch(Get))) shouldBe 2 // two different paths, no user specific rate limits
+    predicates.count {
+      case p: PathMatch if p.path.startsWith("/api/resource") => true
+      case _                                                  => false
+    } shouldBe baseRoutes.size
 
-    baseRoutes
-      .map(_.metadata)
-      .count(_.routeDefinition.predicates.exists(_ == MethodMatch(Post))) shouldBe 2 // One base + one user specific rate limits
+    predicates
+      .count(_ == MethodMatch(Get)) shouldBe 3 // two different paths, no user specific rate limits
+
+    predicates
+      .count(_ == MethodMatch(Post)) shouldBe 2 // One base + one user specific rate limits
   }
 
   it should "always include the uid filter unless it's a blacklist route" in {
@@ -753,7 +751,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
       .filterNot(isCorsRoute)
-      .map(_.metadata.routeDefinition.predicates)
+      .map(r => r.metadata.routeDefinition.customRoute.map(_.predicates.toList).getOrElse(r.metadata.routeDefinition.predicates))
 
     predicates.forall(_.contains(HttpsTraffic)) shouldBe true
   }
@@ -768,7 +766,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
       .filterNot(isCorsRoute)
-      .map(_.metadata.routeDefinition.filters)
+      .map(r => r.metadata.routeDefinition.customRoute.map(_.filters.toList).getOrElse(r.metadata.routeDefinition.filters))
 
     routeFilters should not be empty
     routeFilters.foreach { filters: List[SkipperFilter] =>
@@ -814,8 +812,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
 
     val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
-    optionsRoutes.map(_.metadata.name) should contain theSameElementsAs List("whitelisted-gateway-options-api-resource-cors",
-                                                                             "whitelisted-gateway-options-api-resource-id-cors")
+    optionsRoutes.map(_.metadata.name) should contain theSameElementsAs
+      List("whitelisted-gateway-options-api-resource-cors", "whitelisted-gateway-options-api-resource-id-cors", "whitelisted-gateway-options-api-resource-static-cors")
     optionsRoutes.foreach { optionsRoute =>
       val corsFilter = optionsRoute.metadata.routeDefinition.customRoute.flatMap(_.filters.find(_.isInstanceOf[CorsOrigin]))
       corsFilter should not be empty
@@ -853,7 +851,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isAdminRoute)
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
-      .map(_.metadata.routeDefinition.filters)
+      .map(i => i.metadata.routeDefinition.customRoute.map(_.filters.toList).getOrElse(i.metadata.routeDefinition.filters))
 
     filteredRoutes should not be empty
     filteredRoutes.foreach { filters: List[SkipperFilter] =>
@@ -985,6 +983,11 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   def isCorsRoute(route: IngressDefinition): Boolean = {
     val metadata = route.metadata
     metadata.name.contains("-cors") && metadata.routeDefinition.customRoute.isDefined
+  }
+
+  def isStaticRoute(route: IngressDefinition): Boolean = {
+    val metadata = route.metadata
+    metadata.routeDefinition.customRoute.isDefined && metadata.routeDefinition.customRoute.get.filters.exists(_.isInstanceOf[InlineContent])
   }
 
   def isWhitelistedUserRoute(route: IngressDefinition): Boolean = {
