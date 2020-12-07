@@ -156,8 +156,8 @@ object SynchDomain {
   }
 
   case class InlineContent(body: String, contentType: Option[String]) extends SkipperFilter {
-    val withBody = s"""inlineContent("$body""""
-    val skipperStringValue: String = contentType.map(ct => s"""$withBody, "$ct")""").getOrElse(s"$withBody)")
+    val withBody = s"""inlineContent("${body.trim()}""""
+    val skipperStringValue: String = contentType.map(ct => s"""$withBody, "${ct.trim()}")""").getOrElse(s"$withBody)")
   }
 
   case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {

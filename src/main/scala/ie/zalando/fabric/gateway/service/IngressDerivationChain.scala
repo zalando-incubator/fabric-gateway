@@ -153,15 +153,22 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
                             verbs + Options)
 
     val existingRoutesWithCors: List[SkipperRouteDefinition] = existingRoutes.map { route =>
+      val corsFilter = CorsOrigin(corsConfig.allowedOrigins)
       route.customRoute match {
         case Some(r) =>
-          route.copy(customRoute = Some(r.copy(filters = r.filters :+ CorsOrigin(corsConfig.allowedOrigins))))
+          route.copy(customRoute = Some(appendToCustomRouteFilters(r, corsFilter)))
         case None =>
-          route.copy(filters = route.filters :+ CorsOrigin(corsConfig.allowedOrigins))
+          route.copy(filters = route.filters :+ corsFilter)
       }
     }
 
     existingRoutesWithCors ++ preflightCorsRoutes.toList
+  }
+
+  private def appendToCustomRouteFilters(route: SkipperCustomRoute, filter: SkipperFilter): SkipperCustomRoute = {
+    val filters = route.filters.toList
+    val shunt = filters.last
+    route.copy(filters = NEL.ofInitLast(filters.dropRight(1) :+ filter, shunt))
   }
 
   val authentication: GatewayFeatureDerivation = {
