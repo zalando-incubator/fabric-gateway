@@ -131,14 +131,14 @@ spec:
                     - allow_list
                     - allow_all
                     - deny_all
-                    - scoped_access
                   description: |-
                     If `allow_list` is selected, then the `user-list` property must be populated, otherwise it
                     is ignored. If allow_all is selected, any token which is Employee realm will be able to
                     access the endpoint in spite of any scope restrictions. If `deny_all` is selected, then any
                     employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
-                    If `scoped_access` is selected, then the access pattern will be the same as if there was no
-                    `x-fabric-employee-access` object present.
+                    If no employee access configuration is configured then employee access will work as per normal scope
+                    rules; i.e. employees will have access to routes which aren't scope protected. This can be overridden
+                    on a per route basis.
             x-fabric-compression-support:
               type: object
               description: |
@@ -245,13 +245,10 @@ spec:
                             - allow_list
                             - allow_all
                             - deny_all
-                            - inherited
                           description: |-
                             If `allow_list` is selected, then the `user-list` property must be populated, otherwise it
                             is ignored. If allow_all is selected, any token which is Employee realm will be able to
                             access the endpoint in spite of any scope restrictions. If `deny_all` is selected, then any
                             employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
-                            Default value for type is `inherited`. You should not set `inherited` in your resource as
-                            this means that you are accepting the globaly defined employee access config. If you wish to
-                            use the globally defined config, then do not add the `x-fabric-employee-access` at the path
-                            level.
+                            If the employee access route config object is not present, the employee access configuration
+                            is inherited from any globally defined employee access config.
