@@ -137,7 +137,7 @@ spec:
                     access the endpoint in spite of any scope restrictions. If `deny_all` is selected, then any
                     employee realm token will be rejected even if there are no scope restrictions beyond `uid`.
                     If no employee access configuration is configured then employee access will work as per normal scope
-                    rules; i.e. employees will have access to routes which aren't scope protected. This can be overriden
+                    rules; i.e. employees will have access to routes which aren't scope protected. This can be overridden
                     on a per route basis.
             x-fabric-compression-support:
               type: object
