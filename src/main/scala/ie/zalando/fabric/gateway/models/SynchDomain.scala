@@ -155,6 +155,11 @@ object SynchDomain {
     val skipperStringValue: String = s"status($status)"
   }
 
+  case class InlineContent(body: String, contentType: Option[String]) extends SkipperFilter {
+    val withBody = s"""inlineContent("$body""""
+    val skipperStringValue: String = contentType.map(ct => s"""$withBody, "$ct")""").getOrElse(s"$withBody)")
+  }
+
   case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {
     val skipperStringValue: String = {
       val origins = allowedOrigins
@@ -340,12 +345,14 @@ object SynchDomain {
   case class EmployeeAccessConfig(allowType: EmployeeAccessType)
   case class CompressionConfig(compressionFactor: Int, encoding: String)
   case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
+  case class StaticRouteConfig(statusCode: Int, contentType: String, body: String)
 
   case class ActionAuthorizations(
       requiredPrivileges: NonEmptyList[String],
       rateLimit: Option[RateLimitDetails],
       resourceWhitelistConfig: WhitelistConfig,
-      employeeAccessConfig: EmployeeAccessConfig
+      employeeAccessConfig: EmployeeAccessConfig,
+      staticRouteConfig: Option[StaticRouteConfig] = None
   )
 
   case class PathConfig(operations: GatewayPathRestrictions)

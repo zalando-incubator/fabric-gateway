@@ -35,7 +35,8 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       adminAccessForRoute: Set[String] = Set.empty,
       serviceRestrictions: ServiceRestrictionDetails = ServiceRestrictionDetails(isRouteRestricted = false, Set.empty),
       userRestrictions: UserRestrictionDetails = UserRestrictionDetails(ScopedAccess),
-      rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty
+      rateLimitDetails: Map[ServiceIdentifier, RateLimitDetails] = Map.empty,
+      staticRouteConfig: Option[StaticRouteConfig] = None
   )
 
   type FlowContext = (Route, RouteConfig, GatewayContext)
@@ -87,6 +88,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       .map(whitelisting)
       .map(employeeAccess)
       .map(rateLimiting)
+      .map(staticRoute)
       .runWith(
         Sink.fold(defaultRoutes) {
           case (accum, (route, routeConfig, gatewayContext)) =>
@@ -182,6 +184,18 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         .getOrElse(Set.empty)
 
       (route, config.copy(tokenValidations = config.tokenValidations ++ requiredScopes), context)
+  }
+
+  val staticRoute: GatewayFeatureDerivation = {
+    case (route, config, context) =>
+      val staticRouteConfig = context.gateway.paths
+        .get(route.path)
+        .flatMap { pathConfig =>
+          pathConfig.operations.get(route.verb).flatMap { opConfig =>
+            opConfig.staticRouteConfig
+          }
+        }
+      (route, config.copy(staticRouteConfig = staticRouteConfig), context)
   }
 
   val adminAccess: GatewayFeatureDerivation = {
@@ -280,8 +294,20 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
     }
 
     val employeeAccess = genEmployeeAccessRoute(route, routeConfig, gatewayContext)
+    val nonAdminRoutes = svcRoutes ++ employeeAccess
+    val finalNonAdminRoutes = routeConfig.staticRouteConfig.map{ staticRouteConfig =>
+      nonAdminRoutes.map { nonAdminRoute =>
+        if (nonAdminRoute.customRoute.isEmpty) {
+          val predicates = NEL.fromListUnsafe(nonAdminRoute.predicates)
+          val filters = NEL.ofInitLast(nonAdminRoute.filters ++ List(Status(staticRouteConfig.statusCode), InlineContent(staticRouteConfig.body, Some(staticRouteConfig.contentType))), Shunt)
+          nonAdminRoute.copy(predicates = List.empty, filters = List.empty, customRoute = Some(SkipperCustomRoute(predicates, filters)))
+        } else {
+          nonAdminRoute
+        }
+      }
+    }.getOrElse(nonAdminRoutes)
 
-    skipperRoutes ::: (adminRoutes ::: (svcRoutes ++ employeeAccess)).map { route =>
+    skipperRoutes ::: (adminRoutes ::: finalNonAdminRoutes).map { route =>
       if (route.filters.nonEmpty) {
         route.copy(filters = NonCustomerRealm :: route.filters)
       } else route

@@ -73,6 +73,16 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             InheritedWhitelistDetails,
             UserWhitelist
           )
+        )),
+        PathMatch("/api/static") -> PathConfig(
+        Map(
+          Get -> ActionAuthorizations(
+            NEL.of("uid", "service.read"),
+            None,
+            InheritedWhitelistDetails,
+            UserWhitelist,
+            Some(StaticRouteConfig(503, "application/json", "Service under maintenance"))
+          )
         ))
     )
   )
@@ -258,6 +268,15 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   "Namespacing" should "include the correct namespace in each ingress" in {
     testableRouteDerivation.foreach(_.metadata.namespace shouldBe "my-namespace")
+  }
+
+  "Static routes" should "transform non-admin routes into shunted custom routes" in {
+    val customRoutesForStatic = testableRouteDerivation.flatMap(_.metadata.routeDefinition.customRoute).filter(_.predicates.exists(_.skipperStringValue().contains("api/static")))
+    val routesForStatic = testableRouteDerivation.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/static")))
+    routesForStatic shouldBe empty
+    customRoutesForStatic should not be empty
+    customRoutesForStatic.head.predicates.toList should contain(PathMatch("/api/static"))
+    customRoutesForStatic.head.filters.toList should contain allOf(Status(503), InlineContent("Service under maintenance", Some("application/json")), Shunt)
   }
 
   "Admin Routes" should "not be generated if there are no admin users" in {
