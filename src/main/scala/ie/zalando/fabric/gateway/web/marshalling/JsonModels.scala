@@ -57,6 +57,12 @@ trait JsonModels {
       allowedHeaders <- c.downField("allowedHeaders").as[Set[String]]
     } yield CorsConfig(allowedOrigins, allowedHeaders)
 
+  implicit val decodeCompressionConfig: Decoder[CompressionConfig] = (c: HCursor) =>
+    for {
+      compressionFactor <- c.downField("compressionFactor").as[Int]
+      encoding          <- c.downField("encoding").as[String]
+    } yield CompressionConfig(compressionFactor, encoding)
+
   implicit val decodeIngressDefinition: Decoder[IngressDefinition] = (c: HCursor) =>
     for {
       hostMappings <- c.downField("spec").downField("rules").as[Set[IngressBackend]]
@@ -111,7 +117,7 @@ trait JsonModels {
           .map {
             case "ENABLED"   => Enabled
             case "DISABLED"  => Disabled
-            case "INHERITED" => Inherited
+            case "INHERITED" => GlobalWhitelistConfigInherited
             case _           => Enabled
           }
           .getOrElse(Enabled)
@@ -119,14 +125,21 @@ trait JsonModels {
 
   implicit val decodeUserWhitelist: Decoder[EmployeeAccessConfig] = (c: HCursor) =>
     for {
-      allowType <- c.downField("type").as[Option[String]]
+      allowType    <- c.downField("type").as[Option[String]]
       allowedUsers <- c.downField("user-list").as[Option[Set[String]]]
-    } yield EmployeeAccessConfig(
-      allowType.map(_.toLowerCase).getOrElse("allow_list") match {
-        case "allow_all" => AllowAll
-        case _ => AllowList(allowedUsers.getOrElse(Set.empty))
-      }
-    )
+    } yield {
+      EmployeeAccessConfig(allowType.map(_.toLowerCase).getOrElse {
+        allowedUsers match {
+          case Some(users) if users.nonEmpty => "allow_list" // maintain backward compatability
+          case _                             => "scoped_access"
+        }
+      } match {
+        case "allow_all"  => AllowAll
+        case "deny_all"   => DenyAll
+        case "allow_list" => AllowList(allowedUsers.getOrElse(Set.empty))
+        case _            => ScopedAccess
+      })
+    }
 
   implicit val decodePathGatewayConfig: Decoder[ActionAuthorizations] = (c: HCursor) =>
     for {
@@ -138,8 +151,8 @@ trait JsonModels {
       ActionAuthorizations(
         requiredPrivileges.getOrElse(NEL.one(Skipper.ZalandoTokenId)),
         rateLimit,
-        serviceWhitelist.getOrElse(WhitelistConfig(Set(), Inherited)),
-        employeeAccess.getOrElse(EmployeeAccessConfig(AllowList(Set.empty[String])))
+        serviceWhitelist.getOrElse(WhitelistConfig(Set(), GlobalWhitelistConfigInherited)),
+        employeeAccess.getOrElse(EmployeeAccessConfig(GlobalEmployeeConfigInherited))
     )
 
   def deriveServiceProvider(fabricDefinedServices: Option[Set[FabricServiceDefinition]],
@@ -170,6 +183,8 @@ trait JsonModels {
       admins                   <- c.downField("x-fabric-admins").as[Option[Set[String]]]
       whitelist                <- c.downField("x-fabric-whitelist").as[Option[Set[String]]]
       cors                     <- c.downField("x-fabric-cors-support").as[Option[CorsConfig]]
+      employeeAccess           <- c.downField("x-fabric-employee-access").as[Option[EmployeeAccessConfig]]
+      compressionConfig        <- c.downField("x-fabric-compression-support").as[Option[CompressionConfig]]
       paths                    <- c.downField("paths").as[Map[PathMatch, GatewayPathRestrictions]]
       serviceProvider          <- deriveServiceProvider(services, stackSetIntegrationState)
     } yield
@@ -178,6 +193,8 @@ trait JsonModels {
         admins.toSeq.flatten.toSet,
         whitelist.map(s => WhitelistConfig(s, Enabled)).getOrElse(WhitelistConfig(Set(), Disabled)),
         cors,
+        employeeAccess.getOrElse(EmployeeAccessConfig(ScopedAccess)),
+        compressionConfig,
         paths.mapValues(PathConfig)
     )
 
@@ -218,6 +235,7 @@ trait JsonModels {
       name      <- c.downField("name").as[String]
       namespace <- c.downField("namespace").as[String]
       labels    <- c.downField("labels").as[Option[Map[String, String]]]
+      annos     <- c.downField("annotations").as[Map[String, String]]
     } yield {
       val dnsCompliantGatewayName = DnsString
         .fromString(name)
@@ -226,7 +244,7 @@ trait JsonModels {
           logger.warn(s"Gateway name [$name] is not DNS compliant. Using $gwName instead")
           gwName
         })
-      GatewayMeta(dnsCompliantGatewayName, namespace, labels)
+      GatewayMeta(dnsCompliantGatewayName, namespace, labels, annos)
   }
 
   implicit val decodeSynchParent: Decoder[ControlledGatewayResource] = (c: HCursor) =>

@@ -24,7 +24,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
   private val ingressTransitions     = new ZeroDowntimeIngressTransitions(ingressDerivationLogic)
 
   private val AdminUser                        = "adminUser"
-  private val InheritedWhitelistDetails        = WhitelistConfig(Set(), Inherited)
+  private val InheritedWhitelistDetails        = WhitelistConfig(Set(), GlobalWhitelistConfigInherited)
   private val UserWhitelist                    = EmployeeAccessConfig(AllowList(Set.empty))
   private val DisabledCors: Option[CorsConfig] = None
   private val withoutRateLimiting = ActionAuthorizations(
@@ -41,6 +41,8 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
     Set(AdminUser),
     WhitelistConfig(Set(), Disabled),
     DisabledCors,
+    EmployeeAccessConfig(ScopedAccess),
+    None,
     Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -60,7 +62,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
   def getRoutes(gw: GatewaySpec, existingRoutes: Seq[IngressDefinition]): List[IngressDefinition] =
     Await.result(
       ingressTransitions.defineSafeRouteTransition(gw,
-                                                   GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace"),
+                                                   GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty),
                                                    existingRoutes),
       10.seconds
     )

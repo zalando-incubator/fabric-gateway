@@ -28,6 +28,8 @@ spec:
             value: "TRUE"
           - name: VERSIONED_HOSTS_BASE_DOMAIN
             value: "{{{ VERSIONED_HOSTS_BASE_DOMAIN }}}"
+          - name: ANNOTATION_ALLOWLIST
+            value: "{{{ ANNOTATION_ALLOWLIST }}}"
           ports:
             - containerPort: 8080
             - containerPort: 8443

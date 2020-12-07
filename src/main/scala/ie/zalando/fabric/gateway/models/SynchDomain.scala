@@ -189,12 +189,22 @@ object SynchDomain {
       """inlineContent("{\"title\":\"Gateway Rejected\",\"status\":403,\"detail\":\"Illegal attempt to access whitelisted route\"}")"""
   }
 
+  case object EmployeeTokensRejectedMsg extends SkipperFilter {
+    val skipperStringValue: String =
+      """inlineContent("{\"title\":\"Gateway Rejected\",\"status\":403,\"detail\":\"Employee tokens are not allowed access this route\"}")"""
+  }
+
   object AccessLogAuditing {
     val UserRealmTokenIdentifierKey = "https://identity.zalando.com/managed-id"
     val ServiceRealmTokenIdentifierKey = "sub"
   }
+
   case class AccessLogAuditing(key: String = AccessLogAuditing.UserRealmTokenIdentifierKey) extends SkipperFilter {
     val skipperStringValue: String = s"""unverifiedAuditLog("$key")"""
+  }
+
+  case class Compress(factor: Int, encoding: String) extends SkipperFilter {
+    val skipperStringValue: String = s"""compress($factor, "$encoding")"""
   }
 
   sealed trait RateLimitPeriod {
@@ -212,6 +222,9 @@ object SynchDomain {
   sealed trait EmployeeAccessType
   case class AllowList(users: Set[String]) extends EmployeeAccessType
   case object AllowAll extends EmployeeAccessType
+  case object DenyAll extends EmployeeAccessType
+  case object ScopedAccess extends EmployeeAccessType
+  case object GlobalEmployeeConfigInherited extends EmployeeAccessType
 
   // Fabric Gateway Domain Models
   type NamedIngressDefinitions = Map[String, IngressDefinition]
@@ -251,6 +264,9 @@ object SynchDomain {
 
     def unlimitedUserPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-users-all")
+
+    def denyEmployeePath(verb: HttpVerb, path: PathMatch): DnsString =
+      DnsString(s"-${verb.value}-${formatPath(path.path)}-deny-employees")
 
     def rateLimitedPath(verb: HttpVerb, path: PathMatch): DnsString =
       DnsString(s"-${verb.value}-${formatPath(path.path)}-rl-all")
@@ -318,11 +334,11 @@ object SynchDomain {
   sealed trait WhitelistingState
   case object Enabled   extends WhitelistingState
   case object Disabled  extends WhitelistingState
-  case object Inherited extends WhitelistingState
+  case object GlobalWhitelistConfigInherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
   case class EmployeeAccessConfig(allowType: EmployeeAccessType)
-
+  case class CompressionConfig(compressionFactor: Int, encoding: String)
   case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
 
   case class ActionAuthorizations(
@@ -357,9 +373,11 @@ object SynchDomain {
                          admins: Set[String],
                          globalWhitelistConfig: WhitelistConfig,
                          corsConfig: Option[CorsConfig],
+                         globalEmployeeAccessConfig: EmployeeAccessConfig,
+                         compressionSupport: Option[CompressionConfig],
                          paths: GatewayPaths)
 
-  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]] = None)
+  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]], annotations: Map[String, String])
 
   case class GatewayStatus(numOwnedIngress: Int, ownedIngress: Set[String])
 
