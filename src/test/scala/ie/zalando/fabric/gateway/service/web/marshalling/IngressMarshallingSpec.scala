@@ -12,7 +12,7 @@ class IngressMarshallingSpec extends FlatSpec with Matchers with JsonModels {
   val inputJson: String =
     """
     {
-      "apiVersion": "extensions/v1beta1",
+      "apiVersion": "networking.k8s.io/v1",
       "kind": "Ingress",
       "metadata": {
         "annotations": {
@@ -77,5 +77,4 @@ class IngressMarshallingSpec extends FlatSpec with Matchers with JsonModels {
 
   private def parseOrFail(jsonString: String): Json =
     parse(jsonString).right.getOrElse(fail(s"Could not parse json string: $jsonString"))
-
 }
