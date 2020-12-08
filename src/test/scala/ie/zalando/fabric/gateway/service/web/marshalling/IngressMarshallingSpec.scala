@@ -12,7 +12,7 @@ class IngressMarshallingSpec extends FlatSpec with Matchers with JsonModels {
   val inputJson: String =
     """
     {
-      "apiVersion": "networking.k8s.io/v1",
+      "apiVersion": "networking.k8s.io/v1beta1",
       "kind": "Ingress",
       "metadata": {
         "annotations": {
