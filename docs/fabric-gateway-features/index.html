@@ -1007,9 +1007,8 @@ spec:
       post:
         x-fabric-static-response:
           status: 503
-          headers: {
-            &quot;Content-Type&quot;: &quot;application/problem+json&quot;
-          },
+          headers:
+            Content-Type: application/problem+json
           body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
 </code></pre></div>
                 
