@@ -7,7 +7,7 @@ import org.scalatest.{FunSpec, Matchers}
 class StaticRouteSpec extends FunSpec with Matchers {
   implicit val backend = new LoggingSttpBackend[Id, Nothing](HttpURLConnectionBackend())
   describe("Static Routes") {
-    it("should pass through requests which have a valid token") {
+    it("should show static response for valid tokens") {
       val resp = sttp
         .get(TestConstants.TestAppStaticRoute())
         .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
@@ -15,6 +15,7 @@ class StaticRouteSpec extends FunSpec with Matchers {
 
       resp.code shouldBe 503
       resp.contentType shouldBe Some("application/problem+json")
+      resp.header("X-Custom-Header") shouldBe Some("Some value")
       resp.body shouldBe Left("""{"title": "Service down for maintenance", "status": 503}""")
     }
 

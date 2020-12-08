@@ -144,10 +144,10 @@ trait JsonModels {
   implicit val decodeStaticRouteConfig: Decoder[StaticRouteConfig] = (c: HCursor) =>
     for {
       statusCode    <- c.downField("status").as[Int]
-      contentType <- c.downField("content-type").as[String]
+      headers <- c.downField("headers").as[Map[String, String]]
       body <- c.downField("body").as[String]
     } yield {
-      StaticRouteConfig(statusCode, contentType, body)
+      StaticRouteConfig(statusCode, headers, body)
     }
 
   implicit val decodePathGatewayConfig: Decoder[ActionAuthorizations] = (c: HCursor) =>

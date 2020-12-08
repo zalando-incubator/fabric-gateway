@@ -304,7 +304,9 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       nonAdminRoutes.map { nonAdminRoute =>
         if (nonAdminRoute.customRoute.isEmpty) {
           val predicates = NEL.fromListUnsafe(nonAdminRoute.predicates)
-          val filters = NEL.ofInitLast(nonAdminRoute.filters ++ List(Status(staticRouteConfig.statusCode), InlineContent(staticRouteConfig.body, Some(staticRouteConfig.contentType))), Shunt)
+          val headerFilters = staticRouteConfig.headers.map{case (k, v) => SetResponseHeader(k, v)}
+          val statusAndBody = List(Status(staticRouteConfig.statusCode), InlineContent(staticRouteConfig.body))
+          val filters = NEL.ofInitLast(nonAdminRoute.filters ++ headerFilters ++ statusAndBody, Shunt)
           nonAdminRoute.copy(predicates = List.empty, filters = List.empty, customRoute = Some(SkipperCustomRoute(predicates, NonCustomerRealm :: filters)))
         } else {
           nonAdminRoute

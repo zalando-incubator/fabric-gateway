@@ -87,5 +87,7 @@ spec:
           - fabric-demo-app.read
         x-fabric-static-response:
           status: 503
-          content-type: application/problem+json
+          headers:
+            Content-Type: application/problem+json
+            X-Custom-Header: Some value
           body: '{"title": "Service down for maintenance", "status": 503}'

@@ -159,9 +159,9 @@ object SynchDomain {
     val skipperStringValue: String = s"status($status)"
   }
 
-  case class InlineContent(body: String, contentType: Option[String]) extends SkipperFilter {
-    val withBody = s"""inlineContent("${UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()}""""
-    val skipperStringValue: String = contentType.map(ct => s"""$withBody, "${ct.trim()}")""").getOrElse(s"$withBody)")
+  case class InlineContent(body: String) extends SkipperFilter {
+    private val escapedBody = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()
+    val skipperStringValue: String = s"""inlineContent("$escapedBody")"""
   }
 
   case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {
@@ -173,6 +173,10 @@ object SynchDomain {
         .mkString(", ")
       s"""corsOrigin($origins)"""
     }
+  }
+
+  case class SetResponseHeader(key: String, value: String) extends SkipperFilter {
+    val skipperStringValue: String = s"""setResponseHeader("$key", "$value")"""
   }
 
   case class ResponseHeader(key: String, value: String) extends SkipperFilter {
@@ -349,7 +353,7 @@ object SynchDomain {
   case class EmployeeAccessConfig(allowType: EmployeeAccessType)
   case class CompressionConfig(compressionFactor: Int, encoding: String)
   case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
-  case class StaticRouteConfig(statusCode: Int, contentType: String, body: String)
+  case class StaticRouteConfig(statusCode: Int, headers: Map[String, String], body: String)
 
   case class ActionAuthorizations(
       requiredPrivileges: NonEmptyList[String],

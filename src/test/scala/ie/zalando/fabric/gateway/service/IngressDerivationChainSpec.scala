@@ -81,7 +81,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             None,
             InheritedWhitelistDetails,
             UserWhitelist,
-            Some(StaticRouteConfig(503, "application/json", """{"title": "Service down for maintenance", "status":503}""".stripMargin))
+            Some(StaticRouteConfig(503, Map("Content-Type" -> "application/json", "X-Custom-Header" -> "blah"), """{"title": "Service down for maintenance", "status":503}""".stripMargin))
           )
         ))
     )
@@ -277,7 +277,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     customRoutesForStatic should not be empty
     customRoutesForStatic.head.predicates.toList should contain(PathMatch("/api/resource/static"))
     customRoutesForStatic.head.filters.toList should
-      contain allOf(Status(503), InlineContent("""{"title": "Service down for maintenance", "status":503}""".stripMargin, Some("application/json")), Shunt)
+      contain allOf(Status(503), SetResponseHeader("Content-Type", "application/json"), SetResponseHeader("X-Custom-Header", "blah"), InlineContent("""{"title": "Service down for maintenance", "status":503}""".stripMargin), Shunt)
   }
 
   "Admin Routes" should "not be generated if there are no admin users" in {

@@ -1007,8 +1007,10 @@ spec:
       post:
         x-fabric-static-response:
           status: 503
-          content-type: text/plain; charset=utf-8
-          body: Write access temporarily disabled due to X.
+          headers: {
+            &quot;Content-Type&quot;: &quot;application/problem+json&quot;
+          },
+          body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
 </code></pre></div>
                 
               

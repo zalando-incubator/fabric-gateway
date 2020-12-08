@@ -46,9 +46,9 @@ class DomainModelFormattingSpec extends FlatSpec with Matchers {
   }
 
   "InlineContent" should "escape any quotation marks in the body" in {
-    val alreadyEscaped = InlineContent("""{\"title\": \"Service down for maintenance\", \"status\":503}""".stripMargin, Some("application/problem+json"))
-    val unescaped = InlineContent("""{"title": "Service down for maintenance", "status":503}""".stripMargin, Some("application/problem+json"))
-    val expected = """inlineContent("{\"title\": \"Service down for maintenance\", \"status\":503}", "application/problem+json")""".stripMargin
+    val alreadyEscaped = InlineContent("""{\"title\": \"Service down for maintenance\", \"status\":503}""".stripMargin)
+    val unescaped = InlineContent("""{"title": "Service down for maintenance", "status":503}""".stripMargin)
+    val expected = """inlineContent("{\"title\": \"Service down for maintenance\", \"status\":503}")""".stripMargin
     alreadyEscaped.skipperStringValue shouldBe expected
     unescaped.skipperStringValue shouldBe expected
   }
