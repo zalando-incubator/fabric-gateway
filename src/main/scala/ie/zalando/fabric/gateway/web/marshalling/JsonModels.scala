@@ -139,16 +139,16 @@ trait JsonModels {
         case "allow_list" => AllowList(allowedUsers.getOrElse(Set.empty))
         case _            => ScopedAccess
       })
-    }
+  }
 
   implicit val decodeStaticRouteConfig: Decoder[StaticRouteConfig] = (c: HCursor) =>
     for {
-      statusCode    <- c.downField("status").as[Int]
-      headers <- c.downField("headers").as[Map[String, String]]
-      body <- c.downField("body").as[String]
+      statusCode <- c.downField("status").as[Int]
+      headers    <- c.downField("headers").as[Map[String, String]]
+      body       <- c.downField("body").as[String]
     } yield {
       StaticRouteConfig(statusCode, headers, body)
-    }
+  }
 
   implicit val decodePathGatewayConfig: Decoder[ActionAuthorizations] = (c: HCursor) =>
     for {
@@ -156,7 +156,7 @@ trait JsonModels {
       rateLimit          <- c.downField("x-fabric-ratelimits").as[Option[RateLimitDetails]]
       serviceWhitelist   <- c.downField("x-fabric-whitelist").as[Option[WhitelistConfig]]
       employeeAccess     <- c.downField("x-fabric-employee-access").as[Option[EmployeeAccessConfig]]
-      staticRouteConfig     <- c.downField("x-fabric-static-response").as[Option[StaticRouteConfig]]
+      staticRouteConfig  <- c.downField("x-fabric-static-response").as[Option[StaticRouteConfig]]
     } yield
       ActionAuthorizations(
         requiredPrivileges.getOrElse(NEL.one(Skipper.ZalandoTokenId)),

@@ -160,7 +160,7 @@ object SynchDomain {
   }
 
   case class InlineContent(body: String) extends SkipperFilter {
-    private val escapedBody = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()
+    private val escapedBody        = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()
     val skipperStringValue: String = s"""inlineContent("$escapedBody")"""
   }
 
@@ -208,7 +208,7 @@ object SynchDomain {
   }
 
   object AccessLogAuditing {
-    val UserRealmTokenIdentifierKey = "https://identity.zalando.com/managed-id"
+    val UserRealmTokenIdentifierKey    = "https://identity.zalando.com/managed-id"
     val ServiceRealmTokenIdentifierKey = "sub"
   }
 
@@ -233,10 +233,10 @@ object SynchDomain {
   }
 
   sealed trait EmployeeAccessType
-  case class AllowList(users: Set[String]) extends EmployeeAccessType
-  case object AllowAll extends EmployeeAccessType
-  case object DenyAll extends EmployeeAccessType
-  case object ScopedAccess extends EmployeeAccessType
+  case class AllowList(users: Set[String])  extends EmployeeAccessType
+  case object AllowAll                      extends EmployeeAccessType
+  case object DenyAll                       extends EmployeeAccessType
+  case object ScopedAccess                  extends EmployeeAccessType
   case object GlobalEmployeeConfigInherited extends EmployeeAccessType
 
   // Fabric Gateway Domain Models
@@ -251,7 +251,7 @@ object SynchDomain {
       "^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".r
     private val NonAlphaNumeric = "[^A-Za-z0-9]"
 
-    val DefaultRouteSuffix: DnsString = DnsString("-default-404-route")
+    val DefaultRouteSuffix: DnsString           = DnsString("-default-404-route")
     val DefaultHttpRejectRouteSuffix: DnsString = DnsString("-reject-http-route")
 
     def apply(value: String) = new DnsString(value.toLowerCase)
@@ -322,14 +322,14 @@ object SynchDomain {
                                     customRoute: Option[SkipperCustomRoute],
                                     additionalAnnotations: Map[String, String] = Map.empty)
 
-  case class IngressMetaData(routeDefinition: SkipperRouteDefinition, 
-                             name: String, 
-                             namespace: String, 
+  case class IngressMetaData(routeDefinition: SkipperRouteDefinition,
+                             name: String,
+                             namespace: String,
                              labels: Option[Map[String, String]] = None)
 
   sealed trait K8sServicePortIdentifier
   case class NamedServicePort(name: String) extends K8sServicePortIdentifier
-  case class NumericServicePort(port: Int) extends K8sServicePortIdentifier
+  case class NumericServicePort(port: Int)  extends K8sServicePortIdentifier
 
   val DefaultIngressServiceProtocol: NamedServicePort = NamedServicePort("http")
 
@@ -345,8 +345,8 @@ object SynchDomain {
   case class RateLimitDetails(defaultReqRate: Int, period: RateLimitPeriod, uidSpecific: Map[String, Int])
 
   sealed trait WhitelistingState
-  case object Enabled   extends WhitelistingState
-  case object Disabled  extends WhitelistingState
+  case object Enabled                        extends WhitelistingState
+  case object Disabled                       extends WhitelistingState
   case object GlobalWhitelistConfigInherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
@@ -392,7 +392,10 @@ object SynchDomain {
                          compressionSupport: Option[CompressionConfig],
                          paths: GatewayPaths)
 
-  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]], annotations: Map[String, String])
+  case class GatewayMeta(name: DnsString,
+                         namespace: String,
+                         labels: Option[Map[String, String]],
+                         annotations: Map[String, String])
 
   case class GatewayStatus(numOwnedIngress: Int, ownedIngress: Set[String])
 

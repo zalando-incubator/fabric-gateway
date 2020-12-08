@@ -48,7 +48,8 @@ object ResourcePersistenceValidations {
   }
 
   case class ResourceNameTooLong(name: String, namespace: String) extends GatewayValidation {
-    def errorMessage: String = s"Concatenated resource name and namespace length is capped at 60 characters: $name and $namespace are ${name.length + namespace.length} chars long"
+    def errorMessage: String =
+      s"Concatenated resource name and namespace length is capped at 60 characters: $name and $namespace are ${name.length + namespace.length} chars long"
   }
 
   type ValidationResult[A] = ValidatedNel[GatewayValidation, A]

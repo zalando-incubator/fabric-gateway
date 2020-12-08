@@ -15,7 +15,7 @@ import org.slf4j.{Logger, LoggerFactory}
 trait TracingSupport {
 
   private val ClusterNameEnvVarKey = "CLUSTER"
-  private val log: Logger = LoggerFactory.getLogger(classOf[TracingSupport])
+  private val log: Logger          = LoggerFactory.getLogger(classOf[TracingSupport])
 
   private val tracer: Tracer = AppConfig.tracingConfig match {
     case Left(failures) =>

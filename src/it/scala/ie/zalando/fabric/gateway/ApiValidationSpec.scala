@@ -28,7 +28,7 @@ class ApiValidationSpec
     with GatewayWebhookRoutes
     with TestJsonModels
     with BeforeAndAfterEach {
-  val wiremockPort = 8001
+  val wiremockPort                       = 8001
   val kubernetesClient: KubernetesClient = k8sInit(Configuration.useProxyAt(s"http://localhost:$wiremockPort"))
   val stackSetOperations                 = new StackSetOperations(kubernetesClient)
   val ingressDerivationLogic             = new IngressDerivationChain(stackSetOperations, None)
