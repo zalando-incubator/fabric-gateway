@@ -35,14 +35,14 @@ pipeline:
             docker push "${TAG}"
           fi
 
-  - id: Playground-Operator-Deployment
+  - id: SPPTest-Operator-Deployment
     desc: Deploy the metacontroller CRDs and Operator loop
     type: process
     process: microservice_standard_deployment
     when:
       branch:
         exclude: master
-    target: &testCluster playground
+    target: &testCluster smart-product-platform-test
     config:
       apply_permanent_resources:
         env:
