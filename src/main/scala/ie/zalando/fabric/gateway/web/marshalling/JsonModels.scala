@@ -268,7 +268,8 @@ trait JsonModels {
   implicit val decodeSynchRequest: Decoder[SynchRequest] = (c: HCursor) =>
     for {
       gateway <- c.downField("parent").as[ControlledGatewayResource]
-      state   <- c.downField("children").downField("Ingress.extensions/v1beta1").as[Option[NamedIngressDefinitions]]
+      state   <- c.downField("children").downField("Ingress.networking.k8s.io/v1beta1").as[Option[NamedIngressDefinitions]]
+    // TODO: Do we need to specifically check for both here. Think maybe yes
     } yield SynchRequest(gateway, state.getOrElse(Map()))
 
   implicit val encodeServiceDescription: Encoder[ServiceDescription] = (sd: ServiceDescription) => {
