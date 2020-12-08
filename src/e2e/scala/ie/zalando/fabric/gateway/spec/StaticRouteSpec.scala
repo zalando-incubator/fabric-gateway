@@ -15,13 +15,13 @@ class StaticRouteSpec extends FunSpec with Matchers {
 
       resp.code shouldBe 503
       resp.contentType shouldBe Some("application/problem+json")
-      resp.body shouldBe Right("""{"title": "Service down for maintenance", "status": 503}""")
+      resp.body shouldBe Left("""{"title": "Service down for maintenance", "status": 503}""")
     }
 
     it("should still apply rate limits") {
       implicit val req: RequestT[Id, String, Nothing] = sttp
         .get(TestConstants.TestAppStaticRoute())
-        .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
+        .header("Authorization", s"Bearer ${TestConstants.ValidWhiteListToken}")
 
       val results = runReqs(5).filterNot(_ == 503)
 
@@ -38,7 +38,7 @@ class StaticRouteSpec extends FunSpec with Matchers {
     it("should reject requests which don't have the required scopes") {
       val resp = sttp
         .get(TestConstants.TestAppStaticRoute())
-        .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
+        .header("Authorization", s"Bearer ${TestConstants.ValidResourceWhiteListToken}")
         .send()
 
       resp.code shouldBe 403
