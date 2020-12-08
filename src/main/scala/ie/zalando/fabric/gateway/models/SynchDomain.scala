@@ -4,17 +4,21 @@ import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
 
+import scala.util.matching.Regex
+
 object SynchDomain {
 
   object ComposablePathRegex {
-    val CAPTURE_WILDCARD_NAME = "([\\w-]+?)"
-    val WILDCARD_NAME         = "$1"
-    val LINE_END              = "$"
-    val COLON                 = "\\:"
-    val STAR                  = "\\*"
-    val SLASH                 = "\\/"
-    val OPEN_CURLY            = "\\{"
-    val CLOSE_CURLY           = "\\}"
+    val CAPTURE_WILDCARD_NAME              = "([\\w-]+?)"
+    val WILDCARD_NAME                      = "$1"
+    val LINE_END                           = "$"
+    val COLON                              = "\\:"
+    val STAR                               = "\\*"
+    val SLASH                              = "\\/"
+    val OPEN_CURLY                         = "\\{"
+    val CLOSE_CURLY                        = "\\}"
+    val ESCAPED_QUOTATION_MARK             = "\\\\\""
+    val UNESCAPED_QUOTATION_MARK_RE: Regex = "(?<!\\\\)(\")".r
   }
   import ComposablePathRegex._
 
@@ -156,7 +160,7 @@ object SynchDomain {
   }
 
   case class InlineContent(body: String, contentType: Option[String]) extends SkipperFilter {
-    val withBody = s"""inlineContent("${body.trim()}""""
+    val withBody = s"""inlineContent("${UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()}""""
     val skipperStringValue: String = contentType.map(ct => s"""$withBody, "${ct.trim()}")""").getOrElse(s"$withBody)")
   }
 
