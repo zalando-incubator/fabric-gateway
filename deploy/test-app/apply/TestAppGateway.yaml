@@ -79,3 +79,15 @@ spec:
         x-fabric-employee-access:
           user-list:
             - notreal
+    /static:
+      get:
+        x-fabric-ratelimits:
+          default-rate: 2
+        x-fabric-privileges:
+          - fabric-demo-app.read
+        x-fabric-static-response:
+          status: 503
+          headers:
+            Content-Type: application/problem+json
+            X-Custom-Header: Some value
+          body: '{"title": "Service down for maintenance", "status": 503}'

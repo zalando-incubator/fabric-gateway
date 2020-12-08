@@ -4,17 +4,21 @@ import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
 
+import scala.util.matching.Regex
+
 object SynchDomain {
 
   object ComposablePathRegex {
-    val CAPTURE_WILDCARD_NAME = "([\\w-]+?)"
-    val WILDCARD_NAME         = "$1"
-    val LINE_END              = "$"
-    val COLON                 = "\\:"
-    val STAR                  = "\\*"
-    val SLASH                 = "\\/"
-    val OPEN_CURLY            = "\\{"
-    val CLOSE_CURLY           = "\\}"
+    val CAPTURE_WILDCARD_NAME              = "([\\w-]+?)"
+    val WILDCARD_NAME                      = "$1"
+    val LINE_END                           = "$"
+    val COLON                              = "\\:"
+    val STAR                               = "\\*"
+    val SLASH                              = "\\/"
+    val OPEN_CURLY                         = "\\{"
+    val CLOSE_CURLY                        = "\\}"
+    val ESCAPED_QUOTATION_MARK             = "\\\\\""
+    val UNESCAPED_QUOTATION_MARK_RE: Regex = "(?<!\\\\)(\")".r
   }
   import ComposablePathRegex._
 
@@ -155,6 +159,11 @@ object SynchDomain {
     val skipperStringValue: String = s"status($status)"
   }
 
+  case class InlineContent(body: String) extends SkipperFilter {
+    private val escapedBody        = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()
+    val skipperStringValue: String = s"""inlineContent("$escapedBody")"""
+  }
+
   case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {
     val skipperStringValue: String = {
       val origins = allowedOrigins
@@ -164,6 +173,10 @@ object SynchDomain {
         .mkString(", ")
       s"""corsOrigin($origins)"""
     }
+  }
+
+  case class SetResponseHeader(key: String, value: String) extends SkipperFilter {
+    val skipperStringValue: String = s"""setResponseHeader("$key", "$value")"""
   }
 
   case class ResponseHeader(key: String, value: String) extends SkipperFilter {
@@ -195,7 +208,7 @@ object SynchDomain {
   }
 
   object AccessLogAuditing {
-    val UserRealmTokenIdentifierKey = "https://identity.zalando.com/managed-id"
+    val UserRealmTokenIdentifierKey    = "https://identity.zalando.com/managed-id"
     val ServiceRealmTokenIdentifierKey = "sub"
   }
 
@@ -220,10 +233,10 @@ object SynchDomain {
   }
 
   sealed trait EmployeeAccessType
-  case class AllowList(users: Set[String]) extends EmployeeAccessType
-  case object AllowAll extends EmployeeAccessType
-  case object DenyAll extends EmployeeAccessType
-  case object ScopedAccess extends EmployeeAccessType
+  case class AllowList(users: Set[String])  extends EmployeeAccessType
+  case object AllowAll                      extends EmployeeAccessType
+  case object DenyAll                       extends EmployeeAccessType
+  case object ScopedAccess                  extends EmployeeAccessType
   case object GlobalEmployeeConfigInherited extends EmployeeAccessType
 
   // Fabric Gateway Domain Models
@@ -238,7 +251,7 @@ object SynchDomain {
       "^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".r
     private val NonAlphaNumeric = "[^A-Za-z0-9]"
 
-    val DefaultRouteSuffix: DnsString = DnsString("-default-404-route")
+    val DefaultRouteSuffix: DnsString           = DnsString("-default-404-route")
     val DefaultHttpRejectRouteSuffix: DnsString = DnsString("-reject-http-route")
 
     def apply(value: String) = new DnsString(value.toLowerCase)
@@ -309,14 +322,14 @@ object SynchDomain {
                                     customRoute: Option[SkipperCustomRoute],
                                     additionalAnnotations: Map[String, String] = Map.empty)
 
-  case class IngressMetaData(routeDefinition: SkipperRouteDefinition, 
-                             name: String, 
-                             namespace: String, 
+  case class IngressMetaData(routeDefinition: SkipperRouteDefinition,
+                             name: String,
+                             namespace: String,
                              labels: Option[Map[String, String]] = None)
 
   sealed trait K8sServicePortIdentifier
   case class NamedServicePort(name: String) extends K8sServicePortIdentifier
-  case class NumericServicePort(port: Int) extends K8sServicePortIdentifier
+  case class NumericServicePort(port: Int)  extends K8sServicePortIdentifier
 
   val DefaultIngressServiceProtocol: NamedServicePort = NamedServicePort("http")
 
@@ -332,20 +345,22 @@ object SynchDomain {
   case class RateLimitDetails(defaultReqRate: Int, period: RateLimitPeriod, uidSpecific: Map[String, Int])
 
   sealed trait WhitelistingState
-  case object Enabled   extends WhitelistingState
-  case object Disabled  extends WhitelistingState
+  case object Enabled                        extends WhitelistingState
+  case object Disabled                       extends WhitelistingState
   case object GlobalWhitelistConfigInherited extends WhitelistingState
 
   case class WhitelistConfig(services: Set[String], state: WhitelistingState)
   case class EmployeeAccessConfig(allowType: EmployeeAccessType)
   case class CompressionConfig(compressionFactor: Int, encoding: String)
   case class CorsConfig(allowedOrigins: Set[Uri], allowedHeaders: Set[String])
+  case class StaticRouteConfig(statusCode: Int, headers: Map[String, String], body: String)
 
   case class ActionAuthorizations(
       requiredPrivileges: NonEmptyList[String],
       rateLimit: Option[RateLimitDetails],
       resourceWhitelistConfig: WhitelistConfig,
-      employeeAccessConfig: EmployeeAccessConfig
+      employeeAccessConfig: EmployeeAccessConfig,
+      staticRouteConfig: Option[StaticRouteConfig] = None
   )
 
   case class PathConfig(operations: GatewayPathRestrictions)
@@ -377,7 +392,10 @@ object SynchDomain {
                          compressionSupport: Option[CompressionConfig],
                          paths: GatewayPaths)
 
-  case class GatewayMeta(name: DnsString, namespace: String, labels: Option[Map[String, String]], annotations: Map[String, String])
+  case class GatewayMeta(name: DnsString,
+                         namespace: String,
+                         labels: Option[Map[String, String]],
+                         annotations: Map[String, String])
 
   case class GatewayStatus(numOwnedIngress: Int, ownedIngress: Set[String])
 

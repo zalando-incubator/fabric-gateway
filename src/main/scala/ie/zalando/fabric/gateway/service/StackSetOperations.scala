@@ -24,11 +24,11 @@ class StackSetOperations(k8sClient: KubernetesClient)(implicit execCtxt: Executi
 
   implicit val servicePortReads: Reads[K8sServicePortIdentifier] = {
     case JsString(s) => JsSuccess(NamedServicePort(s))
-    case other => Reads.IntReads.reads(other).map(NumericServicePort)
+    case other       => Reads.IntReads.reads(other).map(NumericServicePort)
   }
-  
+
   implicit val servicePortWrites: Writes[K8sServicePortIdentifier] = {
-    case NamedServicePort(name) => JsString(name)
+    case NamedServicePort(name)   => JsString(name)
     case NumericServicePort(port) => JsNumber(port)
   }
 

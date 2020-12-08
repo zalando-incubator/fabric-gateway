@@ -73,6 +73,19 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
             InheritedWhitelistDetails,
             UserWhitelist
           )
+        )),
+      PathMatch("/api/resource/static") -> PathConfig(
+        Map(
+          Get -> ActionAuthorizations(
+            NEL.of("uid", "service.read"),
+            None,
+            InheritedWhitelistDetails,
+            UserWhitelist,
+            Some(
+              StaticRouteConfig(503,
+                                Map("Content-Type" -> "application/json", "X-Custom-Header" -> "blah"),
+                                """{"title": "Service down for maintenance", "status":503}""".stripMargin))
+          )
         ))
     )
   )
@@ -260,6 +273,22 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     testableRouteDerivation.foreach(_.metadata.namespace shouldBe "my-namespace")
   }
 
+  "Static routes" should "transform non-admin routes into shunted custom routes" in {
+    val customRoutesForStatic = testableRouteDerivation
+      .flatMap(_.metadata.routeDefinition.customRoute)
+      .filter(_.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
+    val routesForStatic = testableRouteDerivation
+      .filterNot(isAdminRoute)
+      .filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
+    routesForStatic shouldBe empty
+    customRoutesForStatic should not be empty
+    customRoutesForStatic.head.predicates.toList should contain(PathMatch("/api/resource/static"))
+    customRoutesForStatic.head.filters.toList should
+      contain allOf (Status(503), SetResponseHeader("Content-Type", "application/json"), SetResponseHeader("X-Custom-Header",
+                                                                                                           "blah"), InlineContent(
+      """{"title": "Service down for maintenance", "status":503}""".stripMargin), Shunt)
+  }
+
   "Admin Routes" should "not be generated if there are no admin users" in {
     val routes = Await
       .result(
@@ -317,7 +346,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .map(_.metadata.routeDefinition)
 
     routes.count(sr => sr.customRoute.nonEmpty) should be(0)
-    routes.size shouldBe 3
+    routes.size shouldBe 4
 
     routes.foreach { sr =>
       sr.predicates.size should be(6)
@@ -453,7 +482,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Route derivation" should "generate a list of Skipper Routes" in {
-    testableRouteDerivation.size shouldBe 7
+    testableRouteDerivation.size shouldBe 9
   }
 
   it should "generate a distinct name for each route" in {
@@ -462,7 +491,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   it should "generate a whitelisted route per user for each action" in {
-    testableRouteDerivation.count(isAdminRoute) shouldBe 3
+    testableRouteDerivation.count(isAdminRoute) shouldBe 4
   }
 
   it should "exclude blacklisted users from the whitelist" in {
@@ -476,22 +505,20 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val baseRoutes = testableRouteDerivation
       .filterNot(isAdminRoute)
       .filterNot(isCorsRoute)
-
-    baseRoutes
+    val predicates = baseRoutes
       .map(_.metadata)
-      .flatMap(_.routeDefinition.predicates)
-      .count {
-        case p: PathMatch if p.path.startsWith("/api/resource") => true
-        case _                                                  => false
-      } shouldBe baseRoutes.size
+      .flatMap(m => m.routeDefinition.customRoute.map(cr => cr.predicates.toList).getOrElse(m.routeDefinition.predicates))
 
-    baseRoutes
-      .map(_.metadata)
-      .count(_.routeDefinition.predicates.exists(_ == MethodMatch(Get))) shouldBe 2 // two different paths, no user specific rate limits
+    predicates.count {
+      case p: PathMatch if p.path.startsWith("/api/resource") => true
+      case _                                                  => false
+    } shouldBe baseRoutes.size
 
-    baseRoutes
-      .map(_.metadata)
-      .count(_.routeDefinition.predicates.exists(_ == MethodMatch(Post))) shouldBe 2 // One base + one user specific rate limits
+    predicates
+      .count(_ == MethodMatch(Get)) shouldBe 3 // two different paths, no user specific rate limits
+
+    predicates
+      .count(_ == MethodMatch(Post)) shouldBe 2 // One base + one user specific rate limits
   }
 
   it should "always include the uid filter unless it's a blacklist route" in {
@@ -734,7 +761,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
       .filterNot(isCorsRoute)
-      .map(_.metadata.routeDefinition.predicates)
+      .map(r => r.metadata.routeDefinition.customRoute.map(_.predicates.toList).getOrElse(r.metadata.routeDefinition.predicates))
 
     predicates.forall(_.contains(HttpsTraffic)) shouldBe true
   }
@@ -749,7 +776,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
       .filterNot(isCorsRoute)
-      .map(_.metadata.routeDefinition.filters)
+      .map(r => r.metadata.routeDefinition.customRoute.map(_.filters.toList).getOrElse(r.metadata.routeDefinition.filters))
 
     routeFilters should not be empty
     routeFilters.foreach { filters: List[SkipperFilter] =>
@@ -795,8 +822,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     val ingresses = testableWhitelistRoutesDerivation(sampleGateway.copy(corsConfig = EnabledCors))
 
     val optionsRoutes = ingresses.filter(_.metadata.name.contains("-options"))
-    optionsRoutes.map(_.metadata.name) should contain theSameElementsAs List("whitelisted-gateway-options-api-resource-cors",
-                                                                             "whitelisted-gateway-options-api-resource-id-cors")
+    optionsRoutes.map(_.metadata.name) should contain theSameElementsAs
+      List(
+        "whitelisted-gateway-options-api-resource-cors",
+        "whitelisted-gateway-options-api-resource-id-cors",
+        "whitelisted-gateway-options-api-resource-static-cors"
+      )
     optionsRoutes.foreach { optionsRoute =>
       val corsFilter = optionsRoute.metadata.routeDefinition.customRoute.flatMap(_.filters.find(_.isInstanceOf[CorsOrigin]))
       corsFilter should not be empty
@@ -834,7 +865,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .filterNot(isAdminRoute)
       .filterNot(isCatchAllRoute)
       .filterNot(isHttpRejectRoute)
-      .map(_.metadata.routeDefinition.filters)
+      .map(i => i.metadata.routeDefinition.customRoute.map(_.filters.toList).getOrElse(i.metadata.routeDefinition.filters))
 
     filteredRoutes should not be empty
     filteredRoutes.foreach { filters: List[SkipperFilter] =>
@@ -861,17 +892,18 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   "Annotation Handling" should "allow a subset of annotations through to the generated ingress (defined in test application.conf app.allowed-annotations)" in {
-    val ingresses = testableRoutesDerivation(
-      sampleGateway,
-      GatewayMeta(DnsString.fromString("test-gateway").get, "default", None, Map("ALLOWED" -> "1", "other" -> "2", "NotAllowed" -> "3")))
+    val ingresses = testableRoutesDerivation(sampleGateway,
+                                             GatewayMeta(DnsString.fromString("test-gateway").get,
+                                                         "default",
+                                                         None,
+                                                         Map("ALLOWED" -> "1", "other" -> "2", "NotAllowed" -> "3")))
 
     ingresses.foreach { ingress =>
       ingress.metadata.routeDefinition.additionalAnnotations.keySet should contain("ALLOWED")
-      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain("other")
-      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain("NotAllowed")
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain ("other")
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should not contain ("NotAllowed")
     }
   }
-
 
   "Employee Access" should "weight routes with a lower precedence than admin routes" in {
     val ingresses = testableRoutesDerivation(
@@ -880,7 +912,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     )
 
     val adminRoutes = ingresses.filter(isAdminRoute)
-    val denyRoutes = ingresses.filter(_.metadata.name.contains("deny"))
+    val denyRoutes  = ingresses.filter(_.metadata.name.contains("deny"))
 
     adminRoutes.forall { adminRoute =>
       val adminRouteScore = calculatePrecedenceScore(adminRoute)
@@ -903,15 +935,17 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
   "Compression support" should "not add the compression filter if the global config is not present" in {
     val ingresses = testableRoutesDerivation(
-      sampleGateway, GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+      sampleGateway,
+      GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
     )
 
-    ingresses.flatMap(_.metadata.routeDefinition.filters).map(_.getClass) should not contain(classOf[Compress])
+    ingresses.flatMap(_.metadata.routeDefinition.filters).map(_.getClass) should not contain (classOf[Compress])
   }
 
   it should "not cause routes to be renamed" in {
     val nonCompressedIngresses = testableRoutesDerivation(
-      sampleGateway, GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
+      sampleGateway,
+      GatewayMeta(DnsString.fromString("compress-test-gateway").get, "default", None, Map.empty)
     )
     val compressedIngresses = testableRoutesDerivation(
       sampleGateway.copy(compressionSupport = Some(CompressionConfig(1, "content/type"))),
@@ -919,7 +953,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     )
 
     val namedNonCompressedIngresses = nonCompressedIngresses.map(_.metadata.name)
-    val namedCompressedIngresses = compressedIngresses.map(_.metadata.name)
+    val namedCompressedIngresses    = compressedIngresses.map(_.metadata.name)
 
     namedNonCompressedIngresses should equal(namedCompressedIngresses)
   }
@@ -931,7 +965,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     )
 
     val adminRoutes = compressedIngresses.filter(isAdminRoute)
-    val svcRoutes = compressedIngresses.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.customRoute.isEmpty)
+    val svcRoutes   = compressedIngresses.filterNot(isAdminRoute).filter(_.metadata.routeDefinition.customRoute.isEmpty)
 
     adminRoutes.forall(!_.metadata.routeDefinition.filters.map(_.getClass).contains(classOf[Compress])) shouldBe true
     svcRoutes.forall(_.metadata.routeDefinition.filters.map(_.getClass).contains(classOf[Compress])) shouldBe true
@@ -966,6 +1000,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   def isCorsRoute(route: IngressDefinition): Boolean = {
     val metadata = route.metadata
     metadata.name.contains("-cors") && metadata.routeDefinition.customRoute.isDefined
+  }
+
+  def isStaticRoute(route: IngressDefinition): Boolean = {
+    val metadata = route.metadata
+    metadata.routeDefinition.customRoute.isDefined && metadata.routeDefinition.customRoute.get.filters
+      .exists(_.isInstanceOf[InlineContent])
   }
 
   def isWhitelistedUserRoute(route: IngressDefinition): Boolean = {
@@ -1005,8 +1045,9 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   }
 
   def calculatePrecedenceScore(predicates: List[SkipperPredicate]): Int = {
-    predicates.foldLeft(0) { case (totalScore, predicate) =>
-      totalScore + scoreForPredicate(predicate)
+    predicates.foldLeft(0) {
+      case (totalScore, predicate) =>
+        totalScore + scoreForPredicate(predicate)
     }
   }
 

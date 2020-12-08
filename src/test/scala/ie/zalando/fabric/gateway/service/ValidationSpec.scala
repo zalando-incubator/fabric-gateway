@@ -93,9 +93,8 @@ class ValidationSpec extends FlatSpec with Matchers {
   "DNS Compliance Validation" should "reject name and namespace combinations which exceed length requirements" in {
     ResourcePersistenceValidations.validateNameLength("my-gateway", "my-namespace") match {
       case Valid(concatenatedNameAndSpace) => concatenatedNameAndSpace shouldBe "my-namespace:my-gateway"
-      case Invalid(_) => fail
+      case Invalid(_)                      => fail
     }
-
 
     ResourcePersistenceValidations.validateNameLength("my-stupidly-long-service-name", "my-equally-long-namespace-naming") match {
       case Valid(_) => fail

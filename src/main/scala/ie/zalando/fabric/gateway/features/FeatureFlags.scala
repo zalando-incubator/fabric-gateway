@@ -16,6 +16,6 @@ object UseUnsafeDefaultKeystore extends FeatureFlag {
 }
 
 object VersionedHostsEnabled extends FeatureFlag {
-  val envName = "VERSIONED_HOSTS_ENABLED"
+  val envName           = "VERSIONED_HOSTS_ENABLED"
   val baseDomainEnvName = "VERSIONED_HOSTS_BASE_DOMAIN"
 }

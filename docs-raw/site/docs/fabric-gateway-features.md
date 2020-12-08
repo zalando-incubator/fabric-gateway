@@ -434,3 +434,27 @@ spec:
         x-fabric-privileges:
           - "spp-application.read"  
 ```
+
+### Static Endpoint Response
+
+A static response for a particular endpoint can be configured via `x-fabric-static-response`. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.
+
+```
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: my-gateway
+spec:
+  x-fabric-service:
+    - host: my-app.smart-product-platform-test.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  paths:
+    /api/resource:
+      post:
+        x-fabric-static-response:
+          status: 503
+          headers:
+            Content-Type: application/problem+json
+          body: '{"title": "Service down for maintenance", "status": 503}'
+```

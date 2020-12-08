@@ -427,7 +427,6 @@ Once you have installed both of those, the gateway can be installed by applying 
 <h2 id="install-api-gateway-operator">Install API Gateway Operator<a class="headerlink" href="#install-api-gateway-operator" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>kubectl apply -f https://raw.githubusercontent.com/zalando-incubator/fabric-gateway/master/docs/assets/basic-install.yaml
 </code></pre></div>
-
 <h2 id="worked-example">Worked Example<a class="headerlink" href="#worked-example" title="Permanent link">&para;</a></h2>
 <h3 id="apply-a-sample-app">Apply a Sample App<a class="headerlink" href="#apply-a-sample-app" title="Permanent link">&para;</a></h3>
 <p>Apply the following yaml to get a sample echo app up and running:</p>
@@ -467,7 +466,6 @@ Once you have installed both of those, the gateway can be installed by applying 
         <span class="nt">ports</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5678</span>
 </code></pre></div>
-
 <h3 id="apply-a-sample-gateway">Apply a Sample Gateway<a class="headerlink" href="#apply-a-sample-gateway" title="Permanent link">&para;</a></h3>
 <p>Once everything is set up, you can apply the gateway as follows:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
@@ -485,11 +483,9 @@ Once you have installed both of those, the gateway can be installed by applying 
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uid</span>
 </code></pre></div>
-
 <p>Now run this to get an authentication failure:</p>
 <div class="highlight"><pre><span></span><code>curl -i <span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">-gateway-test.playground.zalan.do/somepath&quot;</span>
 </code></pre></div>
-
 <p>If your token has the right scopes, the following will give a successful response:</p>
 <div class="highlight"><pre><span></span><code>curl -i -H <span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span> <span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">-gateway-test.playground.zalan.do/somepath&quot;</span>
 </code></pre></div>

@@ -4,8 +4,6 @@ import com.softwaremill.sttp._
 import ie.zalando.fabric.gateway.{LoggingSttpBackend, TestConstants}
 import org.scalatest._
 
-import scala.annotation.tailrec
-
 class RateLimitingSpec extends FunSpec with Matchers {
 
   implicit val backend = new LoggingSttpBackend[Id, Nothing](HttpURLConnectionBackend())
@@ -13,12 +11,6 @@ class RateLimitingSpec extends FunSpec with Matchers {
   private val RequestBlitzSize = 50
   private val HttpOk           = 200
   private val RateLimited      = 429
-
-  @tailrec
-  private def runReqs(i: Int, results: List[Int] = Nil)(implicit req: RequestT[Id, String, Nothing]): List[Int] = i match {
-    case 0 => results
-    case _ => runReqs(i - 1, req.send().code :: results)
-  }
 
   describe("Fabric Gateway Rate Limiting") {
 

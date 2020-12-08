@@ -402,6 +402,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-endpoint-response" class="md-nav__link">
+    Static Endpoint Response
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -582,6 +589,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-endpoint-response" class="md-nav__link">
+    Static Endpoint Response
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -657,7 +671,6 @@
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.read&quot;</span>
 </code></pre></div>
-
 <p>Gateway can be configured to work in Dynamic Mode with an external <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Kubernetes service</a> provider such as <a href="https://github.com/zalando-incubator/stackset-controller">StackSets</a>, or in Simple Mode with a static service defined. See Dynamic Mode and Simple Mode sub-sections below.</p>
 <p><strong>N.B.</strong> If using <code>FabricGateway</code> to manage auth for your service, remove any existing ingress resources for your service. You should not have both as an existing ingress could allow unauthenticated traffic to your backend service.</p>
 <h3 id="dynamic-mode-externally-managed-services-eg-stacksets">Dynamic Mode - Externally Managed Services (eg StackSets)<a class="headerlink" href="#dynamic-mode-externally-managed-services-eg-stacksets" title="Permanent link">&para;</a></h3>
@@ -675,7 +688,6 @@
     <span class="nt">/resources</span><span class="p">:</span>
       <span class="nt">get</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
 </code></pre></div>
-
 <p>In the above example, we are not defining any services (and it is illegal to define services via the <code>x-fabric-service</code> key if you have the <code>x-external-service-provider</code> set) in the Gateway resource. Instead, we are saying that these services will be provided by a <a href="https://cloud.docs.zalando.net/tutorials/migrating-from-stups/#recommended-stacksets">StackSet</a> operator. The created gateway will not generate any ingress resources until the named StackSet is present and has service details available.</p>
 <h4 id="versioned-hosts">Versioned Hosts<a class="headerlink" href="#versioned-hosts" title="Permanent link">&para;</a></h4>
 <p>When using the stackset integration, the gateway will also configure a host for accessing each stack individually, ignoring traffic-switching. For example, if you have stacks <code>my-stack-v1</code> and <code>my-stack-v2</code> and the gateway operator has set <code>VERSIONED_HOSTS_BASE_DOMAIN</code> to <code>cluster.zalan.do</code>, you will be able to access the stacks at <code>https://my-stack-v1.cluster.zalan.do</code> and <code>https://my-stack-v2.cluster.zalan.do</code> respectively.</p>
@@ -699,7 +711,6 @@
     <span class="nt">/resources</span><span class="p">:</span>
       <span class="nt">get</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
 </code></pre></div>
-
 <p>For <code>servicePort</code>, you <strong>must</strong> specify a <strong>named</strong> port from your service definition. If you don&rsquo;t specify <code>servicePort</code>, Fabric Gateway defaults to a port named &lsquo;http&rsquo;.<br />
 Below is an example of a service with a named port:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
@@ -718,7 +729,6 @@ Below is an example of a service with a named port:</p>
       <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
       <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
 </code></pre></div>
-
 <h2 id="gateway-features">Gateway Features<a class="headerlink" href="#gateway-features" title="Permanent link">&para;</a></h2>
 <p>Fabric Gateway provides the following features.</p>
 <ul>
@@ -749,7 +759,6 @@ it will be allowed to access the endpoint.</p>
           <span class="p p-Indicator">-</span> <span class="s">&quot;events.write&quot;</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;service.write&quot;</span>
 </code></pre></div>
-
 <h3 id="admin-access">Admin Access<a class="headerlink" href="#admin-access" title="Permanent link">&para;</a></h3>
 <p>Team members can be added to your <code>x-fabric-admins</code> list. The uids in this list will have access to all endpoints and will not be subject to rate-limiting or other authentication rules.</p>
 <h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
@@ -771,7 +780,6 @@ server: Skipper
 x-content-type-options: nosniff
 x-rate-limit: <span class="m">120</span>
 </code></pre></div>
-
 <p><strong>N.B.</strong>
 If you want to apply a service specific rate-limit, then the service name must be prepended with
 <code>stups_</code>. This can be seen in the <code>x-fabric-ratelimits.target</code> section of the main Configuration 
@@ -799,7 +807,6 @@ Server: Skipper
   <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;https://cloud.docs.zalando.net/howtos/ingress/#redirect-http-to-https&quot;</span>
 <span class="o">}</span>
 </code></pre></div>
-
 <h3 id="multiple-hosts">Multiple Hosts<a class="headerlink" href="#multiple-hosts" title="Permanent link">&para;</a></h3>
 <p>All created Skipper routes will match incoming requests first by their host.<br />
 If you have multiple hosts for a service, then each of these needs to be listed in the gateway resource.</p>
@@ -851,7 +858,6 @@ and rate limits, will still apply to the whitelisted service.</p>
         <span class="nt">x-fabric-whitelist</span><span class="p">:</span>
           <span class="nt">service-list</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
 </code></pre></div>
-
 <h3 id="employee-whitelisting">Employee Whitelisting<a class="headerlink" href="#employee-whitelisting" title="Permanent link">&para;</a></h3>
 <p>Employee tokens do not use scopes, so in order to allow certain employees access to an endpoint we must whitelist their uid. Note that this is different to <a href="#admin-access">Admin Access</a> since admins are not subject to rate limits.<br />
 In the example below, we can see that the <code>/api/resource</code> <code>get</code> endpoint can be accessed by services with the <code>spp-application.write</code> scope or the employee whose uid is <code>useruid</code>. The service and the employee will be subject to a ratelimit of 5 requests per minute.
@@ -885,7 +891,6 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-ratelimits</span><span class="p">:</span>
           <span class="nt">default-rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
 </code></pre></div>
-
 <h3 id="cors-support">CORS Support<a class="headerlink" href="#cors-support" title="Permanent link">&para;</a></h3>
 <p>For browser applications to communicate directly with an API, the API needs to support <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">Cross-Origin Resource Sharing</a>. The Gateway supports this by automatically adding an OPTIONS endpoint to each of your paths to handle browser <a href="https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request">Preflight Requests</a>. The origins and headers you configure will be allowed in the response headers. Additionally, configuring cors support causes the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin header</a> to contain the request&rsquo;s <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin</a> if you have whitelisted it here.  </p>
 <p>Note: We do not allow <code>*</code> to be used as an allowed origin. Every Gateway API will want to allow the <code>Authorization</code> and <code>Content-Type</code> headers here, to allow auth tokens and the <code>application/json</code> <code>Content-Type</code> to be used.</p>
@@ -913,7 +918,6 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
 </code></pre></div>
-
 <h3 id="compression">Compression<a class="headerlink" href="#compression" title="Permanent link">&para;</a></h3>
 <p>It is possible to enable compression of responses on Skipper. This is managed at a global level by the gateway by using the <code>x-fabric-compression-support</code> key. This enables you to set a compression factor for a specific content/type. This is explained in more detail in the <a href="https://opensource.zalando.com/skipper/reference/filters/#compress">Skipper docs</a>. It&rsquo;s important to note that whether or not the compression is applied is still dependant on the client providing the appropriate <code>Accept-Encoding</code> header, and will only be applied to service routes (i.e. not to admin routes).</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
@@ -934,7 +938,6 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
 </code></pre></div>
-
 <h2 id="other">Other<a class="headerlink" href="#other" title="Permanent link">&para;</a></h2>
 <h3 id="path-matching">Path Matching<a class="headerlink" href="#path-matching" title="Permanent link">&para;</a></h3>
 <p>There are some rules around path matching in the gateway which are outlined below.</p>
@@ -987,6 +990,26 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
       <span class="nt">get</span><span class="p">:</span>
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.read&quot;</span>  
+</code></pre></div>
+<h3 id="static-endpoint-response">Static Endpoint Response<a class="headerlink" href="#static-endpoint-response" title="Permanent link">&para;</a></h3>
+<p>A static response for a particular endpoint can be configured via <code>x-fabric-static-response</code>. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.</p>
+<div class="highlight"><pre><span></span><code>apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: my-gateway
+spec:
+  x-fabric-service:
+    - host: my-app.smart-product-platform-test.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  paths:
+    /api/resource:
+      post:
+        x-fabric-static-response:
+          status: 503
+          headers:
+            Content-Type: application/problem+json
+          body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
 </code></pre></div>
                 
               
