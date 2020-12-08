@@ -24,4 +24,5 @@ object TestConstants {
   def TestAppStarById(id: Long, host: String = TestAppHost)                  = uri"https://$host/starsources/$id"
   def TestInvalidAppStar(host: String = TestAppHost)                         = uri"https://$host/starsources/a/b/c/d"
   def TestAppWhitelistedRoute(host: String = TestAppHost)                    = uri"https://$host/whitelisted"
+  def TestAppStaticRoute(host: String = TestAppHost)                         = uri"https://$host/static"
 }
