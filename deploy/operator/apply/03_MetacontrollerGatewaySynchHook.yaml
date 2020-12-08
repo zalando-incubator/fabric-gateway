@@ -9,10 +9,6 @@ spec:
     apiVersion: zalando.org/v1
     resource: "{{{ CRD_PLURAL }}}"
   childResources:
-    - apiVersion: extensions/v1beta1
-      resource: ingresses
-      updateStrategy:
-        method: InPlace
     - apiVersion: networking.k8s.io/v1beta1
       resource: ingresses
       updateStrategy:
