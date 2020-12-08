@@ -377,6 +377,30 @@ spec:
           - "spp-application.write"
 ```
 
+### Static Endpoint Response
+
+A static response for a particular endpoint can be configured via `x-fabric-static-response`. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.
+
+```
+apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: my-gateway
+spec:
+  x-fabric-service:
+    - host: my-app.smart-product-platform-test.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  paths:
+    /api/resource:
+      post:
+        x-fabric-static-response:
+          status: 503
+          headers:
+            Content-Type: application/problem+json
+          body: '{"title": "Service down for maintenance", "status": 503}'
+```
+
 ## Other
 
 ### Path Matching
@@ -385,6 +409,7 @@ There are some rules around path matching in the gateway which are outlined belo
 
 - Dynamic path segments should be represented by either a `*` or a `{named}` parameter
 - Wildcard matching of multiple path segments can be performed by using `**`, the `**` must be the last part of the path
+- The paths "/foo" and "/foo/" are not the same. This can be configured in skipper, but the K8s clusters do not have this configured and it would be a breaking change to configure it.
   
 Examples of some valid and invalid paths are outlined below:
 
@@ -435,26 +460,3 @@ spec:
           - "spp-application.read"  
 ```
 
-### Static Endpoint Response
-
-A static response for a particular endpoint can be configured via `x-fabric-static-response`. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.
-
-```
-apiVersion: zalando.org/v1
-kind: FabricGateway
-metadata:
-  name: my-gateway
-spec:
-  x-fabric-service:
-    - host: my-app.smart-product-platform-test.zalan.do
-      serviceName: my-app-service-name
-      servicePort: http
-  paths:
-    /api/resource:
-      post:
-        x-fabric-static-response:
-          status: 503
-          headers:
-            Content-Type: application/problem+json
-          body: '{"title": "Service down for maintenance", "status": 503}'
-```

@@ -382,6 +382,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-endpoint-response" class="md-nav__link">
+    Static Endpoint Response
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -398,13 +405,6 @@
           <li class="md-nav__item">
   <a href="#path-matching" class="md-nav__link">
     Path Matching
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#static-endpoint-response" class="md-nav__link">
-    Static Endpoint Response
   </a>
   
 </li>
@@ -569,6 +569,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-endpoint-response" class="md-nav__link">
+    Static Endpoint Response
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -585,13 +592,6 @@
           <li class="md-nav__item">
   <a href="#path-matching" class="md-nav__link">
     Path Matching
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#static-endpoint-response" class="md-nav__link">
-    Static Endpoint Response
   </a>
   
 </li>
@@ -938,12 +938,33 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
 </code></pre></div>
+<h3 id="static-endpoint-response">Static Endpoint Response<a class="headerlink" href="#static-endpoint-response" title="Permanent link">&para;</a></h3>
+<p>A static response for a particular endpoint can be configured via <code>x-fabric-static-response</code>. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.</p>
+<div class="highlight"><pre><span></span><code>apiVersion: zalando.org/v1
+kind: FabricGateway
+metadata:
+  name: my-gateway
+spec:
+  x-fabric-service:
+    - host: my-app.smart-product-platform-test.zalan.do
+      serviceName: my-app-service-name
+      servicePort: http
+  paths:
+    /api/resource:
+      post:
+        x-fabric-static-response:
+          status: 503
+          headers:
+            Content-Type: application/problem+json
+          body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
+</code></pre></div>
 <h2 id="other">Other<a class="headerlink" href="#other" title="Permanent link">&para;</a></h2>
 <h3 id="path-matching">Path Matching<a class="headerlink" href="#path-matching" title="Permanent link">&para;</a></h3>
 <p>There are some rules around path matching in the gateway which are outlined below.</p>
 <ul>
 <li>Dynamic path segments should be represented by either a <code>*</code> or a <code>{named}</code> parameter</li>
 <li>Wildcard matching of multiple path segments can be performed by using <code>**</code>, the <code>**</code> must be the last part of the path</li>
+<li>The paths &ldquo;/foo&rdquo; and &ldquo;/foo/&rdquo; are not the same. This can be configured in skipper, but the K8s clusters do not have this configured and it would be a breaking change to configure it.</li>
 </ul>
 <p>Examples of some valid and invalid paths are outlined below:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
@@ -990,26 +1011,6 @@ It is also possible to whitelist all employee tokens for an endpoint. In the exa
       <span class="nt">get</span><span class="p">:</span>
         <span class="nt">x-fabric-privileges</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.read&quot;</span>  
-</code></pre></div>
-<h3 id="static-endpoint-response">Static Endpoint Response<a class="headerlink" href="#static-endpoint-response" title="Permanent link">&para;</a></h3>
-<p>A static response for a particular endpoint can be configured via <code>x-fabric-static-response</code>. This is primarily useful for testing or for blocking access to an endpoint temporarily. It does not block admin access.</p>
-<div class="highlight"><pre><span></span><code>apiVersion: zalando.org/v1
-kind: FabricGateway
-metadata:
-  name: my-gateway
-spec:
-  x-fabric-service:
-    - host: my-app.smart-product-platform-test.zalan.do
-      serviceName: my-app-service-name
-      servicePort: http
-  paths:
-    /api/resource:
-      post:
-        x-fabric-static-response:
-          status: 503
-          headers:
-            Content-Type: application/problem+json
-          body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
 </code></pre></div>
                 
               
