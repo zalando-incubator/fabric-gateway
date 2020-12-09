@@ -278,7 +278,6 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .flatMap(_.metadata.routeDefinition.customRoute)
       .filter(_.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
     val routesForStatic = testableRouteDerivation
-      .filterNot(isAdminRoute)
       .filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
     routesForStatic shouldBe empty
     customRoutesForStatic should not be empty
@@ -310,10 +309,11 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
         10.seconds
       )
       .filter(isAdminRoute)
+    val filters = routes.map(getFilters)
 
     routes.size should not be 0
-    routes.forall(_.metadata.routeDefinition.filters.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
-    routes.forall(_.metadata.routeDefinition.filters.contains(AccessLogAuditing("https://identity.zalando.com/managed-id"))) shouldBe true
+    filters.forall(_.contains(EnableAccessLog(List(2, 4, 5)))) shouldBe true
+    filters.forall(_.contains(AccessLogAuditing("https://identity.zalando.com/managed-id"))) shouldBe true
   }
 
   "CatchAll 404 route" should "be the first route in the list and a custom skipper route" in {
@@ -343,29 +343,27 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
         10.seconds
       )
       .filter(isAdminRoute)
-      .map(_.metadata.routeDefinition)
-
-    routes.count(sr => sr.customRoute.nonEmpty) should be(0)
     routes.size shouldBe 4
 
     routes.foreach { sr =>
-      sr.predicates.size should be(6)
-      sr.predicates.contains(EmployeeToken) should be(true)
-      sr.predicates.exists { _.getClass == classOf[PathMatch] } should be(true)
-      sr.predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
-      sr.predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
-      sr.predicates.exists { _.getClass == classOf[WeightedRoute] } should be(true)
-      sr.filters should equal(
-        List(NonCustomerRealm,
-             EnableAccessLog(List(2, 4, 5)),
-             AccessLogAuditing(),
-             RequiredPrivileges(NEL.of("uid")),
-             FlowId,
-             ForwardTokenInfo))
+      val predicates = getPredicates(sr)
+      val filters    = getFilters(sr)
+      predicates.size should be(6)
+      predicates.contains(EmployeeToken) should be(true)
+      predicates.exists { _.getClass == classOf[PathMatch] } should be(true)
+      predicates.exists { _.getClass == classOf[MethodMatch] } should be(true)
+      predicates.exists { _.getClass == classOf[UidMatch] } should be(true)
+      predicates.exists { _.getClass == classOf[WeightedRoute] } should be(true)
+      filters should contain allElementsOf List(NonCustomerRealm,
+                                                EnableAccessLog(List(2, 4, 5)),
+                                                AccessLogAuditing(),
+                                                RequiredPrivileges(NEL.of("uid")),
+                                                FlowId,
+                                                ForwardTokenInfo)
     }
 
     routes
-      .map(_.predicates)
+      .map(getPredicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Get)))
       .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource"),
@@ -374,7 +372,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
                              UidMatch(NEL.one(AdminUser)),
                              HttpsTraffic)
     routes
-      .map(_.predicates)
+      .map(getPredicates)
       .filter(ls => ls.contains(PathMatch("/api/resource")) && ls.contains(MethodMatch(Post)))
       .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource"),
@@ -383,7 +381,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
                              UidMatch(NEL.one(AdminUser)),
                              HttpsTraffic)
     routes
-      .map(_.predicates)
+      .map(getPredicates)
       .filter(ls => ls.contains(PathMatch("/api/resource/*")) && ls.contains(MethodMatch(Get)))
       .head shouldEqual List(WeightedRoute(5),
                              PathMatch("/api/resource/*"),
@@ -989,9 +987,18 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     }
   }
 
+  def getPredicates(route: IngressDefinition): List[SkipperPredicate] = {
+    val routeDefinition = route.metadata.routeDefinition
+    routeDefinition.customRoute.map(_.predicates.toList).getOrElse(routeDefinition.predicates)
+  }
+
+  def getFilters(route: IngressDefinition): List[SkipperFilter] = {
+    val routeDefinition = route.metadata.routeDefinition
+    routeDefinition.customRoute.map(_.filters.toList).getOrElse(routeDefinition.filters)
+  }
+
   def isAdminRoute(route: IngressDefinition): Boolean = {
     val defn = route.metadata.routeDefinition
-    defn.customRoute.isEmpty &&
     !defn.filters.exists(_.getClass == classOf[GlobalRouteRateLimit]) &&
     !defn.filters.exists(_.getClass == classOf[ClientSpecificRouteRateLimit]) &&
     route.metadata.name.endsWith("admins")
