@@ -379,7 +379,7 @@ spec:
 
 ### Static Endpoint Response
 
-A static response for a particular endpoint can be configured via `x-fabric-static-response`. This is primarily useful for testing or for blocking access to an endpoint temporarily.
+A static response for a particular endpoint can be configured via `x-fabric-static-response`. This is primarily useful for testing or for blocking access to an endpoint temporarily. Admins will also receive this static response.
 
 ```
 apiVersion: zalando.org/v1
