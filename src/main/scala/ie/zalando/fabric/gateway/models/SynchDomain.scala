@@ -28,7 +28,7 @@ object SynchDomain {
   object Constants {
     val PROBLEM_JSON = "application/problem+json"
     val RATE_LIMIT_RESPONSE_BODY =
-      """{"title":"Rate limit exceeded", "detail":"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.", "status":429}"""
+      """{"title": "Rate limit exceeded", "detail": "See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.", "status": 429}"""
     val RATE_LIMIT_RESPONSE: String = InlineContentIfStatus(429, RATE_LIMIT_RESPONSE_BODY, Some(PROBLEM_JSON)).skipperStringValue
   }
 
