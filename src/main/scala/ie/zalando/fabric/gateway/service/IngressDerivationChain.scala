@@ -105,8 +105,10 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           withCors(gateway, meta.name, corsConfig, skipperRoutes)
         }
         .map { routeDefn =>
-          if (routeDefn.predicates.nonEmpty) {
-            routeDefn.copy(predicates = WeightedRoute(routeDefn.predicates.size) :: routeDefn.predicates)
+          if (!defaultRoutes.map(_.name).contains(routeDefn.name)) {
+            val customRoute =
+              routeDefn.customRoute.map(cr => cr.copy(predicates = NEL.fromListUnsafe(addWeights(cr.predicates.toList))))
+            routeDefn.copy(customRoute = customRoute, predicates = addWeights(routeDefn.predicates))
           } else routeDefn
         }
 
@@ -120,6 +122,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
         case _ => ingressDefinitions
       }
     }
+  }
+
+  def addWeights(predicates: List[SkipperPredicate]) = {
+    if (predicates.nonEmpty && !predicates.exists(_.isInstanceOf[WeightedRoute])) WeightedRoute(predicates.size) :: predicates
+    else predicates
   }
 
   def appendVersionedHosts(ingresses: List[IngressDefinition], versionedHostsBaseDomain: String): List[IngressDefinition] = {
