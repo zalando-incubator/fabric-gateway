@@ -278,7 +278,6 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .flatMap(_.metadata.routeDefinition.customRoute)
       .filter(_.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
     val routesForStatic = testableRouteDerivation
-      .filterNot(isAdminRoute)
       .filter(_.metadata.routeDefinition.predicates.exists(_.skipperStringValue().contains("api/resource/static")))
     routesForStatic shouldBe empty
     customRoutesForStatic should not be empty

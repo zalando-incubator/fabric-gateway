@@ -303,26 +303,26 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
       }
 
     val employeeAccess = genEmployeeAccessRoute(route, routeConfig, gatewayContext)
-    val nonAdminRoutes = svcRoutes ++ employeeAccess
-    val finalNonAdminRoutes = routeConfig.staticRouteConfig
+    val routes         = adminRoutes ++ svcRoutes ++ employeeAccess
+    val finalRoutes = routeConfig.staticRouteConfig
       .map { staticRouteConfig =>
-        nonAdminRoutes.map { nonAdminRoute =>
-          if (nonAdminRoute.customRoute.isEmpty) {
-            val predicates    = NEL.fromListUnsafe(nonAdminRoute.predicates)
+        routes.map { route =>
+          if (route.customRoute.isEmpty) {
+            val predicates    = NEL.fromListUnsafe(route.predicates)
             val headerFilters = staticRouteConfig.headers.map { case (k, v) => SetResponseHeader(k, v) }
             val statusAndBody = List(Status(staticRouteConfig.statusCode), InlineContent(staticRouteConfig.body))
-            val filters       = NEL.ofInitLast(nonAdminRoute.filters ++ headerFilters ++ statusAndBody, Shunt)
-            nonAdminRoute.copy(predicates = List.empty,
-                               filters = List.empty,
-                               customRoute = Some(SkipperCustomRoute(predicates, NonCustomerRealm :: filters)))
+            val filters       = NEL.ofInitLast(route.filters ++ headerFilters ++ statusAndBody, Shunt)
+            route.copy(predicates = List.empty,
+                       filters = List.empty,
+                       customRoute = Some(SkipperCustomRoute(predicates, NonCustomerRealm :: filters)))
           } else {
-            nonAdminRoute
+            route
           }
         }
       }
-      .getOrElse(nonAdminRoutes)
+      .getOrElse(routes)
 
-    skipperRoutes ::: (adminRoutes ::: finalNonAdminRoutes).map { route =>
+    skipperRoutes ::: finalRoutes.map { route =>
       if (route.filters.nonEmpty) {
         route.copy(filters = NonCustomerRealm :: route.filters)
       } else route
