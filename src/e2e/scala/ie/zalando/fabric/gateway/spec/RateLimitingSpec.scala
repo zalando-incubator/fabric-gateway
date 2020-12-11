@@ -23,8 +23,8 @@ class RateLimitingSpec extends FunSpec with Matchers {
       results.nonEmpty shouldBe true
       results.size should not be RequestBlitzSize
       results.map(_.status) should contain only TooManyRequests
-      all (results.map(_.body)) should include ("\"title\": \"Rate limit exceeded\"")
-      all (results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
+      all(results.map(_.body)) should include("\"title\": \"Rate limit exceeded\"")
+      all(results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
     }
 
     // Seems to be a skipper bug where rate limiting is not restricted to the route
@@ -38,8 +38,8 @@ class RateLimitingSpec extends FunSpec with Matchers {
       results.nonEmpty shouldBe true
       results.size should not be RequestBlitzSize
       results.map(_.status) should contain only TooManyRequests
-      all (results.map(_.body)) should include ("\"title\": \"Rate limit exceeded\"")
-      all (results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
+      all(results.map(_.body)) should include("\"title\": \"Rate limit exceeded\"")
+      all(results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
     }
 
     it("should not apply service specific rate limits if the service id does not match") {

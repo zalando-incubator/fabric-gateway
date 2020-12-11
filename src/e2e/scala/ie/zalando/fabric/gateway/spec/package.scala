@@ -14,11 +14,12 @@ package object spec {
       case _ =>
         val res = req.send()
         val body = res.rawErrorBody match {
-          case Left(v) => new String(v)
+          case Left(v)  => new String(v)
           case Right(v) => v
         }
         runReqs(i - 1, SimpleResponse(res.code, body, res.headers.toMap) :: results)
     }
 
-  def getHeader(headerKey: String, headers: Map[String, String]): Option[String] = headers.find(_._1.equalsIgnoreCase(headerKey)).map(_._2)
+  def getHeader(headerKey: String, headers: Map[String, String]): Option[String] =
+    headers.find(_._1.equalsIgnoreCase(headerKey)).map(_._2)
 }

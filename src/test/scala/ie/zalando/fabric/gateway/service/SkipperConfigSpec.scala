@@ -36,30 +36,29 @@ class SkipperConfigSpec extends FlatSpec with Matchers {
       (NEL.of(FlowId), """flowId("reuse")"""),
       (NEL.of(RequiredPrivileges(NEL.of("a", "b"))), """oauthTokeninfoAllScope("a", "b")"""),
       (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 25, PerMinute)),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 25, "1m", "Authorization")"""),
+       """clusterClientRatelimit("testGW_api_GET", 25, "1m", "Authorization")"""),
       (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 15, PerHour)),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization")"""),
+       """clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization")"""),
       (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 15, PerHour), FlowId),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization") -> flowId("reuse")"""),
+       """clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization") -> flowId("reuse")"""),
       (NEL.of(ClientSpecificRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), ClientMatch("svc"), 25, PerMinute)),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET_svc", 25, "1m", "Authorization")"""),
+       """clusterClientRatelimit("testGW_api_GET_svc", 25, "1m", "Authorization")"""),
       (NEL.of(ClientSpecificRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), ClientMatch("svc"), 15, PerHour)),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET_svc", 15, "1h", "Authorization")"""),
+       """clusterClientRatelimit("testGW_api_GET_svc", 15, "1h", "Authorization")"""),
       (NEL.of(ClientSpecificRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), ClientMatch("svc"), 15, PerHour),
               FlowId),
-       """inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET_svc", 15, "1h", "Authorization") -> flowId("reuse")"""),
+       """clusterClientRatelimit("testGW_api_GET_svc", 15, "1h", "Authorization") -> flowId("reuse")"""),
       (NEL.of(RequiredPrivileges(NEL.of("c")),
               GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 38, PerMinute)),
-       """oauthTokeninfoAllScope("c") -> inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 38, "1m", "Authorization")"""),
+       """oauthTokeninfoAllScope("c") -> clusterClientRatelimit("testGW_api_GET", 38, "1m", "Authorization")"""),
       (NEL.of(RequiredPrivileges(NEL.of("c")),
               GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 38, PerMinute),
               FlowId),
-       """oauthTokeninfoAllScope("c") -> inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 38, "1m", "Authorization") -> flowId("reuse")""")
+       """oauthTokeninfoAllScope("c") -> clusterClientRatelimit("testGW_api_GET", 38, "1m", "Authorization") -> flowId("reuse")""")
     )
 
     forAll(routeDefinitions) { (input, output) =>
-      val actual = SkipperConfig.filtersInSkipperFormat(input)
-      actual shouldBe output
+      SkipperConfig.filtersInSkipperFormat(input) shouldBe output
     }
   }
 
@@ -72,7 +71,7 @@ class SkipperConfigSpec extends FlatSpec with Matchers {
     )
 
     val expected =
-      """Path("/api/resource") && Method("DELETE") -> oauthTokeninfoAllScope("c") -> inlineContentIfStatus(429, "{\"title\": \"Rate limit exceeded\", \"detail\": \"See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.\", \"status\": 429}", "application/problem+json") -> clusterClientRatelimit("testGW_api_GET", 15, "1m", "Authorization") -> flowId("reuse")"""
+      """Path("/api/resource") && Method("DELETE") -> oauthTokeninfoAllScope("c") -> clusterClientRatelimit("testGW_api_GET", 15, "1m", "Authorization") -> flowId("reuse")"""
     SkipperConfig.customRouteInSkipperFormat(customRoute) shouldBe expected
   }
 

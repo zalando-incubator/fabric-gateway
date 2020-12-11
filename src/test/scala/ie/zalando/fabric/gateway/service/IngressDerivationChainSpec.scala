@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import cats.data.{NonEmptyList => NEL}
+import ie.zalando.fabric.gateway.models.SynchDomain.Constants.RATE_LIMIT_RESPONSE
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import org.mockito.scalatest.MockitoSugar
@@ -477,6 +478,47 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
       .toSet
 
     svcRestrictedLimits shouldBe Set("a")
+  }
+
+  "Rate limit Routes" should "all have inlineContentIfStatus to ensure they reutnr a json response" in {
+    val gatewayPaths: GatewayPaths = Map(
+      PathMatch("/api/resource") -> PathConfig(
+        Map(
+          Get -> ActionAuthorizations(NEL.of("uid"),
+                                      Some(RateLimitDetails(10, PerMinute, Map("a" -> 20, "b" -> 25, "c" -> 30))),
+                                      InheritedWhitelistDetails,
+                                      UserWhitelist),
+          Post -> ActionAuthorizations(NEL.of("uid"),
+                                       Some(RateLimitDetails(2, PerMinute, Map("a" -> 20))),
+                                       InheritedWhitelistDetails,
+                                       UserWhitelist)
+        ))
+    )
+
+    val gwSpec = GatewaySpec(
+      SchemaDefinedServices(Set(IngressBackend("host", Set(ServiceDescription("svcName"))))),
+      Set.empty[String],
+      WhitelistConfig(Set("a"), Enabled),
+      DisabledCors,
+      EmployeeAccessConfig(ScopedAccess),
+      None,
+      gatewayPaths
+    )
+
+    val rateLimitRoutes = Await
+      .result(
+        ingressDerivationLogic.deriveRoutesFor(gwSpec, GatewayMeta(DnsString.apply("my-test-gw"), "ns", None, Map.empty)),
+        10.seconds
+      )
+      .filter(_.metadata.name.contains("-rl"))
+    val rateLimitRouteFilters = rateLimitRoutes.map(getFilters)
+
+    rateLimitRoutes should not be empty
+    all(rateLimitRouteFilters) should contain(RATE_LIMIT_RESPONSE)
+    rateLimitRouteFilters.foreach { filters =>
+      filters.lastIndexOf(RATE_LIMIT_RESPONSE) should be < filters.indexWhere(
+        _.skipperStringValue().contains("clusterClientRatelimit"))
+    }
   }
 
   "Route derivation" should "generate a list of Skipper Routes" in {

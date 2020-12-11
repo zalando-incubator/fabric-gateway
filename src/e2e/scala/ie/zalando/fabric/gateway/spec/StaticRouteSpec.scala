@@ -29,8 +29,8 @@ class StaticRouteSpec extends FunSpec with Matchers {
 
       results.nonEmpty shouldBe true
       results.map(_.status) should contain only TooManyRequests
-      all (results.map(_.body)) should include ("\"title\": \"Rate limit exceeded\"")
-      all (results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
+      all(results.map(_.body)) should include("\"title\": \"Rate limit exceeded\"")
+      all(results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
     }
 
     it("should reject requests with no token with a 401") {
