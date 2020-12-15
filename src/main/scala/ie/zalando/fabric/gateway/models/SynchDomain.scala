@@ -348,7 +348,7 @@ object SynchDomain {
                                 trafficWeight: Option[Double] = None)
   case class IngressBackend(host: String, services: Set[ServiceDescription])
 
-  case class IngressDefinition(hostMappings: Set[IngressBackend], metadata: IngressMetaData)
+  case class IngressDefinition(hostMappings: Set[IngressBackend], metadata: IngressMetaData, apiVersion: String)
 
   case class RateLimitDetails(defaultReqRate: Int, period: RateLimitPeriod, uidSpecific: Map[String, Int])
 

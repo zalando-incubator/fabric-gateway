@@ -67,7 +67,8 @@ trait JsonModels {
     for {
       hostMappings <- c.downField("spec").downField("rules").as[Set[IngressBackend]]
       metadata     <- c.downField("metadata").as[IngressMetaData]
-    } yield IngressDefinition(hostMappings, metadata)
+      apiVersion   <- c.downField("apiVersion").as[Option[String]]
+    } yield IngressDefinition(hostMappings, metadata, apiVersion.getOrElse(IngressApiVersion))
 
   implicit val decodeIngressMetaData: Decoder[IngressMetaData] = (c: HCursor) =>
     for {
@@ -322,7 +323,7 @@ trait JsonModels {
 
   implicit val encodeIngressDefinition: Encoder[IngressDefinition] =
     Encoder.forProduct4("kind", "spec", "apiVersion", "metadata")(id =>
-      (HttpModels.IngressKind, id.hostMappings, HttpModels.IngressApiVersion, id.metadata))
+      (HttpModels.IngressKind, id.hostMappings, id.apiVersion, id.metadata))
 
   implicit val encodeUser: Encoder[SynchResponse] =
     Encoder.forProduct2("status", "children")(resp => (resp.status, resp.desiredIngressDefinitions))
