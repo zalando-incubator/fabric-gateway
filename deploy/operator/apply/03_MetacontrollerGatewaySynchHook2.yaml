@@ -1,7 +1,7 @@
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
-  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}New"
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}-new"
 spec:
   generateSelector: true
   resyncPeriodSeconds: 5
