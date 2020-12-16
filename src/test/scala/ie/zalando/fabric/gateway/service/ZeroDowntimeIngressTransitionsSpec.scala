@@ -72,29 +72,29 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
     val initialRoutes = getRoutes(initialGatewaySpec, List.empty)
     initialRoutes.size shouldBe 4
     initialRoutes.map(_.metadata.name) should contain allOf (
-      "gateway-name-default-404-route",
-      "gateway-name-reject-http-route",
-      "gateway-name-get-api-resource-admins",
-      "gateway-name-get-api-resource-all"
+      "m_gateway-name-default-404-route",
+      "m_gateway-name-reject-http-route",
+      "m_gateway-name-get-api-resource-admins",
+      "m_gateway-name-get-api-resource-all"
     )
 
     val transitionRoutes = getRoutes(updatedGatewaySpec, initialRoutes)
     transitionRoutes.size shouldBe 5
     transitionRoutes.map(_.metadata.name) should contain allOf (
-      "gateway-name-default-404-route",
-      "gateway-name-reject-http-route",
-      "gateway-name-get-api-resource-admins",
-      "gateway-name-get-api-resource-rl-all",
-      "gateway-name-get-api-resource-all"
+      "m_gateway-name-default-404-route",
+      "m_gateway-name-reject-http-route",
+      "m_gateway-name-get-api-resource-admins",
+      "m_gateway-name-get-api-resource-rl-all",
+      "m_gateway-name-get-api-resource-all"
     )
 
     val finalRoutes = getRoutes(updatedGatewaySpec, transitionRoutes)
     finalRoutes.size shouldBe 4
     finalRoutes.map(_.metadata.name) should contain allOf (
-      "gateway-name-default-404-route",
-      "gateway-name-reject-http-route",
-      "gateway-name-get-api-resource-admins",
-      "gateway-name-get-api-resource-rl-all"
+      "m_gateway-name-default-404-route",
+      "m_gateway-name-reject-http-route",
+      "m_gateway-name-get-api-resource-admins",
+      "m_gateway-name-get-api-resource-rl-all"
     )
   }
 
