@@ -103,7 +103,7 @@ class ApiValidationSpec
   it should "sanitize incoming gateway names to ensure that ingress DNS entries can be created" in {
     synchRequest(ValidSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
-      ingressii.forall(_.name.startsWith("m_my-app-gateway")) shouldBe true
+      ingressii.forall(_.name.startsWith("m-my-app-gateway")) shouldBe true
     }
   }
 
@@ -123,7 +123,7 @@ class ApiValidationSpec
     synchRequest(ValidWhitelistSynchRequest.payload) ~> Route.seal(createRoutesFromDerivations(ingressTransitions)) ~> check {
       val ingressii = responseAs[TestSynchResponse].ingressii
       val userWhitelistIngress = ingressii
-        .find(_.name == "m_my-app-gateway-post-api-resource-rl-users-all")
+        .find(_.name == "m-my-app-gateway-post-api-resource-rl-users-all")
         .get
 
       userWhitelistIngress.predicates.get should include(
