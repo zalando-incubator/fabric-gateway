@@ -33,7 +33,8 @@ trait GatewayWebhookRoutes extends JsonModels {
                     ingressTransitions
                       .defineSafeRouteTransition(synchRequest.controlledResource.spec,
                         synchRequest.controlledResource.metadata,
-                        synchRequest.currentState.values.toSeq)
+                        synchRequest.currentState.values.toSeq,
+                        isLegacy = true)
                       .map { ingressDefinitions =>
                         val response = SynchResponse(
                           GatewayStatus(synchRequest.currentState.size, synchRequest.currentState.keySet),
@@ -68,6 +69,37 @@ trait GatewayWebhookRoutes extends JsonModels {
                   val respWrapper = AdmissionReviewResponseWrapper(response = resp)
                   log.info(s"Validation response for ${validation.name} in ${validation.namespace}: $respWrapper")
                   complete(respWrapper)
+                }
+              }
+            }
+          }
+        }
+      } ~
+      pathPrefix("new-synch") {
+        pathEnd {
+          post {
+            trace("metacontroller_synchronization") { span =>
+              withoutSizeLimit {
+                entity(as[SynchRequest]) { synchRequest =>
+                  extractExecutionContext { ec =>
+                    implicit val execCtxt: ExecutionContext = ec
+                    complete {
+                      ingressTransitions
+                        .defineSafeRouteTransition(synchRequest.controlledResource.spec,
+                          synchRequest.controlledResource.metadata,
+                          synchRequest.currentState.values.toSeq,
+                          isLegacy = false)
+                        .map { ingressDefinitions =>
+                          val response = SynchResponse(
+                            GatewayStatus(synchRequest.currentState.size, synchRequest.currentState.keySet),
+                            ingressDefinitions
+                          )
+                          log.debug(s"Synch Request response: $response")
+                          span.setTag("response_payload", response.toString)
+                          response
+                        }
+                    }
+                  }
                 }
               }
             }

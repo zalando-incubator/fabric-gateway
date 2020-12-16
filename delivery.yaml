@@ -59,65 +59,65 @@ pipeline:
           VERSIONED_HOSTS_BASE_DOMAIN: "playground.zalan.do"
           ANNOTATION_ALLOWLIST: "zalando.org/aws-load-balancer-http2,zalando.org/skipper-loadbalancer"
 
-  - id: E2E-TestApp-Deployment
-    desc: Deploy the test application
-    type: process
-    process: microservice_standard_deployment
-    when:
-      branch:
-        exclude: master
-    target: *testCluster
-    config:
-      apply_permanent_resources:
-        env:
-          DEPLOYMENT_PATH: deploy/test-app
-          NAMESPACE: *namespace
-          CLUSTER: *testCluster
-
-  - id: E2E-Tests
-    type: process
-    desc: End to End tests to be run against test fabric gateway
-    target: *testCluster
-    process: microservice_standard_test
-    debug_mode: true
-    when:
-      branch:
-        exclude: master
-    config:
-      apply_manifests:
-        env:
-          DEPLOYMENT_PATH: deploy/e2e-test-resources
-      end2end_tests:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: test-runner
-              image: registry.opensource.zalan.do/fabric/gateway-e2e-tests:#{CDP_BUILD_VERSION}
-              resources:
-                requests:
-                  cpu: 1
-                  memory: "2Gi"
-                limits:
-                  memory: "2Gi"
-              env:
-                - name: AUT_HOST
-                  value: test-gateway-operator.playground.zalan.do
-                - name: OAUTH2_ACCESS_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: test-gateway-operator-credentials
-                      key: test-app-token-secret
-                - name: WHITELIST_ACCESS_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: test-gateway-operator-credentials-wl
-                      key: test-app-token-secret
-                - name: RESOURCE_WHITELIST_ACCESS_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: test-gateway-operator-credentials-resource-wl
-                      key: test-app-token-secret
-              command: ["sh", "-c"]
-              args:
-                - |
-                  sbt -DautHost=$AUT_HOST -DoauthToken=$OAUTH2_ACCESS_TOKEN -DwhiteListToken=$WHITELIST_ACCESS_TOKEN -DresourceWhiteListToken=$RESOURCE_WHITELIST_ACCESS_TOKEN -Dsun.net.http.allowRestrictedHeaders=true e2e:test
+#  - id: E2E-TestApp-Deployment
+#    desc: Deploy the test application
+#    type: process
+#    process: microservice_standard_deployment
+#    when:
+#      branch:
+#        exclude: master
+#    target: *testCluster
+#    config:
+#      apply_permanent_resources:
+#        env:
+#          DEPLOYMENT_PATH: deploy/test-app
+#          NAMESPACE: *namespace
+#          CLUSTER: *testCluster
+#
+#  - id: E2E-Tests
+#    type: process
+#    desc: End to End tests to be run against test fabric gateway
+#    target: *testCluster
+#    process: microservice_standard_test
+#    debug_mode: true
+#    when:
+#      branch:
+#        exclude: master
+#    config:
+#      apply_manifests:
+#        env:
+#          DEPLOYMENT_PATH: deploy/e2e-test-resources
+#      end2end_tests:
+#        spec:
+#          restartPolicy: Never
+#          containers:
+#            - name: test-runner
+#              image: registry.opensource.zalan.do/fabric/gateway-e2e-tests:#{CDP_BUILD_VERSION}
+#              resources:
+#                requests:
+#                  cpu: 1
+#                  memory: "2Gi"
+#                limits:
+#                  memory: "2Gi"
+#              env:
+#                - name: AUT_HOST
+#                  value: test-gateway-operator.playground.zalan.do
+#                - name: OAUTH2_ACCESS_TOKEN
+#                  valueFrom:
+#                    secretKeyRef:
+#                      name: test-gateway-operator-credentials
+#                      key: test-app-token-secret
+#                - name: WHITELIST_ACCESS_TOKEN
+#                  valueFrom:
+#                    secretKeyRef:
+#                      name: test-gateway-operator-credentials-wl
+#                      key: test-app-token-secret
+#                - name: RESOURCE_WHITELIST_ACCESS_TOKEN
+#                  valueFrom:
+#                    secretKeyRef:
+#                      name: test-gateway-operator-credentials-resource-wl
+#                      key: test-app-token-secret
+#              command: ["sh", "-c"]
+#              args:
+#                - |
+#                  sbt -DautHost=$AUT_HOST -DoauthToken=$OAUTH2_ACCESS_TOKEN -DwhiteListToken=$WHITELIST_ACCESS_TOKEN -DresourceWhiteListToken=$RESOURCE_WHITELIST_ACCESS_TOKEN -Dsun.net.http.allowRestrictedHeaders=true e2e:test

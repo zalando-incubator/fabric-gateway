@@ -3,6 +3,7 @@ package ie.zalando.fabric.gateway.service
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import cats.data.{NonEmptyList => NEL}
+import ie.zalando.fabric.gateway.models.HttpModels
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import org.mockito.scalatest.MockitoSugar
@@ -59,17 +60,50 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
     )
   )
 
-  def getRoutes(gw: GatewaySpec, existingRoutes: Seq[IngressDefinition]): List[IngressDefinition] =
+  def getRoutes(gw: GatewaySpec, existingRoutes: Seq[IngressDefinition], isLegacy: Boolean): List[IngressDefinition] =
     Await.result(
       ingressTransitions.defineSafeRouteTransition(
         gw,
         GatewayMeta(DnsString.fromString("gateway-name").get, "my-namespace", None, Map.empty),
-        existingRoutes),
+        existingRoutes,
+        isLegacy),
       10.seconds
     )
 
   it should "create new routes alongside existing before deleting any old routes" in {
-    val initialRoutes = getRoutes(initialGatewaySpec, List.empty)
+    val initialRoutes = getRoutes(initialGatewaySpec, List.empty, isLegacy = true)
+    initialRoutes.size shouldBe 4
+    initialRoutes.map(_.metadata.name) should contain allOf (
+      "gateway-name-default-404-route",
+      "gateway-name-reject-http-route",
+      "gateway-name-get-api-resource-admins",
+      "gateway-name-get-api-resource-all"
+    )
+
+    val transitionRoutes = getRoutes(updatedGatewaySpec, initialRoutes, isLegacy = true)
+    transitionRoutes.size shouldBe 5
+    transitionRoutes.map(_.metadata.name) should contain allOf (
+      "gateway-name-default-404-route",
+      "gateway-name-reject-http-route",
+      "gateway-name-get-api-resource-admins",
+      "gateway-name-get-api-resource-rl-all",
+      "gateway-name-get-api-resource-all"
+    )
+
+    val finalRoutes = getRoutes(updatedGatewaySpec, transitionRoutes, isLegacy = true)
+    finalRoutes.size shouldBe 4
+    finalRoutes.map(_.metadata.name) should contain allOf (
+      "gateway-name-default-404-route",
+      "gateway-name-reject-http-route",
+      "gateway-name-get-api-resource-admins",
+      "gateway-name-get-api-resource-rl-all"
+    )
+
+    finalRoutes.map(_.apiVersion) should contain only(HttpModels.LegacyIngressApiVersion)
+  }
+
+  it should "use the new migration naming for non legacy routes" in {
+    val initialRoutes = getRoutes(initialGatewaySpec, List.empty, isLegacy = false)
     initialRoutes.size shouldBe 4
     initialRoutes.map(_.metadata.name) should contain allOf (
       "m-gateway-name-default-404-route",
@@ -78,24 +112,7 @@ class ZeroDowntimeIngressTransitionsSpec extends FlatSpec with MockitoSugar with
       "m-gateway-name-get-api-resource-all"
     )
 
-    val transitionRoutes = getRoutes(updatedGatewaySpec, initialRoutes)
-    transitionRoutes.size shouldBe 5
-    transitionRoutes.map(_.metadata.name) should contain allOf (
-      "m-gateway-name-default-404-route",
-      "m-gateway-name-reject-http-route",
-      "m-gateway-name-get-api-resource-admins",
-      "m-gateway-name-get-api-resource-rl-all",
-      "m-gateway-name-get-api-resource-all"
-    )
-
-    val finalRoutes = getRoutes(updatedGatewaySpec, transitionRoutes)
-    finalRoutes.size shouldBe 4
-    finalRoutes.map(_.metadata.name) should contain allOf (
-      "m-gateway-name-default-404-route",
-      "m-gateway-name-reject-http-route",
-      "m-gateway-name-get-api-resource-admins",
-      "m-gateway-name-get-api-resource-rl-all"
-    )
+    initialRoutes.map(_.apiVersion) should contain only(HttpModels.IngressApiVersion)
   }
 
 }

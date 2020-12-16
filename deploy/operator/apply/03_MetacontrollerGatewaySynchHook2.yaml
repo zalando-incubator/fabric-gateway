@@ -1,7 +1,7 @@
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
-  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
+  name: "{{{ COMPOSITE_CONTROLLER_NAME }}}New"
 spec:
   generateSelector: true
   resyncPeriodSeconds: 5
@@ -9,11 +9,11 @@ spec:
     apiVersion: zalando.org/v1
     resource: "{{{ CRD_PLURAL }}}"
   childResources:
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       resource: ingresses
       updateStrategy:
         method: InPlace
   hooks:
     sync:
       webhook:
-        url: "http://{{{ COMPOSITE_CONTROLLER_NAME }}}/synch"
+        url: "http://{{{ COMPOSITE_CONTROLLER_NAME }}}/new-synch"
