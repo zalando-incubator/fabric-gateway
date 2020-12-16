@@ -67,8 +67,8 @@ trait JsonModels {
     for {
       hostMappings <- c.downField("spec").downField("rules").as[Set[IngressBackend]]
       metadata     <- c.downField("metadata").as[IngressMetaData]
-      apiVersion   <- c.downField("apiVersion").as[Option[String]]
-    } yield IngressDefinition(hostMappings, metadata, apiVersion.getOrElse(IngressApiVersion))
+      apiVersion   <- c.downField("apiVersion").as[String]
+    } yield IngressDefinition(hostMappings, metadata, apiVersion)
 
   implicit val decodeIngressMetaData: Decoder[IngressMetaData] = (c: HCursor) =>
     for {

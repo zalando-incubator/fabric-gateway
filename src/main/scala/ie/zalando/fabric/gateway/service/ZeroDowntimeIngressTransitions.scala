@@ -11,9 +11,15 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
     ingressDerivationChain
       .deriveRoutesFor(spec, metadata)
       .map { desiredRoutes =>
-        val deleted = diff(existingRoutes, desiredRoutes)
-        val created = diff(desiredRoutes, existingRoutes)
-        if (created.isEmpty) desiredRoutes else desiredRoutes ++ deleted
+        // Temporarily changing names for new Routes. This code should be removed when all routes are switched to new apiVersion
+        val migrationNamedDesiredRoutes: List[IngressDefinition] = desiredRoutes.map(id => {
+          if (id.metadata.name.startsWith("m_")) id
+          else id.copy(metadata = id.metadata.copy(name = s"m_${id.metadata.name}"))
+        })
+
+        val deleted = diff(existingRoutes, migrationNamedDesiredRoutes)
+        val created = diff(migrationNamedDesiredRoutes, existingRoutes)
+        if (created.isEmpty) migrationNamedDesiredRoutes else migrationNamedDesiredRoutes ++ deleted
       }
   }
 
