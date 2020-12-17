@@ -628,7 +628,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
         ingressDef.metadata.name.contains("non-whitelisted")
       }
       .collect {
-        case IngressDefinition(_, IngressMetaData(SkipperRouteDefinition(_, _, _, Some(customRoute), _), _, _, None), _) =>
+        case IngressDefinition(_, IngressMetaData(SkipperRouteDefinition(_, _, _, Some(customRoute), _), _, _, None)) =>
           customRoute
       }
     routes.size shouldBe 2

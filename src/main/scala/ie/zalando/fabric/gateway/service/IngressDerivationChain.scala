@@ -643,8 +643,7 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           annotatedRoute.name.value,
           meta.namespace,
           meta.labels
-        ), // TODO: COME BACK HERE
-        HttpModels.IngressApiVersion
+        )
       )
     }
   }

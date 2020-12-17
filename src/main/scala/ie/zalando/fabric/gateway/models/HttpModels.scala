@@ -6,7 +6,6 @@ import ie.zalando.fabric.gateway.models.ValidationDomain.{RejectionReason, Resou
 object HttpModels {
 
   val IngressKind             = "Ingress"
-  val LegacyIngressApiVersion = "extensions/v1beta1"
   val IngressApiVersion       = "networking.k8s.io/v1beta1"
   val DefaultNamespace        = "default"
 
