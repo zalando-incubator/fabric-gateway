@@ -23,7 +23,9 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
       b.map(_.metadata.name).contains(i.metadata.name)
     }
 
-  private def applyMigration(ingress: IngressDefinition, isLegacy: Boolean): IngressDefinition =
+  private def applyMigration(ingress: IngressDefinition, isLegacy: Boolean): IngressDefinition = {
     if (isLegacy) ingress.copy(apiVersion = HttpModels.LegacyIngressApiVersion)
-    else ingress.copy(metadata = ingress.metadata.copy(name = s"m-${ingress.metadata.name}"))
+    else if (!ingress.metadata.name.startsWith("m-")) ingress.copy(metadata = ingress.metadata.copy(name = s"m-${ingress.metadata.name}"))
+    else ingress
+  }
 }
