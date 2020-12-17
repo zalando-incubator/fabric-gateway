@@ -12,22 +12,18 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
     ingressDerivationChain
       .deriveRoutesFor(spec, metadata)
       .map { desiredRoutes =>
-        val migrationNamedDesiredRoutes: List[IngressDefinition] = desiredRoutes.map(applyMigration(_, isLegacy))
-
-        val deleted = diff(existingRoutes, migrationNamedDesiredRoutes)
-        val created = diff(migrationNamedDesiredRoutes, existingRoutes)
-        if (created.isEmpty) migrationNamedDesiredRoutes else migrationNamedDesiredRoutes ++ deleted
+        val deleted = diff(existingRoutes, desiredRoutes)
+        val created = diff(desiredRoutes, existingRoutes)
+        (if (created.isEmpty) desiredRoutes else desiredRoutes ++ deleted).map(r => applyMigration(r, isLegacy))
       }
   }
 
-  private def diff(a: Seq[IngressDefinition], b: Seq[IngressDefinition]) =
+  private def diff(a: Seq[IngressDefinition], b: Seq[IngressDefinition]): Seq[IngressDefinition] =
     a.filterNot { i =>
       b.map(_.metadata.name).contains(i.metadata.name)
     }
 
-  private def applyMigration(ingress: IngressDefinition, isLegacy: Boolean): IngressDefinition = {
-    if (isLegacy) {
-      ingress.copy(apiVersion = HttpModels.LegacyIngressApiVersion)
-    } else ingress.copy(metadata = ingress.metadata.copy(name = s"m-${ingress.metadata.name}"))
-  }
+  private def applyMigration(ingress: IngressDefinition, isLegacy: Boolean): IngressDefinition =
+    if (isLegacy) ingress.copy(apiVersion = HttpModels.LegacyIngressApiVersion)
+    else ingress.copy(metadata = ingress.metadata.copy(name = s"m-${ingress.metadata.name}"))
 }
