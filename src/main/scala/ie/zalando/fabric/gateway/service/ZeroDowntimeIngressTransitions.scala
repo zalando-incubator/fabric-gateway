@@ -11,9 +11,10 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
     ingressDerivationChain
       .deriveRoutesFor(spec, metadata)
       .map { desiredRoutes =>
-        val deleted = diff(existingRoutes, desiredRoutes)
-        val created = diff(desiredRoutes, existingRoutes)
-        (if (created.isEmpty) desiredRoutes else desiredRoutes ++ deleted).map(applyMigration)
+        val updatedRouteNames = desiredRoutes.map(applyMigration)
+        val deleted = diff(existingRoutes, updatedRouteNames)
+        val created = diff(updatedRouteNames, existingRoutes)
+        if (created.isEmpty) updatedRouteNames else updatedRouteNames ++ deleted
       }
   }
 
