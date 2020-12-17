@@ -39,6 +39,7 @@ pipeline:
     desc: Deploy the metacontroller CRDs and Operator loop
     type: process
     process: microservice_standard_deployment
+    requires_human_approval: true
     when:
       branch:
         exclude: master
