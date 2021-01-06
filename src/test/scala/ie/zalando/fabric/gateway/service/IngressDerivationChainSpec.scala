@@ -480,7 +480,7 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     svcRestrictedLimits shouldBe Set("a")
   }
 
-  "Rate limit Routes" should "all have inlineContentIfStatus to ensure they reutnr a json response" in {
+  "Rate limit Routes" should "all have inlineContentIfStatus to ensure they return a json response" in {
     val gatewayPaths: GatewayPaths = Map(
       PathMatch("/api/resource") -> PathConfig(
         Map(
@@ -515,6 +515,8 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
 
     rateLimitRoutes should not be empty
     all(rateLimitRouteFilters) should contain(RATE_LIMIT_RESPONSE)
+    // Filters are evaluated in reverse order for the response and last one wins.
+    // If clusterClientRatelimit is before inlineContentIfStatus here, then the clusterClientRatelimit filter will set the response body and content type.
     rateLimitRouteFilters.foreach { filters =>
       filters.lastIndexOf(RATE_LIMIT_RESPONSE) should be < filters.indexWhere(
         _.skipperStringValue().contains("clusterClientRatelimit"))
