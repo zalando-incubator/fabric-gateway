@@ -1,6 +1,7 @@
 package ie.zalando.fabric.gateway.spec
 
-import com.softwaremill.sttp._
+import com.softwaremill.sttp.StatusCodes.{Ok, TooManyRequests}
+import com.softwaremill.sttp.{HttpURLConnectionBackend, Id, sttp}
 import ie.zalando.fabric.gateway.{LoggingSttpBackend, TestConstants}
 import org.scalatest._
 
@@ -9,8 +10,6 @@ class RateLimitingSpec extends FunSpec with Matchers {
   implicit val backend = new LoggingSttpBackend[Id, Nothing](HttpURLConnectionBackend())
 
   private val RequestBlitzSize = 50
-  private val HttpOk           = 200
-  private val RateLimited      = 429
 
   describe("Fabric Gateway Rate Limiting") {
 
@@ -19,11 +18,13 @@ class RateLimitingSpec extends FunSpec with Matchers {
         .get(TestConstants.RateLimitedForAll())
         .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
 
-      val results = runReqs(RequestBlitzSize).filterNot(_ == HttpOk)
+      val results = runReqs(RequestBlitzSize).filterNot(_.status == Ok)
 
       results.nonEmpty shouldBe true
-      results.forall(_ == RateLimited) shouldBe true
       results.size should not be RequestBlitzSize
+      results.map(_.status) should contain only TooManyRequests
+      all(results.map(_.body)) should include("\"title\": \"Rate limit exceeded\"")
+      all(results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
     }
 
     // Seems to be a skipper bug where rate limiting is not restricted to the route
@@ -32,11 +33,13 @@ class RateLimitingSpec extends FunSpec with Matchers {
         .get(TestConstants.RateLimitedForMe())
         .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
 
-      val results = runReqs(RequestBlitzSize).filterNot(_ == HttpOk)
+      val results = runReqs(RequestBlitzSize).filterNot(_.status == Ok)
 
       results.nonEmpty shouldBe true
-      results.forall(_ == RateLimited) shouldBe true
       results.size should not be RequestBlitzSize
+      results.map(_.status) should contain only TooManyRequests
+      all(results.map(_.body)) should include("\"title\": \"Rate limit exceeded\"")
+      all(results.map(r => getHeader("Content-Type", r.headers))) shouldBe Some("application/problem+json")
     }
 
     it("should not apply service specific rate limits if the service id does not match") {
@@ -44,7 +47,7 @@ class RateLimitingSpec extends FunSpec with Matchers {
         .get(TestConstants.RateLimitedForOther())
         .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
 
-      val results = runReqs(RequestBlitzSize).dropWhile(_ == HttpOk)
+      val results = runReqs(RequestBlitzSize).dropWhile(_.status == Ok)
       results shouldBe empty
     }
   }

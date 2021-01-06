@@ -3,28 +3,32 @@ package ie.zalando.fabric.gateway.models
 import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
-
-import scala.util.matching.Regex
+import ie.zalando.fabric.gateway.util.Util.escapeQuotes
 
 object SynchDomain {
 
   object ComposablePathRegex {
-    val CAPTURE_WILDCARD_NAME              = "([\\w-]+?)"
-    val WILDCARD_NAME                      = "$1"
-    val LINE_END                           = "$"
-    val COLON                              = "\\:"
-    val STAR                               = "\\*"
-    val SLASH                              = "\\/"
-    val OPEN_CURLY                         = "\\{"
-    val CLOSE_CURLY                        = "\\}"
-    val ESCAPED_QUOTATION_MARK             = "\\\\\""
-    val UNESCAPED_QUOTATION_MARK_RE: Regex = "(?<!\\\\)(\")".r
+    val CAPTURE_WILDCARD_NAME = "([\\w-]+?)"
+    val WILDCARD_NAME         = "$1"
+    val LINE_END              = "$"
+    val COLON                 = "\\:"
+    val STAR                  = "\\*"
+    val SLASH                 = "\\/"
+    val OPEN_CURLY            = "\\{"
+    val CLOSE_CURLY           = "\\}"
   }
   import ComposablePathRegex._
 
   // Skipper / Ingress models
   object Skipper {
     val ZalandoTokenId = "uid"
+  }
+
+  object Constants {
+    val PROBLEM_JSON = "application/problem+json"
+    val RATE_LIMIT_RESPONSE_BODY =
+      """{"title": "Rate limit exceeded", "detail": "See the x-rate-limit header for your rate limit per minute, and the retry-after header for how many seconds to wait before retrying.", "status": 429}"""
+    val RATE_LIMIT_RESPONSE: InlineContentIfStatus = InlineContentIfStatus(429, RATE_LIMIT_RESPONSE_BODY, Some(PROBLEM_JSON))
   }
 
   sealed trait SkipperPartial {
@@ -95,7 +99,7 @@ object SynchDomain {
   }
 
   case class WeightedRoute(featureWeight: Int) extends SkipperPredicate {
-    val skipperStringValue: String = s"""Weight(${featureWeight})"""
+    val skipperStringValue: String = s"""Weight($featureWeight)"""
   }
 
   case object NonCustomerRealm extends SkipperFilter {
@@ -113,7 +117,6 @@ object SynchDomain {
                                   period: RateLimitPeriod)
       extends SkipperFilter {
     private val groupName = s"${gatewayName}_${DnsString.formatPath(path.path)}_${operation.verb.value}"
-
     val skipperStringValue: String =
       s"""clusterClientRatelimit("$groupName", $allowedRequests, "1${period.skipperRepresentation}", "Authorization")"""
   }
@@ -160,8 +163,13 @@ object SynchDomain {
   }
 
   case class InlineContent(body: String) extends SkipperFilter {
-    private val escapedBody        = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(body, ESCAPED_QUOTATION_MARK).trim()
-    val skipperStringValue: String = s"""inlineContent("$escapedBody")"""
+    val skipperStringValue: String = s"""inlineContent("${escapeQuotes(body).trim()}")"""
+  }
+
+  case class InlineContentIfStatus(status: Int, responseBody: String, contentType: Option[String]) extends SkipperFilter {
+    private val contentTypeString = contentType.map(ct => s""", \"${escapeQuotes(ct).trim()}\"""").getOrElse("")
+    val skipperStringValue: String =
+      s"""inlineContentIfStatus($status, "${escapeQuotes(responseBody).trim()}"$contentTypeString)"""
   }
 
   case class CorsOrigin(allowedOrigins: Set[Uri]) extends SkipperFilter {

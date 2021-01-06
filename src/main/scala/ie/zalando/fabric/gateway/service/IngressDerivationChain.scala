@@ -5,6 +5,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.config.AppConfig
+import ie.zalando.fabric.gateway.models.SynchDomain.Constants.RATE_LIMIT_RESPONSE
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -105,6 +106,11 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           withCors(gateway, meta.name, corsConfig, skipperRoutes)
         }
         .map { routeDefn =>
+          val customRoute =
+            routeDefn.customRoute.map(cr => cr.copy(filters = NEL.fromListUnsafe(addRateLimitJsonResponse(cr.filters.toList))))
+          routeDefn.copy(customRoute = customRoute, filters = addRateLimitJsonResponse(routeDefn.filters))
+        }
+        .map { routeDefn =>
           if (!defaultRoutes.map(_.name).contains(routeDefn.name)) {
             val customRoute =
               routeDefn.customRoute.map(cr => cr.copy(predicates = NEL.fromListUnsafe(addWeights(cr.predicates.toList))))
@@ -127,6 +133,12 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
   def addWeights(predicates: List[SkipperPredicate]) = {
     if (predicates.nonEmpty && !predicates.exists(_.isInstanceOf[WeightedRoute])) WeightedRoute(predicates.size) :: predicates
     else predicates
+  }
+
+  def addRateLimitJsonResponse(filters: List[SkipperFilter]) = {
+    if (filters.exists(_.skipperStringValue().contains("clusterClientRatelimit")) && !filters.contains(RATE_LIMIT_RESPONSE)) {
+      RATE_LIMIT_RESPONSE :: filters
+    } else filters
   }
 
   def appendVersionedHosts(ingresses: List[IngressDefinition], versionedHostsBaseDomain: String): List[IngressDefinition] = {
