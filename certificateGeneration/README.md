@@ -11,7 +11,7 @@ The password used below should be the same as the password which is provided to 
 ```
 keytool -genkeypair -v \
   -alias FabricCA \
-  -dname "OU=Infrastructure, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
+  -dname "CN=Fabric, OU=Infrastructure, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
   -keystore fabricCA.jks \
   -keypass:env PW \
   -storepass:env PW \
@@ -32,14 +32,14 @@ keytool -export -v \
 
 keytool -genkeypair -v \
   -alias gateway-operator \
-  -dname "OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
+  -dname "CN=test-gateway-operator.fabric.svc, OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
   -keystore gateway-operator.jks \
   -keypass:env PW \
   -storepass:env PW \
   -keyalg RSA \
   -keysize 2048 \
   -validity 9999 \
-  -ext "SAN=dns:test-gateway-operator.fabric.svc.cluster.local"
+  -ext "SAN=dns:test-gateway-operator.fabric.svc"
 
 keytool -certreq -v \
   -alias gateway-operator \
