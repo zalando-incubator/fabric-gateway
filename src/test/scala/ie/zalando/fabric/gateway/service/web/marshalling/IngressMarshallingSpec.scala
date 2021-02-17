@@ -39,7 +39,8 @@ class IngressMarshallingSpec extends FlatSpec with Matchers with JsonModels {
                   "backend": {
                     "serviceName": "gateway-test-app",
                     "servicePort": "http"
-                  }
+                  },
+                  "pathType": "ImplementationSpecific"
                 }
               ]
             }
@@ -52,7 +53,8 @@ class IngressMarshallingSpec extends FlatSpec with Matchers with JsonModels {
                   "backend": {
                     "serviceName": "gateway-test-app",
                     "servicePort": "http"
-                  }
+                  },
+                  "pathType": "ImplementationSpecific"
                 }
               ]
             }
