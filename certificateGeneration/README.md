@@ -11,7 +11,7 @@ The password used below should be the same as the password which is provided to 
 ```
 keytool -genkeypair -v \
   -alias FabricCA \
-  -dname "CN=Fabric, OU=Infrastructure, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
+  -dname "OU=Infrastructure, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
   -keystore fabricCA.jks \
   -keypass:env PW \
   -storepass:env PW \
@@ -32,7 +32,7 @@ keytool -export -v \
 
 keytool -genkeypair -v \
   -alias gateway-operator \
-  -dname "CN=*.fabric.svc, OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
+  -dname "OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
   -keystore gateway-operator.jks \
   -keypass:env PW \
   -storepass:env PW \
