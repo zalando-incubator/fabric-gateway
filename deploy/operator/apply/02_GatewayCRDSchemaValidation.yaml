@@ -4,7 +4,7 @@ metadata:
   name: "{{{ COMPOSITE_CONTROLLER_NAME }}}"
 webhooks:
   - name: "{{{ COMPOSITE_CONTROLLER_NAME }}}.check.webhook"
-    failurePolicy: Fail
+    failurePolicy: Ignore # Temporarily setting to ignore because our certs aren't accepted by K8s API anymore
     sideEffects: None
     rules:
       - apiGroups:
