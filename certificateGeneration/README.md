@@ -19,8 +19,7 @@ keytool -genkeypair -v \
   -keysize 4096 \
   -ext KeyUsage:critical="keyCertSign" \
   -ext BasicConstraints:critical="ca:true" \
-  -validity 9999 \
-  -ext "SAN=dns:test-gateway-operator.fabric.svc.cluster.local"
+  -validity 9999
 
 keytool -export -v \
   -alias FabricCA \
@@ -39,14 +38,15 @@ keytool -genkeypair -v \
   -keyalg RSA \
   -keysize 2048 \
   -validity 9999 \
-  -ext "SAN=dns:test-gateway-operator.fabric.svc"
+  -ext san=dns:test-gateway-operator.fabric.svc
 
 keytool -certreq -v \
   -alias gateway-operator \
   -keypass:env PW \
   -storepass:env PW \
   -keystore gateway-operator.jks \
-  -file gateway-operator.csr
+  -file gateway-operator.csr \
+  -ext san=dns:test-gateway-operator.fabric.svc
 
 keytool -gencert -v \
   -alias FabricCA \
@@ -57,6 +57,7 @@ keytool -gencert -v \
   -outfile gateway-operator.crt \
   -ext KeyUsage:critical="digitalSignature,keyEncipherment" \
   -ext EKU="serverAuth" \
+  -ext san=dns:test-gateway-operator.fabric.svc \
   -validity 9999 \
   -rfc
 
