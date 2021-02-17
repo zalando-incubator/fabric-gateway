@@ -276,6 +276,7 @@ trait JsonModels {
       "backend" -> Json.obj(
         ("serviceName", sd.name.asJson),
         ("servicePort", sd.portIdentifier.asJson),
+        "pathType" -> Json.fromString("ImplementationSpecific")
       )
     )
   }
