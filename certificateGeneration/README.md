@@ -19,7 +19,8 @@ keytool -genkeypair -v \
   -keysize 4096 \
   -ext KeyUsage:critical="keyCertSign" \
   -ext BasicConstraints:critical="ca:true" \
-  -validity 9999
+  -validity 9999 \
+  -ext "SAN=email:team-fabric@zalando.ie"
 
 keytool -export -v \
   -alias FabricCA \
@@ -37,7 +38,8 @@ keytool -genkeypair -v \
   -storepass:env PW \
   -keyalg RSA \
   -keysize 2048 \
-  -validity 9999
+  -validity 9999 \
+  -ext "SAN=email:team-fabric@zalando.ie"
 
 keytool -certreq -v \
   -alias gateway-operator \
