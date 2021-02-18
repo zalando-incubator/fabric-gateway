@@ -1,7 +1,7 @@
-FROM openjdk:11-jre-slim
+FROM registry.opensource.zalan.do/library/openjdk-11-jre-slim:latest
 
 LABEL Description="Gateway Operator. K8s operstor to orchestrate desired Ingress resources"
-MAINTAINER Team fabric <team-fabric@zalando.ie>
+LABEL maintainer="Team fabric <team-fabric@zalando.ie>"
 
 WORKDIR /
 
