@@ -31,20 +31,22 @@ keytool -export -v \
 
 keytool -genkeypair -v \
   -alias gateway-operator \
-  -dname "CN=*.fabric.svc, OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
+  -dname "CN=test-gateway-operator.fabric.svc, OU=Fabric, O=Zalando, L=Dublin, ST=Dublin, C=IE" \
   -keystore gateway-operator.jks \
   -keypass:env PW \
   -storepass:env PW \
   -keyalg RSA \
   -keysize 2048 \
-  -validity 9999
+  -validity 9999 \
+  -ext san=dns:test-gateway-operator.fabric.svc
 
 keytool -certreq -v \
   -alias gateway-operator \
   -keypass:env PW \
   -storepass:env PW \
   -keystore gateway-operator.jks \
-  -file gateway-operator.csr
+  -file gateway-operator.csr \
+  -ext san=dns:test-gateway-operator.fabric.svc
 
 keytool -gencert -v \
   -alias FabricCA \
@@ -55,6 +57,7 @@ keytool -gencert -v \
   -outfile gateway-operator.crt \
   -ext KeyUsage:critical="digitalSignature,keyEncipherment" \
   -ext EKU="serverAuth" \
+  -ext san=dns:test-gateway-operator.fabric.svc \
   -validity 9999 \
   -rfc
 

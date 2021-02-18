@@ -19,7 +19,7 @@ spec:
           image: "{{{IMAGE}}}:{{{VERSION}}}"
           env:
           - name: LOG_LEVEL
-            value: DEBUG
+            value: INFO
           - name: WEBHOOK_TLS_ENABLED
             value: "TRUE"
           - name: WEBHOOK_TLS_UNSAFE_KEYSTORE_ENABLED
