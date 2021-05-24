@@ -3,7 +3,7 @@ package ie.zalando.fabric.gateway.models
 import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
-import ie.zalando.fabric.gateway.models.SynchDomain.DynamicFiler.FilterNameRegex
+import ie.zalando.fabric.gateway.models.SynchDomain.DynamicFilter.FilterNameRegex
 import ie.zalando.fabric.gateway.util.Util.escapeQuotes
 
 object SynchDomain {
@@ -229,7 +229,7 @@ object SynchDomain {
     val skipperStringValue: String = s"""compress($factor, "$encoding")"""
   }
 
-  object DynamicFiler {
+  object DynamicFilter {
     val FilterNameRegex = "(?:(?!\\().)*".r
   }
 
