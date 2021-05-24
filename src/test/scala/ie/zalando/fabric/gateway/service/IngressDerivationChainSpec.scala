@@ -947,6 +947,18 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     }
   }
 
+  it should "always add the legacy TLS enabled flag for all routes" in {
+    val ingresses = testableRoutesDerivation(sampleGateway,
+      GatewayMeta(DnsString.fromString("test-gateway").get,
+        "default",
+        None,
+        Map.empty))
+
+    ingresses.foreach { ingress =>
+      ingress.metadata.routeDefinition.additionalAnnotations.keySet should contain("zalando.org/aws-load-balancer-ssl-policy")
+    }
+  }
+
   "Employee Access" should "weight routes with a lower precedence than admin routes" in {
     val ingresses = testableRoutesDerivation(
       sampleDenyEmployeeTokenGateway,
