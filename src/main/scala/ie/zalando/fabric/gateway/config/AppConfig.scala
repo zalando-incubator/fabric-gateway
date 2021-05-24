@@ -12,20 +12,21 @@ case class TracingConfig(accessToken: String,
                          collectorPort: Int,
                          componentName: String,
                          disableTracing: Option[Boolean])
-case class AppConfig(allowedAnnotations: Set[String])
+case class AppConfig(allowedAnnotations: Set[String], allowedFilters: Set[String])
 
 object AppConfig {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[AppConfig])
 
-  val tracingConfig: ConfigReader.Result[TracingConfig]  = ConfigSource.default.at("tratocing").load
-  private val appPureConfig: ConfigReader.Result[String] = ConfigSource.default.at("app.allowed-annotations").load
+  val tracingConfig: ConfigReader.Result[TracingConfig]  = ConfigSource.default.at("tracing").load
+  private val allowedAnnotationsConfig: ConfigReader.Result[String] = ConfigSource.default.at("app.allowed-annotations").load
+  private val allowedAdditionalFiltersConfig: ConfigReader.Result[String] = ConfigSource.default.at("app.allowed-additional-filters").load
 
-  val appConfig: config.AppConfig = appPureConfig match {
-    case Left(failures) =>
-      log.error(s"Defaulting App Config as we could not deserialize configuration due to $failures")
-      AppConfig(Set.empty)
-    case Right(config) =>
-      AppConfig(config.split(",").toSet)
+  val appConfig: config.AppConfig = (allowedAnnotationsConfig, allowedAdditionalFiltersConfig) match {
+    case (Right(config1), Right(config2)) =>
+      AppConfig(config1.split(",").toSet, config2.split(",").toSet[String].map(_.trim))
+    case _ =>
+      log.error("Defaulting App Config as we could not deserialize configuration")
+      AppConfig(Set.empty, Set.empty)
   }
 }

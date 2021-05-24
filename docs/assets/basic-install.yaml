@@ -370,6 +370,8 @@ spec:
             value: "example.com"
           - name: ANNOTATION_ALLOWLIST
             value: "{{{ ANNOTATION_ALLOWLIST }}}"
+          - name: ADDITIONAL_FILTER_ALLOWLIST
+            value: "{{{ ADDITIONAL_FILTER_ALLOWLIST }}}"
           ports:
             - containerPort: 8080
             - containerPort: 8443

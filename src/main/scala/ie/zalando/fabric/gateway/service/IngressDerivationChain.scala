@@ -118,7 +118,9 @@ class IngressDerivationChain(stackSetOperations: StackSetOperations, versionedHo
           } else routeDefn
         }
 
-      val ingressDefinitions = combineBackendsAndRoutes(backends, finalRoutes, meta)
+      val finalRoutesWithAdditionalFilters = AdditionalFilterSupport.enrichRoutesWithAdditionalFilters(finalRoutes, meta)
+
+      val ingressDefinitions = combineBackendsAndRoutes(backends, finalRoutesWithAdditionalFilters, meta)
 
       gateway.serviceProvider match {
         case StackSetProvidedServices(_, _) =>
