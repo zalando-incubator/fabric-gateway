@@ -7,4 +7,4 @@ report a vulnerability and get rewarded for it, please ask to join our program b
 https://corporate.zalando.com/en/services-and-contact#security-form
 
 You can also send you report via this form if you do not want to join our bug bounty program and just 
-want to report a vulnerability or security issue..
+want to report a vulnerability or security issue.
