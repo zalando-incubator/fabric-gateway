@@ -5,7 +5,6 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.config.AppConfig
-import ie.zalando.fabric.gateway.models.HttpModels
 import ie.zalando.fabric.gateway.models.SynchDomain.Constants.RATE_LIMIT_RESPONSE
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import org.slf4j.{Logger, LoggerFactory}
