@@ -404,7 +404,7 @@ spec:
 
 ### Custom Filter Configuration
 
-In some situations it's desirable to have the ability to add extra [Skipper filters](https://opensource.zalando.com/skipper/reference/filters/) into a gateway managed ingress which aren't explicitly modeled in the Fabric Gateway Custom Resource Definition. To this end, the gateway operator allows the pass-through of an allow-list of filters which will be applied to all proxy routes managed by the gateway operator. This is achieved through the use of an annotation on a gateway resource as outlined in the below example. As can be seen in the example, additional filters need to be populated in an annotation named: `fabric/additional-filters` and chained (in the usual [Skipper manner](https://opensource.zalando.com/skipper/kubernetes/ingress-usage/#filters-and-predicates)) by using the `->` delimiter. 
+In some situations it's desirable to have the ability to add extra [Skipper filters](https://opensource.zalando.com/skipper/reference/filters/) into a gateway managed ingress which aren't explicitly modeled in the Fabric Gateway Custom Resource Definition. To this end, the gateway operator allows the pass-through of an allow-list of filters which will be appended to the filters present in the proxy routes managed by the gateway operator. This is achieved through the use of an annotation on a gateway resource as outlined in the below example. As can be seen in the example, additional filters need to be populated in an annotation named: `fabric/additional-filters` and chained (in the usual [Skipper manner](https://opensource.zalando.com/skipper/kubernetes/ingress-usage/#filters-and-predicates)) by using the `->` delimiter. 
 
 ```yaml
 apiVersion: zalando.org/v1
