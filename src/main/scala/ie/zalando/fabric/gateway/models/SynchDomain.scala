@@ -3,6 +3,7 @@ package ie.zalando.fabric.gateway.models
 import akka.http.scaladsl.model.Uri
 import cats.Show
 import cats.data.NonEmptyList
+import ie.zalando.fabric.gateway.models.SynchDomain.DynamicFilter.FilterNameRegex
 import ie.zalando.fabric.gateway.util.Util.escapeQuotes
 
 object SynchDomain {
@@ -226,6 +227,16 @@ object SynchDomain {
 
   case class Compress(factor: Int, encoding: String) extends SkipperFilter {
     val skipperStringValue: String = s"""compress($factor, "$encoding")"""
+  }
+
+  object DynamicFilter {
+    val FilterNameRegex = "(?:(?!\\().)*".r
+  }
+
+  case class DynamicFilter(filter: String) extends SkipperFilter {
+    val skipperStringValue: String = filter
+
+    val filterName: String = FilterNameRegex.findFirstIn(filter).getOrElse(filter).trim
   }
 
   sealed trait RateLimitPeriod {

@@ -8,6 +8,9 @@ import ie.zalando.fabric.gateway.{LoggingSttpBackend, TestConstants}
 import javax.net.ssl.{HttpsURLConnection, SSLContext, TrustManager, X509TrustManager}
 import org.scalatest._
 
+// Ignored because the client code that runs the tests can no longer create requests using the old TLS v1.1 version.
+// Annotation is still being added to the resources
+@Ignore
 class LegacyTlsValidationSpec extends FunSpec with Matchers {
 
   implicit val backend = new LoggingSttpBackend[Id, Nothing](
