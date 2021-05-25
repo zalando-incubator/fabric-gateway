@@ -11,7 +11,7 @@
         "deployment-id": "d-4zhsdviy5w6yvbvwq4o8q6e3x"
       },
       "annotations": {
-        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"metacontroller.k8s.io/v1alpha1\",\"kind\":\"CompositeController\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-4zhsdviy5w6yvbvwq4o8q6e3x\"},\"name\":\"fabric-gateway-operator\",\"namespace\":\"\"},\"spec\":{\"childResources\":[{\"apiVersion\":\"networking.k8s.io/v1beta1\",\"resource\":\"ingresses\",\"updateStrategy\":{\"method\":\"Recreate\"}}],\"generateSelector\":true,\"hooks\":{\"sync\":{\"webhook\":{\"url\":\"http://fabric-gateway-operator/synch\"}}},\"parentResource\":{\"apiVersion\":\"zalando.org/v1\",\"resource\":\"fabricgateways\"}}}\n",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"metacontroller.k8s.io/v1alpha1\",\"kind\":\"CompositeController\",\"metadata\":{\"annotations\":{},\"labels\":{\"deployment-id\":\"d-4zhsdviy5w6yvbvwq4o8q6e3x\"},\"name\":\"fabric-gateway-operator\",\"namespace\":\"\"},\"spec\":{\"childResources\":[{\"apiVersion\":\"networking.k8s.io/v1\",\"resource\":\"ingresses\",\"updateStrategy\":{\"method\":\"Recreate\"}}],\"generateSelector\":true,\"hooks\":{\"sync\":{\"webhook\":{\"url\":\"http://fabric-gateway-operator/synch\"}}},\"parentResource\":{\"apiVersion\":\"zalando.org/v1\",\"resource\":\"fabricgateways\"}}}\n",
         "zalando.org/backend-weights": {
           "my-app-1": 80,
           "my-app-2": 20
@@ -25,7 +25,7 @@
       },
       "childResources": [
         {
-          "apiVersion": "networking.k8s.io/v1beta1",
+          "apiVersion": "networking.k8s.io/v1",
           "resource": "ingresses",
           "updateStrategy": {
             "method": "Recreate",
@@ -124,6 +124,6 @@
     }
   },
   "children": {
-    "Ingress.networking.k8s.io/v1beta1": {}
+    "Ingress.networking.k8s.io/v1": {}
   }
 }

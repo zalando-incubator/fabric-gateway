@@ -12,7 +12,7 @@
 * What you should see is the new resources `m-*` created, and the old resources remain
 * Edit the Composite Controller to add back in the managed child:
   ```
-  - apiVersion: networking.k8s.io/v1beta1
+  - apiVersion: networking.k8s.io/v1
     resource: ingresses
     updateStrategy:
       method: InPlace

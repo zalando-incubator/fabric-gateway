@@ -268,7 +268,7 @@ trait JsonModels {
   implicit val decodeSynchRequest: Decoder[SynchRequest] = (c: HCursor) =>
     for {
       gateway                 <- c.downField("parent").as[ControlledGatewayResource]
-      newApiVersionStateState <- c.downField("children").downField("Ingress.networking.k8s.io/v1beta1").as[Option[NamedIngressDefinitions]]
+      newApiVersionStateState <- c.downField("children").downField("Ingress.networking.k8s.io/v1").as[Option[NamedIngressDefinitions]]
       oldApiVersionStateState <- c.downField("children").downField("Ingress.extensions/v1beta1").as[Option[NamedIngressDefinitions]]
     } yield {
       val combinedState = for {
