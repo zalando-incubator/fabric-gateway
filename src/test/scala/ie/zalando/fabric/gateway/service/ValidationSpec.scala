@@ -90,6 +90,13 @@ class ValidationSpec extends FlatSpec with Matchers {
     }
   }
 
+  it should "accept ort numbers in the URI" in {
+    ResourcePersistenceValidations.validateCorsHostname("localhost:7000") match {
+      case Invalid(_) => fail("Should have passed")
+      case Valid(host) => host shouldBe "localhost:7000"
+    }
+  }
+
   "DNS Compliance Validation" should "reject name and namespace combinations which exceed length requirements" in {
     ResourcePersistenceValidations.validateNameLength("my-gateway", "my-namespace") match {
       case Valid(concatenatedNameAndSpace) => concatenatedNameAndSpace shouldBe "my-namespace:my-gateway"
