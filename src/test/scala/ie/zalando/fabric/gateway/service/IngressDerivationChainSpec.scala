@@ -1,11 +1,11 @@
 package ie.zalando.fabric.gateway.service
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain.Constants.RATE_LIMIT_RESPONSE
 import ie.zalando.fabric.gateway.models.SynchDomain._
+import ie.zalando.fabric.gateway.util.Util.corsUriParser
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks._
@@ -33,8 +33,17 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val AllowAllEmployees         = EmployeeAccessConfig(AllowAll)
   val InheritedEmployeeAccess   = EmployeeAccessConfig(GlobalEmployeeConfigInherited)
   val EnabledCors = Some(
-    CorsConfig(Set(Uri.from(host = "example.com"), Uri("http://example-other.com:9000")),
-               Set("Content-Type", "Authorization", "X-Flow-id")))
+    CorsConfig(
+      Set(
+        corsUriParser("first.com"),
+        corsUriParser("second.com:9000"),
+        corsUriParser("http://third.com"),
+        corsUriParser("http://forth.com:9000"),
+        corsUriParser("https://fifth.com"),
+        corsUriParser("https://sixth.com:9000")
+      ),
+      Set("Content-Type", "Authorization", "X-Flow-id")
+    ))
   val DisabledCors: Option[CorsConfig] = None
 
   val sampleGateway = GatewaySpec(
@@ -873,7 +882,14 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     optionsRoutes.foreach { optionsRoute =>
       val corsFilter = optionsRoute.metadata.routeDefinition.customRoute.flatMap(_.filters.find(_.isInstanceOf[CorsOrigin]))
       corsFilter should not be empty
-      corsFilter.get.skipperStringValue() should equal("corsOrigin(\"https://example.com\", \"https://example-other.com:9000\")")
+      corsFilter.get.skipperStringValue() should equal("corsOrigin(" +
+        "\"https://first.com\", " +
+        "\"https://fifth.com\", " +
+        "\"https://sixth.com:9000\", " +
+        "\"https://third.com\", " +
+        "\"https://forth.com:9000\", " +
+        "\"https://second.com:9000\"" +
+        ")")
     }
   }
 
@@ -884,7 +900,14 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
     nonCustomRoutes.foreach { nonCustomRoute =>
       val corsFilter = nonCustomRoute.metadata.routeDefinition.filters.find(_.isInstanceOf[CorsOrigin])
       corsFilter should not be empty
-      corsFilter.get.skipperStringValue() should equal("corsOrigin(\"https://example.com\", \"https://example-other.com:9000\")")
+      corsFilter.get.skipperStringValue() should equal("corsOrigin(" +
+        "\"https://first.com\", " +
+        "\"https://fifth.com\", " +
+        "\"https://sixth.com:9000\", " +
+        "\"https://third.com\", " +
+        "\"https://forth.com:9000\", " +
+        "\"https://second.com:9000\"" +
+        ")")
     }
   }
 
