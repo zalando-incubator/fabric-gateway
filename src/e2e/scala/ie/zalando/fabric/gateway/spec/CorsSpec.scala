@@ -18,7 +18,7 @@ class CorsSpec extends FunSpec with Matchers {
 
       val origin2 = sttp
         .options(TestConstants.TestAppResourceById(123))
-        .header("Origin", "https://example-other.com")
+        .header("Origin", "https://example-other.com:9000")
         .send()
 
       val notAllowed = sttp
@@ -38,7 +38,7 @@ class CorsSpec extends FunSpec with Matchers {
       origin2.headers should contain allOf (
         "Access-Control-Allow-Methods" -> "GET, PUT, OPTIONS",
         "Access-Control-Allow-Headers" -> "Content-Type, Authorization, X-Flow-Id",
-        "Access-Control-Allow-Origin"  -> "https://example-other.com",
+        "Access-Control-Allow-Origin"  -> "https://example-other.com:9000",
       )
       notAllowed.headers should contain allOf (
         "Access-Control-Allow-Methods" -> "GET, PUT, OPTIONS",
