@@ -90,7 +90,7 @@ class ValidationSpec extends FlatSpec with Matchers {
     }
   }
 
-  it should "accept ort numbers in the URI" in {
+  it should "accept port numbers in the URI" in {
     ResourcePersistenceValidations.validateCorsHostname("localhost:7000") match {
       case Invalid(_) => fail("Should have passed")
       case Valid(host) => host shouldBe "localhost:7000"
