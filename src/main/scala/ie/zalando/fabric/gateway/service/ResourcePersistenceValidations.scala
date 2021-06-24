@@ -101,7 +101,7 @@ object ResourcePersistenceValidations {
     if (hostname.contains("*")) {
       CorsDefinedWithWildcardAllowedOrigin.invalidNel
     } else {
-      Try(Uri.from(host = hostname)) match {
+      Try(Uri(hostname)) match {
         case Success(_) => hostname.valid
         case Failure(_) => CorsHostnamesInvalid(hostname).invalidNel
       }
