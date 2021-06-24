@@ -7,7 +7,7 @@ import ie.zalando.fabric.gateway.models.HttpModels._
 import ie.zalando.fabric.gateway.models.SynchDomain._
 import ie.zalando.fabric.gateway.models.ValidationDomain.{ResourceDetails, ValidationCorsConfig}
 import ie.zalando.fabric.gateway.service.SkipperConfig._
-import ie.zalando.fabric.gateway.util.Util.corsUriParser
+import ie.zalando.fabric.gateway.util.Util.parseCorsUri
 import io.circe._
 import io.circe.syntax._
 import org.slf4j.{Logger, LoggerFactory}
@@ -50,7 +50,7 @@ trait JsonModels {
   implicit val decodeUri: Decoder[Uri] = (c: HCursor) =>
     for {
       uriString <- c.as[String]
-    } yield corsUriParser(uriString)
+    } yield parseCorsUri(uriString)
 
   implicit val decodeCorsSupport: Decoder[CorsConfig] = (c: HCursor) =>
     for {
