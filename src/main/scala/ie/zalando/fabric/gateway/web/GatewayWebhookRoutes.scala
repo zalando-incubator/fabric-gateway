@@ -25,23 +25,25 @@ trait GatewayWebhookRoutes extends JsonModels {
       pathEnd {
         post {
           trace("metacontroller_synchronization") { span =>
-            entity(as[SynchRequest]) { synchRequest =>
-              extractExecutionContext { ec =>
-                implicit val execCtxt: ExecutionContext = ec
-                complete {
-                  ingressTransitions
-                    .defineSafeRouteTransition(synchRequest.controlledResource.spec,
-                                               synchRequest.controlledResource.metadata,
-                                               synchRequest.currentState.values.toSeq)
-                    .map { ingressDefinitions =>
-                      val response = SynchResponse(
-                        GatewayStatus(synchRequest.currentState.size, synchRequest.currentState.keySet),
-                        ingressDefinitions
-                      )
-                      log.debug(s"Synch Request response: $response")
-                      span.setTag("response_payload", response.toString)
-                      response
-                    }
+            withoutSizeLimit {
+              entity(as[SynchRequest]) { synchRequest =>
+                extractExecutionContext { ec =>
+                  implicit val execCtxt: ExecutionContext = ec
+                  complete {
+                    ingressTransitions
+                      .defineSafeRouteTransition(synchRequest.controlledResource.spec,
+                        synchRequest.controlledResource.metadata,
+                        synchRequest.currentState.values.toSeq)
+                      .map { ingressDefinitions =>
+                        val response = SynchResponse(
+                          GatewayStatus(synchRequest.currentState.size, synchRequest.currentState.keySet),
+                          ingressDefinitions
+                        )
+                        log.debug(s"Synch Request response: $response")
+                        span.setTag("response_payload", response.toString)
+                        response
+                      }
+                  }
                 }
               }
             }
@@ -53,18 +55,20 @@ trait GatewayWebhookRoutes extends JsonModels {
         pathEnd {
           post {
             trace("kubernetes_validation") { _ =>
-              entity(as[ValidationRequest]) { validation =>
-                val decision = ResourcePersistenceValidations.isValid(validation)
+              withoutSizeLimit {
+                entity(as[ValidationRequest]) { validation =>
+                  val decision = ResourcePersistenceValidations.isValid(validation)
 
-                val resp =
-                  if (decision.rejected)
-                    ValidationResponse(validation.uid, allowed = false, Some(ValidationStatus(decision.reasons)))
-                  else
-                    ValidationResponse(validation.uid, allowed = true, None)
+                  val resp =
+                    if (decision.rejected)
+                      ValidationResponse(validation.uid, allowed = false, Some(ValidationStatus(decision.reasons)))
+                    else
+                      ValidationResponse(validation.uid, allowed = true, None)
 
-                val respWrapper = AdmissionReviewResponseWrapper(response = resp)
-                log.info(s"Validation response for ${validation.name} in ${validation.namespace}: $respWrapper")
-                complete(respWrapper)
+                  val respWrapper = AdmissionReviewResponseWrapper(response = resp)
+                  log.info(s"Validation response for ${validation.name} in ${validation.namespace}: $respWrapper")
+                  complete(respWrapper)
+                }
               }
             }
           }

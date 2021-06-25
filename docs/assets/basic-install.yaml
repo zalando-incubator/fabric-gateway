@@ -310,7 +310,7 @@ spec:
     apiVersion: zalando.org/v1
     resource: "fabricgateways"
   childResources:
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1
       resource: ingresses
       updateStrategy:
         method: InPlace

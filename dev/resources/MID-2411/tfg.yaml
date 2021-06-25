@@ -1,0 +1,16 @@
+apiVersion: zalando.org/v1
+kind: TestFabricGateway
+metadata:
+  name: non-cdi-gateway
+spec:
+  x-fabric-service:
+    - host: version-test.playground.zalan.do
+      serviceName: gateway-test-app
+      servicePort: http
+  x-fabric-admins:
+    - bmooney
+  paths:
+    /resources:
+      get:
+        x-fabric-privileges:
+          - fabric-demo-app.nonexistant

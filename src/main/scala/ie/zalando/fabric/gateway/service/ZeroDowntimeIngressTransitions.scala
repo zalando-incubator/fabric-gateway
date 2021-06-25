@@ -11,14 +11,20 @@ class ZeroDowntimeIngressTransitions(ingressDerivationChain: IngressDerivationCh
     ingressDerivationChain
       .deriveRoutesFor(spec, metadata)
       .map { desiredRoutes =>
-        val deleted = diff(existingRoutes, desiredRoutes)
-        val created = diff(desiredRoutes, existingRoutes)
-        if (created.isEmpty) desiredRoutes else desiredRoutes ++ deleted
+        val updatedRouteNames = desiredRoutes.map(applyMigration)
+        val deleted = diff(existingRoutes, updatedRouteNames)
+        val created = diff(updatedRouteNames, existingRoutes)
+        if (created.isEmpty) updatedRouteNames else updatedRouteNames ++ deleted
       }
   }
 
-  private def diff(a: Seq[IngressDefinition], b: Seq[IngressDefinition]) =
+  private def diff(a: Seq[IngressDefinition], b: Seq[IngressDefinition]): Seq[IngressDefinition] =
     a.filterNot { i =>
       b.map(_.metadata.name).contains(i.metadata.name)
     }
+
+  private def applyMigration(ingress: IngressDefinition): IngressDefinition = {
+    if (!ingress.metadata.name.startsWith("m-")) ingress.copy(metadata = ingress.metadata.copy(name = s"m-${ingress.metadata.name}"))
+    else ingress
+  }
 }

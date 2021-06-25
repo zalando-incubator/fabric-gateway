@@ -8,11 +8,7 @@ spec:
   parentResource:
     apiVersion: zalando.org/v1
     resource: "{{{ CRD_PLURAL }}}"
-  childResources:
-    - apiVersion: extensions/v1beta1
-      resource: ingresses
-      updateStrategy:
-        method: InPlace
+  childResources: []
   hooks:
     sync:
       webhook:
