@@ -18,7 +18,7 @@ spec:
   x-fabric-cors-support:
     allowedOrigins:
       - example.com
-      - example-other.com
+      - "example-other.com:9000"
     allowedHeaders:
       - Content-Type
       - Authorization

@@ -76,17 +76,24 @@ class ValidationSpec extends FlatSpec with Matchers {
   }
 
   it should "fail when * is used as an allowed origin" in {
-    ResourcePersistenceValidations.validateCorsHostname("*") match {
+    ResourcePersistenceValidations.validateCorsOrigin("*") match {
       case Invalid(nel) =>
         nel.size shouldBe 1
         nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
       case Valid(_) => fail("Should have failed")
     }
-    ResourcePersistenceValidations.validateCorsHostname("*.example.com") match {
+    ResourcePersistenceValidations.validateCorsOrigin("*.example.com") match {
       case Invalid(nel) =>
         nel.size shouldBe 1
         nel.head.errorMessage shouldBe "You may not use * in your cors allowed origins"
       case Valid(_) => fail("Should have failed")
+    }
+  }
+
+  it should "accept port numbers in the URI" in {
+    ResourcePersistenceValidations.validateCorsOrigin("localhost:7000") match {
+      case Invalid(_) => fail("Should have passed")
+      case Valid(host) => host shouldBe "localhost:7000"
     }
   }
 

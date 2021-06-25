@@ -1,5 +1,7 @@
 package ie.zalando.fabric.gateway.util
 
+import akka.http.scaladsl.model.Uri
+
 import scala.util.matching.Regex
 
 object Util {
@@ -7,4 +9,11 @@ object Util {
   val ESCAPED_QUOTATION_MARK             = "\\\\\""
 
   def escapeQuotes(str: String) = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(str, ESCAPED_QUOTATION_MARK)
+
+  def parseCorsOriginUri(origin: String): Uri = {
+    val withoutScheme = origin.replace("http://", "").replace("https://", "")
+    val parts         = withoutScheme.split(":")
+    Uri.from(host = parts.head, port = parts.lift(1).map(_.toInt).getOrElse(0))
+  }
+
 }
