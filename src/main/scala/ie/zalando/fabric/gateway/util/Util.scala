@@ -10,8 +10,8 @@ object Util {
 
   def escapeQuotes(str: String) = UNESCAPED_QUOTATION_MARK_RE.replaceAllIn(str, ESCAPED_QUOTATION_MARK)
 
-  def parseCorsUri(uriString: String): Uri = {
-    val withoutScheme = uriString.replace("http://", "").replace("https://", "")
+  def parseCorsOriginUri(origin: String): Uri = {
+    val withoutScheme = origin.replace("http://", "").replace("https://", "")
     val parts         = withoutScheme.split(":")
     Uri.from(host = parts.head, port = parts.lift(1).map(_.toInt).getOrElse(0))
   }

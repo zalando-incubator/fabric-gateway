@@ -6,7 +6,7 @@ import cats.implicits._
 import ie.zalando.fabric.gateway.models.HttpModels.ValidationRequest
 import ie.zalando.fabric.gateway.models.SynchDomain.{HttpVerb, Options}
 import ie.zalando.fabric.gateway.models.ValidationDomain.{DecisionStatus, RejectionReason, ResourceDetails, ValidationCorsConfig}
-import ie.zalando.fabric.gateway.util.Util.parseCorsUri
+import ie.zalando.fabric.gateway.util.Util.parseCorsOriginUri
 
 import scala.util.{Failure, Success, Try}
 
@@ -64,7 +64,7 @@ object ResourcePersistenceValidations {
       validationRequest.resource.paths.keys.toList.map(validateStarStarPathPosition).sequence,
       validateStackSetIntegration(validationRequest.hasExternallyManagedServices, validationRequest.definedServiceCount),
       validationRequest.corsConfig
-        .map(_.allowedOrigins.toList.map(hostname => validateCorsUri(hostname)))
+        .map(_.allowedOrigins.toList.map(origin => validateCorsOrigin(origin)))
         .getOrElse(List.empty)
         .sequence,
       pathVerbPairs.map {
@@ -97,13 +97,13 @@ object ResourcePersistenceValidations {
       case _                                 => externallyManagedServices.valid
     }
 
-  def validateCorsUri(corsUriString: String): ValidationResult[String] = {
-    if (corsUriString.contains("*")) {
+  def validateCorsOrigin(origin: String): ValidationResult[String] = {
+    if (origin.contains("*")) {
       CorsDefinedWithWildcardAllowedOrigin.invalidNel
     } else {
-      Try(parseCorsUri(corsUriString)) match {
-        case Success(_) => corsUriString.valid
-        case Failure(_) => CorsHostnamesInvalid(corsUriString).invalidNel
+      Try(parseCorsOriginUri(origin)) match {
+        case Success(_) => origin.valid
+        case Failure(_) => CorsHostnamesInvalid(origin).invalidNel
       }
     }
   }

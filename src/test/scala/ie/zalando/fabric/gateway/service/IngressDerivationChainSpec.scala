@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import cats.data.{NonEmptyList => NEL}
 import ie.zalando.fabric.gateway.models.SynchDomain.Constants.RATE_LIMIT_RESPONSE
 import ie.zalando.fabric.gateway.models.SynchDomain._
-import ie.zalando.fabric.gateway.util.Util.parseCorsUri
+import ie.zalando.fabric.gateway.util.Util.parseCorsOriginUri
 import ie.zalando.fabric.gateway.web.marshalling.JsonModels
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks._
@@ -35,12 +35,12 @@ class IngressDerivationChainSpec extends FlatSpec with MockitoSugar with Matcher
   val EnabledCors = Some(
     CorsConfig(
       Set(
-        parseCorsUri("first.com"),
-        parseCorsUri("second.com:9000"),
-        parseCorsUri("http://third.com"),
-        parseCorsUri("http://forth.com:9000"),
-        parseCorsUri("https://fifth.com"),
-        parseCorsUri("https://sixth.com:9000")
+        parseCorsOriginUri("first.com"),
+        parseCorsOriginUri("second.com:9000"),
+        parseCorsOriginUri("http://third.com"),
+        parseCorsOriginUri("http://forth.com:9000"),
+        parseCorsOriginUri("https://fifth.com"),
+        parseCorsOriginUri("https://sixth.com:9000")
       ),
       Set("Content-Type", "Authorization", "X-Flow-id")
     ))
