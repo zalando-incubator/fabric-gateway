@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-5.5.0">
     
     
       
@@ -389,6 +389,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#custom-filter-configuration" class="md-nav__link">
+    Custom Filter Configuration
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -576,6 +583,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#custom-filter-configuration" class="md-nav__link">
+    Custom Filter Configuration
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -740,12 +754,14 @@ Below is an example of a service with a named port:</p>
 <li>Encryption In Transit</li>
 <li>Rate Limiting</li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">Cross-Origin Resource Sharing</a></li>
+<li><a href="#custom-filter-configuration">Custom Filter Configuration</a></li>
 </ul>
 <h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h3>
 <p>Fabric Gateway can be used in place of internal logic for authenticating access from other services using the
 Zalando IAM service. As we only accept <code>service</code> and <code>employee</code> tokens, the gateway is not a candidate for customer
 auth workflows. There will be a header added to the request, <code>X-TokenInfo-Forward</code>. 
-This will contain the <code>uid</code>, <code>scope</code> and <code>realm</code> retrieved from from the <a href="https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints">Token Info endpoint</a>.</p>
+This will contain the json response retrieved from from the <a href="https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints">Token Info endpoint</a>, 
+but only the fields <code>uid</code>, <code>scope</code> and <code>realm</code>.</p>
 <h3 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h3>
 <p>To confirm that each authenticated token is from a valid service or employee, the gateway will implicitly add a scope
 check for the <code>uid</code> scope. It is possible to add further scope restrictions to an endpoint by adding the scope name to
@@ -958,6 +974,26 @@ spec:
             Content-Type: application/problem+json
           body: &#39;{&quot;title&quot;: &quot;Service down for maintenance&quot;, &quot;status&quot;: 503}&#39;
 </code></pre></div>
+<h3 id="custom-filter-configuration">Custom Filter Configuration<a class="headerlink" href="#custom-filter-configuration" title="Permanent link">&para;</a></h3>
+<p>In some situations it&rsquo;s desirable to have the ability to add extra <a href="https://opensource.zalando.com/skipper/reference/filters/">Skipper filters</a> into a gateway managed ingress which aren&rsquo;t explicitly modeled in the Fabric Gateway Custom Resource Definition. To this end, the gateway operator allows the pass-through of an allow-list of filters which will be appended to the filters present in the proxy routes managed by the gateway operator. This is achieved through the use of an annotation on a gateway resource as outlined in the below example. As can be seen in the example, additional filters need to be populated in an annotation named: <code>fabric/additional-filters</code> and chained (in the usual <a href="https://opensource.zalando.com/skipper/kubernetes/ingress-usage/#filters-and-predicates">Skipper manner</a>) by using the <code>-&gt;</code> delimiter. </p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zalando.org/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">FabricGateway</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app-gateway</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">fabric/additional-filters</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">fadeIn(&quot;1m&quot;) -&gt; tee(&quot;https://some-other-backend.zalandoapis.com/api&quot;)</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">x-fabric-service</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">host</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app.my-cluster.zalan.do</span>
+      <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app-service-name</span>
+      <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http</span>
+  <span class="nt">paths</span><span class="p">:</span>
+    <span class="nt">/api/resource</span><span class="p">:</span>
+      <span class="nt">get</span><span class="p">:</span>
+        <span class="nt">x-fabric-privileges</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.read&quot;</span>
+</code></pre></div>
+<p><strong>N.B.</strong> The addition of filters outside those generated by the gateway operator is inherently unsafe. Work has gone into the gateway operator to ensure that the combinations of filters and predicates used for requests do not result in unexpected behaviour for services, when adding in extra filters, it is impossible for the gateway operator to understand what impact this will have on routing of requests. Therefore, it is important to test any filter additions thoroughly in a staging environment before pushing these changes live. </p>
 <h2 id="other">Other<a class="headerlink" href="#other" title="Permanent link">&para;</a></h2>
 <h3 id="path-matching">Path Matching<a class="headerlink" href="#path-matching" title="Permanent link">&para;</a></h3>
 <p>There are some rules around path matching in the gateway which are outlined below.</p>
