@@ -148,7 +148,8 @@ Fabric Gateway provides the following features.
 Fabric Gateway can be used in place of internal logic for authenticating access from other services using the
 Zalando IAM service. As we only accept `service` and `employee` tokens, the gateway is not a candidate for customer
 auth workflows. There will be a header added to the request, `X-TokenInfo-Forward`. 
-This will contain the `uid`, `scope` and `realm` retrieved from from the [Token Info endpoint](https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints).
+This will contain the json response retrieved from from the [Token Info endpoint](https://cloud.docs.zalando.net/howtos/authenticate-requests/#oauth2-endpoints), 
+but only the fields `uid`, `scope` and `realm`.
 
 ### Authorization
 
