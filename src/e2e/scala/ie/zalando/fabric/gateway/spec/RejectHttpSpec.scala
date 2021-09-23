@@ -10,19 +10,15 @@ class RejectHttpSpec extends FunSpec with Matchers {
 
   describe("Fabric Gateway will reject not https traffic") {
 
-    it("should reject http traffic from valid services with a 403") {
+    it("should offer a redirect to https for http traffic from valid services") {
       val resp = sttp
         .get(TestConstants.TestAppResources(scheme = "http"))
         .header("Authorization", s"Bearer ${TestConstants.ValidNonWhitelistedToken}")
+        .followRedirects(false)
         .send()
 
-      resp.code shouldBe 400
-
-      resp.body match {
-        case Left(body) =>
-          body shouldBe """{"title":"Gateway Rejected","status":400,"detail":"TLS is required","type":"https://cloud.docs.zalando.net/howtos/ingress/#redirect-http-to-https"}"""
-        case _ => fail("Expecting an err response")
-      }
+      resp.code shouldBe 308
+      resp.header("Location") shouldBe Some("https://test-gateway-operator.playground.zalan.do/resources")
     }
   }
 }
