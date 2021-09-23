@@ -203,10 +203,9 @@ example above.
 
 ### Encryption In Transit
 
-The gateway will ensure that no requests are hitting your service
-unless they are encrypted using `https`. To achieve this, we have a skipper
-filter on every route, which will reject the request with a 400 response if
-it contains the `X-Forwarded-Proto: http` header. This is an extra layer of
+The gateway (via the underlying Load Balancer) ensures that no requests are hitting your service
+unless they are encrypted using `https`. This is achieved at the Load Balancer which will respond with a 308 redirect
+to any non TLS traffic. This is an extra layer of
 security to ensure that people are not interacting with your service in
 an insecure manner.
 
@@ -214,19 +213,11 @@ An example request can be seen below:
 
 ```bash
 curl -i -H "Authentication: Bearer $(ztoken)" http://fgtestapp.smart-product-platform-test.zalan.do/resources
-HTTP/1.1 400 Forbidden
-Date: Fri, 01 Mar 2019 10:38:05 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 104
-Connection: keep-alive
+HTTP/1.1 308 Permanent Redirect
+Location: https://fgtestapp.smart-product-platform-test.zalan.do/resources
 Server: Skipper
-
-{
-  "title": "Gateway Rejected",
-  "status": 400,
-  "detail": "TLS is required",
-  "type": "https://cloud.docs.zalando.net/howtos/ingress/#redirect-http-to-https"
-}
+Date: Thu, 23 Sep 2021 07:40:00 GMT
+Transfer-Encoding: chunked
 ```
 
 ### Multiple Hosts
