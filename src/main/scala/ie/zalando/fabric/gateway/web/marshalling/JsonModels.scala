@@ -95,6 +95,7 @@ trait JsonModels {
         period
           .map { value =>
             value.toLowerCase match {
+              case "second" => PerSecond
               case "minute" => PerMinute
               case "hour"   => PerHour
               case _ =>
