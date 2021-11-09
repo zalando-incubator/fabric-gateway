@@ -243,6 +243,10 @@ object SynchDomain {
     def skipperRepresentation: String
   }
 
+  case object PerSecond extends RateLimitPeriod {
+    val skipperRepresentation = "s"
+  }
+
   case object PerMinute extends RateLimitPeriod {
     val skipperRepresentation = "m"
   }
