@@ -100,7 +100,7 @@ trait JsonModels {
               case "hour"   => PerHour
               case _ =>
                 throw new IllegalArgumentException(
-                  s"$value is not acceptable as a rate limit period. Acceptable values: minute, hour")
+                  s"$value is not acceptable as a rate limit period. Acceptable values: second, minute, hour")
             }
           }
           .getOrElse(PerMinute),

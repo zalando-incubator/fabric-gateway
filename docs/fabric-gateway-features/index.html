@@ -662,7 +662,7 @@
           <span class="p p-Indicator">-</span> <span class="s">&quot;spp-application.write&quot;</span>
         <span class="nt">x-fabric-ratelimits</span><span class="p">:</span>
           <span class="nt">default-rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-          <span class="c1"># Valid values are &#39;hour&#39; and &#39;minute&#39;, defaults to &#39;minute&#39; if omitted.</span>
+          <span class="c1"># Valid values are &#39;hour&#39;, &#39;minute&#39; and &#39;second&#39;, defaults to &#39;minute&#39; if omitted.</span>
           <span class="nt">period</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">minute</span>
           <span class="nt">target</span><span class="p">:</span>
             <span class="nt">stups_spp_service_name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">50</span>
@@ -801,27 +801,18 @@ If you want to apply a service specific rate-limit, then the service name must b
 <code>stups_</code>. This can be seen in the <code>x-fabric-ratelimits.target</code> section of the main Configuration 
 example above.</p>
 <h3 id="encryption-in-transit">Encryption In Transit<a class="headerlink" href="#encryption-in-transit" title="Permanent link">&para;</a></h3>
-<p>The gateway will ensure that no requests are hitting your service
-unless they are encrypted using <code>https</code>. To achieve this, we have a skipper
-filter on every route, which will reject the request with a 400 response if
-it contains the <code>X-Forwarded-Proto: http</code> header. This is an extra layer of
+<p>The gateway (via the underlying Load Balancer) ensures that no requests are hitting your service
+unless they are encrypted using <code>https</code>. This is achieved at the Load Balancer which will respond with a 308 redirect
+to any non TLS traffic. This is an extra layer of
 security to ensure that people are not interacting with your service in
 an insecure manner.</p>
 <p>An example request can be seen below:</p>
 <div class="highlight"><pre><span></span><code>curl -i -H <span class="s2">&quot;Authentication: Bearer </span><span class="k">$(</span>ztoken<span class="k">)</span><span class="s2">&quot;</span> http://fgtestapp.smart-product-platform-test.zalan.do/resources
-HTTP/1.1 <span class="m">400</span> Forbidden
-Date: Fri, <span class="m">01</span> Mar <span class="m">2019</span> <span class="m">10</span>:38:05 GMT
-Content-Type: text/plain<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
-Content-Length: <span class="m">104</span>
-Connection: keep-alive
+HTTP/1.1 <span class="m">308</span> Permanent Redirect
+Location: https://fgtestapp.smart-product-platform-test.zalan.do/resources
 Server: Skipper
-
-<span class="o">{</span>
-  <span class="s2">&quot;title&quot;</span>: <span class="s2">&quot;Gateway Rejected&quot;</span>,
-  <span class="s2">&quot;status&quot;</span>: <span class="m">400</span>,
-  <span class="s2">&quot;detail&quot;</span>: <span class="s2">&quot;TLS is required&quot;</span>,
-  <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;https://cloud.docs.zalando.net/howtos/ingress/#redirect-http-to-https&quot;</span>
-<span class="o">}</span>
+Date: Thu, <span class="m">23</span> Sep <span class="m">2021</span> <span class="m">07</span>:40:00 GMT
+Transfer-Encoding: chunked
 </code></pre></div>
 <h3 id="multiple-hosts">Multiple Hosts<a class="headerlink" href="#multiple-hosts" title="Permanent link">&para;</a></h3>
 <p>All created Skipper routes will match incoming requests first by their host.<br />
