@@ -31,7 +31,7 @@ spec:
           - "spp-application.write"
         x-fabric-ratelimits:
           default-rate: 10
-          # Valid values are 'hour' and 'minute', defaults to 'minute' if omitted.
+          # Valid values are 'hour', 'minute' and 'second', defaults to 'minute' if omitted.
           period: minute
           target:
             stups_spp_service_name: 50

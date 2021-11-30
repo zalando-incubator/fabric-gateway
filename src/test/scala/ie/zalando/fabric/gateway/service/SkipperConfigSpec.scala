@@ -39,6 +39,8 @@ class SkipperConfigSpec extends FlatSpec with Matchers {
        """clusterClientRatelimit("testGW_api_GET", 25, "1m", "Authorization")"""),
       (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 15, PerHour)),
        """clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization")"""),
+      (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 15, PerSecond)),
+       """clusterClientRatelimit("testGW_api_GET", 15, "1s", "Authorization")"""),
       (NEL.of(GlobalRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), 15, PerHour), FlowId),
        """clusterClientRatelimit("testGW_api_GET", 15, "1h", "Authorization") -> flowId("reuse")"""),
       (NEL.of(ClientSpecificRouteRateLimit("testGW", PathMatch("/api"), MethodMatch(Get), ClientMatch("svc"), 25, PerMinute)),
