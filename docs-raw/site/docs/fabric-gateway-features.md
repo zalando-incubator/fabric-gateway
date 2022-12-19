@@ -195,6 +195,19 @@ x-content-type-options: nosniff
 x-rate-limit: 120
 ```
 
+There are two types of rate limiters in Fabric Gateway:
+
++ `x-fabric-ratelimits`
++ `x-fabric-request-ratelimits`
+
+First type of rate limiter is intended to rate limit incoming requests by caller service
+(it is called `target` in the configuration). If caller service is not mentioned in the
+`target` then it is rate limited to `default-rate` requests per period. Otherwise rate
+is fetched from `target` map.
+Second type of rate limiter is intended to rate limit incoming requests by user. User is
+identified by values of HTTP headers specified in the rate limiter configuration. Rate limit
+applies for the biggest unique non-empty combination of configured header values.
+
 **N.B.**
 If you want to apply a service specific rate-limit, then the service name must be prepended with
 `stups_`. This can be seen in the `x-fabric-ratelimits.target` section of the main Configuration 
